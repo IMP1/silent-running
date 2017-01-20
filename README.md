@@ -1,9 +1,14 @@
 # RoadMap
 
-## 0.1.0
+### mvp
   - [X] move square around
   - [ ] have other player(s) move other square(s) around
   - [ ] have single level with terrain across network.
+
+## 0.1.0
+<sup>the mvp branch done</sup>
+
+This is the Minimum Viable Product. It's something playable that can then be iterated upon.
 
 ### core/stealth
   - [ ] have terrain and other squares only draw on passive pings (and fade out)
@@ -19,7 +24,9 @@
   - [ ] have torpedos damage the player (and cause a noise?)
 
 ## 0.2.0
-    all the above core/* branches done.
+<sup>all the above core/* branches done</sup>
+
+This is the core game. The basic mechanics are implemented.
 
 ### juice/movement
   - [ ] have player movement feel good
@@ -29,7 +36,9 @@
   - [ ] have being hit by an enemy feel bad (screenshake!)
 
 ## 0.3.0
-    all the above juice/* branches done.
+<sup>all the above juice/* branches done</sup>
+
+This is an improved version of the core game, but still with placeholder assets.
 
 ### polish/input
   - [ ] configurable keybindings
@@ -47,7 +56,9 @@
   - [ ] settings
 
 ## 1.0.0
-  all the above polish/* branches done.
+<sup>all the above polish/* branches done</sup>
+
+This is the finished game, releasable.
 
 # Ideas
 
