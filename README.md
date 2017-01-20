@@ -28,6 +28,16 @@ This is the Minimum Viable Product. It's something playable that can then be ite
 
 This is the core game. The basic mechanics are implemented.
 
+### core/winloss
+  - [ ] win conditions on all enemies destroyed
+  - [ ] loss condition on submarine being destroyed
+
+### core/lobby
+  - [ ] option to start game or join game
+
+## 0.3.0
+<sup>all the above core/* branches done</sup>
+
 ### juice/movement
   - [ ] have player movement feel good
 
@@ -35,7 +45,7 @@ This is the core game. The basic mechanics are implemented.
   - [ ] have hitting an enemy feel good (screenshake?)
   - [ ] have being hit by an enemy feel bad (screenshake!)
 
-## 0.3.0
+## 0.4.0
 <sup>all the above juice/* branches done</sup>
 
 This is an improved version of the core game, but still with placeholder assets.
@@ -54,6 +64,7 @@ This is an improved version of the core game, but still with placeholder assets.
 ### polish/menu
   - [ ] title screen
   - [ ] settings
+  - [ ] better looking lobby
 
 ## 1.0.0
 <sup>all the above polish/* branches done</sup>
