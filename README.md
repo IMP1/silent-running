@@ -5,37 +5,49 @@
   - [ ] have other player(s) move other square(s) around
   - [ ] have single level with terrain across network.
 
-## core/stealth
+### core/stealth
   - [ ] have terrain and other squares only draw on passive pings (and fade out)
   - [ ] implement silent running (everything invisible but with active pings)
 
-## core/levels
-  - [ ] Procedurally generated levels (have cheat code to see the terrain)
+### core/levels
+  - [ ] procedurally generated levels (have cheat code to see the terrain)
       * terrain
       * starting positions
 
-## core/battle
+### core/battle
   - [ ] have torpedos be firable.
   - [ ] have torpedos damage the player (and cause a noise?)
 
 ## 0.2.0
     all the above core/* branches done.
 
-## juice/movement
+### juice/movement
   - [ ] have player movement feel good
 
-## juice/impact
+### juice/impact
   - [ ] have hitting an enemy feel good (screenshake?)
   - [ ] have being hit by an enemy feel bad (screenshake!)
 
 ## 0.3.0
     all the above juice/* branches done.
 
+### polish/input
+  - [ ] configurable keybindings
+  - [ ] game controllers working
 
+### polish/graphics
+  - [ ] slick graphics
+
+### polish/audio
+  - [ ] atmospheric sound effects
+  - [ ] minimal soundtrack
+
+### polish/menu
+  - [ ] title screen
+  - [ ] settings
 
 ## 1.0.0
-  - [ ] Slick graphics
-  - [ ] Atmospheric sound effects / soundtrack
+  all the above polish/* branches done.
 
 # Ideas
 
