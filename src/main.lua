@@ -13,7 +13,7 @@ local sock = require "sock"
 -------------
 -- Classes --
 -------------
-
+local Rock   = require "rock"
 local Player = require "player"
 
 function love.load()
