@@ -65,6 +65,10 @@ This is an improved version of the core game, but still with placeholder assets.
   - [ ] title screen
   - [ ] settings
   - [ ] better looking lobby
+  
+### polish/localisation
+  - [ ] refactored internationalisation
+  - [ ] English 'translation'
 
 ## 1.0.0
 <sup>all the above polish/* branches done</sup>
