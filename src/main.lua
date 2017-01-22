@@ -2,6 +2,7 @@
 -- Constants --
 ---------------
 ROOT_2 = math.sqrt(2)
+DEBUG_TEXT = {"DEBUG"}
 
 PORT   = 22122
 
@@ -44,10 +45,11 @@ function startServer()
     server = sock.newServer("*", PORT)
 
     server:on("connect", function(data, client)
-        local image = love.filesystem.newFileData("hello.png")
-        -- server:sendToAll("image", image)
-        client:send("image", image)
+        table.insert(DEBUG_TEXT, "Connected to " .. tostring(client))
+        server:sendToAll("image", "Floop de loop")
+        -- client:send("image", "Hello there!")
     end)
+    table.insert(DEBUG_TEXT, "Started server.")
 end
 
 function startClient()
@@ -56,18 +58,38 @@ function startClient()
     client:connect()
 
     client:on("image", function(data)
-        local file = love.filesystem.newFileData(data, "")
-        receivedImage = love.image.newImageData(file)
-        receivedImage = love.graphics.newImage(receivedImage)
+        table.insert(DEBUG_TEXT, "Recieved '" .. tostring(data) .. "' from server.")
     end)
+    table.insert(DEBUG_TEXT, "Connected to localhost")
 end
 
 function love.update(dt)
     if running then
         player:update(dt)
     end
+    if server then
+        server:update()
+    end
+    if client then
+        client:update()
+    end
 end
 
 function love.draw()
     player:draw()
+    for i, line in pairs(DEBUG_TEXT) do
+        love.graphics.printf(line, 0, (i-1) * 16, love.graphics.getWidth(), "right")
+    end
+    local status = ""
+    if not running then
+        status = "PAUSED"
+    elseif server then
+        status = "SERVER"
+    elseif client then
+        status = "CLIENT"
+    else
+        status = "???"
+    end
+    
+    love.graphics.printf(status, 0, 96, love.graphics.getWidth(), "center")
 end
