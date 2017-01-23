@@ -18,10 +18,8 @@ local Rock   = require "rock"
 local Player = require "player"
 
 function love.load()
-    player = Player.new(256, 256)
     log = Log.new()
     level = love.filesystem.load("level.lua")()
-    running = false
 end
 
 function love.keypressed(key, isRepeat)
@@ -39,7 +37,6 @@ function start(role)
     elseif role == "client" then
         startClient()
     end
-    running = true
 end
 
 function startServer()
@@ -47,57 +44,107 @@ function startServer()
     -- Server Variables --
     ----------------------
     server = sock.newServer("*", PORT)
-
+    players = {}
+    activePings = {}
 
     server:on("connect", function(data, client)
         log:add("Connected to " .. tostring(client))
-        server:sendToAll("image", "Floop de loop")
-        -- client:send("image", "Hello there!")
+        local x = (#players + 1) * 96
+        local y = 256
+        local newPlayer = Player.new(x, y)
+        players[client] = newPlayer
+        -- server:sendToAll("image", "Floop de loop")
+        client:send("init", newPlayer)
+    end)
+
+    server:on("active-ping", function(kinematicState, client)
+        local newPing = Ping.new(unpack(kinematicState))
+        table.insert(activePings, newPing)
+        -- add to active pingsList, and return pongs on any bounces
+    end)
+
+    server:on("passive-ping", function(position, client)
+        -- get all objects in the radius from the player
+        -- return them all
+    end)
+
+    server:on("move", function(offset, client)
+        players[client].move(offset.x, offset.y)
     end)
 
     log:add("Started server.")
 end
 
 function startClient()
+    ----------------------
+    -- Client Variables --
+    ----------------------
     client = sock.newClient("localhost", PORT)
+    player = nil
+    pongGhosts = nil
+    
+    ----------------------
+    -- Client Callbacks --
+    ----------------------
+    client:on("connect", function(data)
+        log:add("Connected to localhost")
+    end)
 
-    client:on("image", function(data)
-        log:add("Recieved '" .. tostring(data) .. "' from server.")
+    client:on("init", function(allocatedPlayer)
+        log:add("Recieved '" .. tostring(allocatedPlayer) .. "' from server.")
+        player = allocatedPlayer
+        pongGhosts = {}
+    end)
+
+    client:on("pong", function(pongGhost)
+        log:add("Recieved '" .. tostring(pongGhost) .. "' from server.")
+        table.insert(pongGhosts, pongGhost)
     end)
 
     client:connect()
-
-    log:add("Connected to localhost")
 end
 
 function love.update(dt)
-    if running then
-        player:update(dt)
-    end
     if server then
-        server:update()
+        updateServer(dt)
     end
     if client then
-        client:update()
+        updateClient(dt)
     end
 
     log:update()
 end
 
-function love.draw()
-    player:draw()
-    local status = ""
-    if not running then
-        status = "PAUSED"
-    elseif server then
-        status = "SERVER"
-    elseif client then
-        status = "CLIENT"
-    else
-        status = "???"
+function updateServer(dt)
+    server:update()
+    for o= #activePings, 1, -1 do
+        activePings[i]:update(dt) -- TODO: have ping class
+        -- TODO: ping class will handle movement, and collisions with players and terrain, and fires 'pong' events to players.
+        if activePings[i].finished then
+            table.remove(activePings, i)
+        end
     end
-    
-    love.graphics.printf(status, 0, 96, love.graphics.getWidth(), "center")
+end
+
+function updateClient(dt)
+    client:update()
+    if player == nil then return end
+    player:update(dt)
+    for i = #pongGhosts, 1, -1 do
+        pongGhosts[i]:update(dt) -- TODO: have pongGhost class
+        -- TODO: pongGhost class will have a draw function and opacity levels.
+        if pongGhosts[i].opacity == 0 then
+            table.remove(pongGhosts, i)
+        end
+    end
+end
+
+function love.draw()
+    if player then
+        player:draw()
+    else
+        love.graphics.printf("WAITING", 0, 96, love.graphics.getWidth(), "center")
+    end
 
     log:draw()
 end
