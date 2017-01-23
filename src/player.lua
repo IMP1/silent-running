@@ -37,11 +37,11 @@ function Player:update(dt)
     self.pos.x = self.pos.x + self.vel.x * dt
     self.pos.y = self.pos.y + self.vel.y * dt
 
-    self.vel.x = self.vel.x * Player.FRICTION
+    self.vel.x = self.vel.x * Player.FRICTION ^ dt
     if math.abs(self.vel.x) < Player.EPSILON then
         self.vel.x = 0
     end
-    self.vel.y = self.vel.y * Player.FRICTION
+    self.vel.y = self.vel.y * Player.FRICTION ^ dt
     if math.abs(self.vel.y) < Player.EPSILON then
         self.vel.y = 0
     end
