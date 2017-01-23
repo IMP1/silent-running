@@ -1,3 +1,5 @@
+DEBUG = true
+
 ---------------
 -- Constants --
 ---------------
@@ -144,6 +146,12 @@ function love.draw()
         player:draw()
     else
         love.graphics.printf("WAITING", 0, 96, love.graphics.getWidth(), "center")
+    end
+
+    if players and DEBUG then
+        for _, p in pairs(players) do
+            p:draw()
+        end
     end
 
     log:draw()
