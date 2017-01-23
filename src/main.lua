@@ -2,7 +2,6 @@
 -- Constants --
 ---------------
 ROOT_2 = math.sqrt(2)
-DEBUG_TEXT = {"DEBUG"}
 
 PORT   = 22122
 
@@ -14,11 +13,13 @@ local sock = require "sock"
 -------------
 -- Classes --
 -------------
+local Log    = require "log"
 local Rock   = require "rock"
 local Player = require "player"
 
 function love.load()
     player = Player.new(256, 256)
+    log = Log.new()
     level = love.filesystem.load("level.lua")()
     running = false
 end
@@ -42,25 +43,31 @@ function start(role)
 end
 
 function startServer()
+    ----------------------
+    -- Server Variables --
+    ----------------------
     server = sock.newServer("*", PORT)
 
+
     server:on("connect", function(data, client)
-        table.insert(DEBUG_TEXT, "Connected to " .. tostring(client))
+        log:add("Connected to " .. tostring(client))
         server:sendToAll("image", "Floop de loop")
         -- client:send("image", "Hello there!")
     end)
-    table.insert(DEBUG_TEXT, "Started server.")
+
+    log:add("Started server.")
 end
 
 function startClient()
     client = sock.newClient("localhost", PORT)
 
+    client:on("image", function(data)
+        log:add("Recieved '" .. tostring(data) .. "' from server.")
+    end)
+
     client:connect()
 
-    client:on("image", function(data)
-        table.insert(DEBUG_TEXT, "Recieved '" .. tostring(data) .. "' from server.")
-    end)
-    table.insert(DEBUG_TEXT, "Connected to localhost")
+    log:add("Connected to localhost")
 end
 
 function love.update(dt)
@@ -73,13 +80,12 @@ function love.update(dt)
     if client then
         client:update()
     end
+
+    log:update()
 end
 
 function love.draw()
     player:draw()
-    for i, line in pairs(DEBUG_TEXT) do
-        love.graphics.printf(line, 0, (i-1) * 16, love.graphics.getWidth(), "right")
-    end
     local status = ""
     if not running then
         status = "PAUSED"
@@ -92,4 +98,6 @@ function love.draw()
     end
     
     love.graphics.printf(status, 0, 96, love.graphics.getWidth(), "center")
+
+    log:draw()
 end
