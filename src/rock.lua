@@ -17,7 +17,9 @@ function Rock.new(...)
 end
 
 function Rock:containsPoint(x, y)
--- http://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle/2049712#2049712
+    for _, triangle in pairs(self.triangles) do
+        -- http://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle/2049712#2049712
+    end
     return false
 end
 
