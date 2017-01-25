@@ -46,17 +46,18 @@ function startServer()
     -- Server Variables --
     ----------------------
     server = sock.newServer("*", PORT)
+    playerCount = 0
     players = {}
     activePings = {}
 
     server:on("connect", function(data, client)
-        log:add("Connected to " .. tostring(client))
-        local x = (#players + 1) * 96
+        playerCount = playerCount + 1
+        log:add("Added client.")
+        local x = playerCount * 96
         local y = 256
-        local newPlayer = Player.new(x, y)
-        players[client] = newPlayer
+        players[client] = Player.new(x, y)
         -- server:sendToAll("image", "Floop de loop")
-        client:send("init", newPlayer)
+        client:send("init", {x, y})
     end)
 
     server:on("active-ping", function(kinematicState, client)
@@ -71,7 +72,7 @@ function startServer()
     end)
 
     server:on("move", function(offset, client)
-        players[client].move(offset.x, offset.y)
+        players[client]:move(offset.x, offset.y)
     end)
 
     log:add("Started server.")
@@ -92,9 +93,9 @@ function startClient()
         log:add("Connected to localhost")
     end)
 
-    client:on("init", function(allocatedPlayer)
-        log:add("Recieved '" .. tostring(allocatedPlayer) .. "' from server.")
-        player = allocatedPlayer
+    client:on("init", function(playerPosition)
+        log:add("Recieved '" .. tostring(playerPosition) .. "' from server.")
+        player = Player.new(unpack(playerPosition))
         pongGhosts = {}
     end)
 
@@ -132,6 +133,7 @@ function updateClient(dt)
     client:update()
     if player == nil then return end
     player:update(dt)
+    client:send("move", player.lastMove)
     for i = #pongGhosts, 1, -1 do
         pongGhosts[i]:update(dt) -- TODO: have pongGhost class
         -- TODO: pongGhost class will have a draw function and opacity levels.
@@ -142,7 +144,7 @@ function updateClient(dt)
 end
 
 function love.draw()
-    if player then
+    if player and players == nil then
         player:draw()
     else
         love.graphics.printf("WAITING", 0, 96, love.graphics.getWidth(), "center")

@@ -10,6 +10,7 @@ function Player.new(x, y)
     setmetatable(this, Player)
     this.pos = { x = x, y = y }
     this.vel = { x = 0, y = 0 }
+    this.lastMove = { x = 0, y = 0 }
     return this
 end
 
@@ -34,8 +35,7 @@ function Player:update(dt)
     self.vel.x = self.vel.x + dx * Player.ACCELLERATION ^ dt
     self.vel.y = self.vel.y + dy * Player.ACCELLERATION ^ dt
 
-    self.pos.x = self.pos.x + self.vel.x * dt
-    self.pos.y = self.pos.y + self.vel.y * dt
+    self:move(self.vel.x * dt, self.vel.y * dt)
 
     self.vel.x = self.vel.x * Player.FRICTION ^ dt
     if math.abs(self.vel.x) < Player.EPSILON then
@@ -45,6 +45,14 @@ function Player:update(dt)
     if math.abs(self.vel.y) < Player.EPSILON then
         self.vel.y = 0
     end
+end
+
+function Player:move(dx, dy)
+    self.lastMove.x = dx
+    self.lastMove.y = dy
+
+    self.pos.x = self.pos.x + dx
+    self.pos.y = self.pos.y + dy
 end
 
 function Player:draw()
