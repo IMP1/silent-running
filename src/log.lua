@@ -9,6 +9,7 @@ function Log.new()
 end
 
 function Log:add(message)
+    print(message)
     table.insert(self.messages, message)
 end
 
