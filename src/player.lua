@@ -1,3 +1,5 @@
+local ROOT_2 = math.sqrt(2)
+
 local Player = {}
 Player.__index = Player
 

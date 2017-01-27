@@ -3,8 +3,6 @@ DEBUG = true
 ---------------
 -- Constants --
 ---------------
-ROOT_2 = math.sqrt(2)
-
 PORT   = 22122
 
 ---------------
