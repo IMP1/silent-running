@@ -10,7 +10,7 @@ PORT   = 22122
 ---------------
 -- Libraries --
 ---------------
-local sock = require "sock"
+local sock = require "lib.sock"
 
 -------------
 -- Classes --
