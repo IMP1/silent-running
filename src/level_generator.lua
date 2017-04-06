@@ -1,5 +1,5 @@
 -- https://github.com/interstellarDAVE/lualib-voronoi/blob/working/voronoi.lua
-local voronoi = require 'voronoi'
+local voronoi = require 'lib.voronoi'
 
 local LevelGenerator = {}
 
