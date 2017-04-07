@@ -39,6 +39,8 @@ function Player:update(dt)
 
     self:move(self.vel.x * dt, self.vel.y * dt)
 
+    -- TODO: check for collisions
+
     self.vel.x = self.vel.x * Player.FRICTION ^ dt
     if math.abs(self.vel.x) < Player.EPSILON then
         self.vel.x = 0
