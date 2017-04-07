@@ -48,6 +48,9 @@ function startServer()
     players = {}
     activePings = {}
 
+    ----------------------
+    -- Server Callbacks --
+    ----------------------
     server:on("connect", function(data, client)
         playerCount = playerCount + 1
         log:add("Added client.")
@@ -65,8 +68,7 @@ function startServer()
     end)
 
     server:on("passive-ping", function(position, client)
-        -- get all objects in the radius from the player
-        -- return them all
+        -- take an image around the pong location and return that
     end)
 
     server:on("move", function(offset, client)
@@ -118,9 +120,8 @@ end
 
 function updateServer(dt)
     server:update()
-    for o= #activePings, 1, -1 do
-        activePings[i]:update(dt) -- TODO: have ping class
-        -- TODO: ping class will handle movement, and collisions with players and terrain, and fires 'pong' events to players.
+    for o = #activePings, 1, -1 do
+        activePings[i]:update(dt)
         if activePings[i].finished then
             table.remove(activePings, i)
         end
@@ -148,11 +149,27 @@ function love.draw()
         love.graphics.printf("WAITING", 0, 96, love.graphics.getWidth(), "center")
     end
 
-    if players and DEBUG then
+    if pongGhosts then
+        for _, p in pairs(pongGhosts) do
+            p:draw()
+        end 
+    end
+
+    if DEBUG then
+        drawDebug()
+    end
+end
+
+function drawDebug()
+    if players then
         for _, p in pairs(players) do
             p:draw()
         end
     end
-
+    if activePings then
+        for _, p in pairs(activePings) do
+            p:draw()
+        end
+    end
     log:draw()
 end
