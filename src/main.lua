@@ -8,6 +8,7 @@ PORT   = 22122
 ---------------
 -- Libraries --
 ---------------
+local bitser = require "lib.bitser"
 local sock = require "lib.sock"
 
 -------------
@@ -44,6 +45,7 @@ function startServer()
     -- Server Variables --
     ----------------------
     server = sock.newServer("*", PORT)
+    server:setSerialization(bitser.dumps, bitser.loads)
     playerCount = 0
     players = {}
     activePings = {}
@@ -83,6 +85,7 @@ function startClient()
     -- Client Variables --
     ----------------------
     client = sock.newClient("localhost", PORT)
+    client:setSerialization(bitser.dumps, bitser.loads)
     player = nil
     pongGhosts = nil
     
