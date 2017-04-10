@@ -24,10 +24,14 @@ function love.load()
 end
 
 function love.keypressed(key, isRepeat)
-    if key == "1" then
-        start("server")
-    elseif key == "2" then
-        start("client")
+    if server or client then 
+
+    else
+        if key == "1" then
+            start("server")
+        elseif key == "2" then
+            start("client")
+        end
     end
 end
 
@@ -97,7 +101,7 @@ function startClient()
     end)
 
     client:on("init", function(playerPosition)
-        log:add("Recieved '" .. tostring(playerPosition) .. "' from server.")
+        log:add("Recieved '" .. playerPosition[1] .. ", " .. playerPosition[2] .. "' from server.")
         player = Player.new(unpack(playerPosition))
         pongGhosts = {}
     end)
@@ -146,7 +150,7 @@ function updateClient(dt)
 end
 
 function love.draw()
-    if player and players == nil then
+    if player then
         player:draw()
     else
         love.graphics.printf("WAITING", 0, 96, love.graphics.getWidth(), "center")
