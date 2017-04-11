@@ -3,13 +3,13 @@ DEBUG = true
 ---------------
 -- Constants --
 ---------------
-PORT   = 22122
+PORT = 22122
 
 ---------------
 -- Libraries --
 ---------------
 local bitser = require "lib.bitser"
-local sock = require "lib.sock"
+local sock   = require "lib.sock"
 
 -------------
 -- Classes --
@@ -23,15 +23,15 @@ function love.load()
 end
 
 function love.keypressed(key, isRepeat)
-    if server or client then 
-
-    else
+    if not server and not client then 
         if key == "1" then
             start("server")
         elseif key == "2" then
             start("client")
         end
+        return
     end
+
 end
 
 function start(role)
@@ -63,7 +63,6 @@ function startServer()
         local x = playerCount * 96
         local y = 256
         players[client] = Player.new(x, y)
-        -- server:sendToAll("image", "Floop de loop")
         client:send("init", {x, y})
         client:send("level", level)
     end)
