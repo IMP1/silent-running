@@ -1,5 +1,6 @@
 -- https://github.com/interstellarDAVE/lualib-voronoi/blob/working/voronoi.lua
-local voronoi = require 'lib.voronoi'
+local Voronoi = require 'lib.voronoi'
+local Level = require 'level'
 
 local LevelGenerator = {}
 
@@ -9,17 +10,19 @@ local LevelGenerator = {}
 -- "relax" the points
 -- decide on the outline of the level
 
-function LevelGenerator.generate(seed)
+function LevelGenerator.generate(width, height, seed)
     math.randomseed(seed)
 
     local pointcount = 40
     local iterations = 3
-    local minX = 25
-    local minY = 25
-    local maxX = 600
-    local maxY = 600
+    local minX = -32
+    local minY = -32
+    local maxX = width + 64
+    local maxY = height + 64
 
-    map = voronoi:new(pointcount, iterations, minX, minY, maxX, maxY)
+    map = Voronoi:new(pointcount, iterations, minX, minY, maxX, maxY)
+
+    return Level.new(map)
 
 end
 

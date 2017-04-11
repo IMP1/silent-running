@@ -8,15 +8,16 @@ PORT = 22122
 ---------------
 -- Libraries --
 ---------------
-local bitser = require "lib.bitser"
-local sock   = require "lib.sock"
+local bitser = require 'lib.bitser'
+local sock   = require 'lib.sock'
 
 -------------
 -- Classes --
 -------------
-local Log    = require "log"
-local Rock   = require "rock"
-local Player = require "player"
+local LevelGenerator = require 'level_generator'
+local Log            = require 'log'
+local Rock           = require 'rock'
+local Player         = require 'player'
 
 function love.load()
     log = Log.new()
@@ -52,7 +53,7 @@ function startServer()
     playerCount = 0
     players = {}
     activePings = {}
-    level = love.filesystem.load("level.lua")()
+    level = LevelGenerator.generate(960, 640, 1337)
 
     ----------------------
     -- Server Callbacks --
@@ -191,14 +192,13 @@ function drawDebug()
         end
     end
     if level then
-        for _, r in pairs(level.rocks) do
-            love.graphics.polygon("fill", unpack(r))
-        end
+        level:draw()
+        -- for _, r in pairs(level.rocks) do
+        --     love.graphics.polygon("fill", unpack(r))
+        -- end
     end
     if map then
-        for _, r in pairs(map.rocks) do
-            love.graphics.polygon("line", unpack(r))
-        end
+        -- map:draw()
     end 
     log:draw()
 end
