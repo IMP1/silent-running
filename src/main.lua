@@ -20,7 +20,6 @@ local Player = require "player"
 
 function love.load()
     log = Log.new()
-    level = love.filesystem.load("level.lua")()
 end
 
 function love.keypressed(key, isRepeat)
@@ -53,6 +52,7 @@ function startServer()
     playerCount = 0
     players = {}
     activePings = {}
+    level = love.filesystem.load("level.lua")()
 
     ----------------------
     -- Server Callbacks --
@@ -65,6 +65,7 @@ function startServer()
         players[client] = Player.new(x, y)
         -- server:sendToAll("image", "Floop de loop")
         client:send("init", {x, y})
+        client:send("level", level)
     end)
 
     server:on("active-ping", function(kinematicState, client)
@@ -91,6 +92,7 @@ function startClient()
     client = sock.newClient("localhost", PORT)
     client:setSerialization(bitser.dumps, bitser.loads)
     player = nil
+    map = nil
     pongGhosts = nil
     
     ----------------------
@@ -104,6 +106,12 @@ function startClient()
         log:add("Recieved '" .. playerPosition[1] .. ", " .. playerPosition[2] .. "' from server.")
         player = Player.new(unpack(playerPosition))
         pongGhosts = {}
+    end)
+
+    client:on("level", function(level)
+        log:add("Recieved level from server.")
+        log:add(tostring(level))
+        map = level
     end)
 
     client:on("pong", function(pongGhost)
@@ -150,6 +158,12 @@ function updateClient(dt)
 end
 
 function love.draw()
+    if DEBUG then
+        drawDebug()
+    end
+
+    love.graphics.setColor(255, 255, 255)
+
     if player then
         player:draw()
     else
@@ -161,16 +175,15 @@ function love.draw()
             p:draw()
         end 
     end
-
-    if DEBUG then
-        drawDebug()
-    end
 end
 
 function drawDebug()
+    love.graphics.setColor(128, 255, 255)
     if players then
         for _, p in pairs(players) do
-            p:draw()
+            if not player or p ~= player then
+                p:draw()
+            end
         end
     end
     if activePings then
@@ -178,5 +191,15 @@ function drawDebug()
             p:draw()
         end
     end
+    if level then
+        for _, r in pairs(level.rocks) do
+            love.graphics.polygon("fill", unpack(r))
+        end
+    end
+    if map then
+        for _, r in pairs(map.rocks) do
+            love.graphics.polygon("line", unpack(r))
+        end
+    end 
     log:draw()
 end
