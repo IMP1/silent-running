@@ -3,7 +3,7 @@
 ### mvp
   - [X] move square around
   - [X] have other player(s) move other square(s) around
-  - [ ] have single level with terrain across network.
+  - [X] have single level with terrain across network.
 
 ## 0.1.0
 <sup>the mvp branch done</sup>
