@@ -50,10 +50,16 @@ function startServer()
     ----------------------
     server = sock.newServer("*", PORT)
     server:setSerialization(bitser.dumps, bitser.loads)
+
     playerCount = 0
-    players = {}
+    players     = {}
+
     activePings = {}
-    level = LevelGenerator.generate(960, 640, 1337)
+
+    levelWidth  = 960
+    levelHeight = 640
+    levelSeed   = 1337
+    level       = LevelGenerator.generate(960, 640, levelSeed)
 
     ----------------------
     -- Server Callbacks --
@@ -65,7 +71,7 @@ function startServer()
         local y = 256
         players[client] = Player.new(x, y)
         client:send("init", {x, y})
-        client:send("level", level)
+        client:send("level", {levelWidth, levelHeight, levelSeed})
     end)
 
     server:on("active-ping", function(kinematicState, client)
@@ -108,10 +114,9 @@ function startClient()
         pongGhosts = {}
     end)
 
-    client:on("level", function(level)
-        log:add("Recieved level from server.")
-        log:add(tostring(level))
-        map = level
+    client:on("level", function(levelSetup)
+        log:add("Recieved level seed from server.")
+        map = LevelGenerator.generate(unpack(levelSetup))
     end)
 
     client:on("pong", function(pongGhost)
@@ -178,7 +183,7 @@ function love.draw()
 end
 
 function drawDebug()
-    love.graphics.setColor(128, 255, 255)
+    love.graphics.setColor(128, 255, 255, 128)
     if players then
         for _, p in pairs(players) do
             if not player or p ~= player then
@@ -191,14 +196,8 @@ function drawDebug()
             p:draw()
         end
     end
-    if level then
-        level:draw()
-        -- for _, r in pairs(level.rocks) do
-        --     love.graphics.polygon("fill", unpack(r))
-        -- end
-    end
     if map then
-        -- map:draw()
-    end 
+        map:draw()
+    end
     log:draw()
 end
