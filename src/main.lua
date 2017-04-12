@@ -1,4 +1,9 @@
-DEBUG = true
+DEBUG = {
+    showMap      = true,
+    showLog      = true,
+    showPlayers  = true,
+    showVelocity = true,
+}
 
 ---------------
 -- Constants --
@@ -32,6 +37,23 @@ function love.keypressed(key, isRepeat)
         end
         return
     end
+
+    if DEBUG then
+        if key == "m" then
+            DEBUG.showMap = not DEBUG.showMap
+        end
+        if key == "p" then
+            DEBUG.showPlayers = not DEBUG.showPlayers
+        end
+        if key == "v" then
+            DEBUG.showVelocity = not DEBUG.showVelocity
+        end
+        if key == "tab" then
+            DEBUG.showLog = not DEBUG.showLog
+        end
+    end
+
+
 
 end
 
@@ -184,20 +206,26 @@ end
 
 function drawDebug()
     love.graphics.setColor(128, 255, 255, 128)
-    if players then
+    if players and DEBUG.showPlayers then
         for _, p in pairs(players) do
             if not player or p ~= player then
                 p:draw()
             end
         end
     end
+    if player and DEBUG.showVelocity then
+        love.graphics.print(tostring(player.vel.x), 0, 0)
+        love.graphics.print(tostring(player.vel.y), 0, 16)
+    end
     if activePings then
         for _, p in pairs(activePings) do
             p:draw()
         end
     end
-    if map then
+    if map and DEBUG.showMap then
         map:draw()
     end
-    log:draw()
+    if log and DEBUG.showLog then
+        log:draw()
+    end
 end
