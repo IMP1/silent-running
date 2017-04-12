@@ -1,8 +1,10 @@
 DEBUG = {
-    showMap      = true,
-    showLog      = true,
-    showPlayers  = true,
-    showVelocity = true,
+    showMap       = true,
+    showLog       = true,
+    showPlayers   = true,
+    showVelocity  = true,
+    showPings     = true,
+    showTriangles = false,
 }
 
 ---------------
@@ -23,6 +25,7 @@ local LevelGenerator = require 'level_generator'
 local Log            = require 'log'
 local Rock           = require 'rock'
 local Player         = require 'player'
+local Ping           = require 'ping'
 
 function love.load()
     log = Log.new()
@@ -45,8 +48,14 @@ function love.keypressed(key, isRepeat)
         if key == "p" then
             DEBUG.showPlayers = not DEBUG.showPlayers
         end
+        if key == "." then
+            DEBUG.showPings = not DEBUG.showPings
+        end
         if key == "v" then
             DEBUG.showVelocity = not DEBUG.showVelocity
+        end
+        if key == "r" then
+            DEBUG.showTriangles = not DEBUG.showTriangles
         end
         if key == "tab" then
             DEBUG.showLog = not DEBUG.showLog
@@ -55,6 +64,20 @@ function love.keypressed(key, isRepeat)
 
 
 
+end
+
+function love.mousepressed(mx, my, key)
+    if player and key == "l" then
+        local x = player.pos.x
+        local y = player.pos.y
+        local dx = mx - x
+        local dy = my - y
+        local magnitude = math.sqrt(dx * dx + dy * dy)
+        local pingSpeed = 256
+        dx = pingSpeed * dx / magnitude
+        dy = pingSpeed * dy / magnitude
+        client:send("active-ping", {x, y, dx, dy})
+    end
 end
 
 function start(role)
@@ -97,6 +120,7 @@ function startServer()
     end)
 
     server:on("active-ping", function(kinematicState, client)
+        log:add("Recieved active ping from client at " .. kinematicState[1] .. ", " .. kinematicState[2] .. ".")
         local newPing = Ping.new(unpack(kinematicState))
         table.insert(activePings, newPing)
         -- add to active pingsList, and return pongs on any bounces
@@ -162,7 +186,8 @@ end
 
 function updateServer(dt)
     server:update()
-    for o = #activePings, 1, -1 do
+
+    for i = #activePings, 1, -1 do
         activePings[i]:update(dt)
         if activePings[i].finished then
             table.remove(activePings, i)
@@ -217,13 +242,20 @@ function drawDebug()
         love.graphics.print(tostring(player.vel.x), 0, 0)
         love.graphics.print(tostring(player.vel.y), 0, 16)
     end
-    if activePings then
+    if activePings and DEBUG.showPings then
         for _, p in pairs(activePings) do
             p:draw()
         end
     end
     if map and DEBUG.showMap then
         map:draw()
+    end
+    if map and DEBUG.showTriangles then
+        for _, rock in pairs(map.rocks) do
+            for _, tri in pairs(rock.triangles) do
+                love.graphics.polygon("line", unpack(tri))
+            end
+        end
     end
     if log and DEBUG.showLog then
         log:draw()

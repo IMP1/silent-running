@@ -12,7 +12,12 @@ function Ping.new(x, y, vx, vy)
 end
 
 function Ping:update(dt)
-    self:move(self.vel.x * dt, self.vel.y * dt)
+    local newX = self.pos.x + self.vel.x * dt
+    local newY = self.pos.y + self.vel.y * dt
+
+    if level:isPassable(newX, newY) then    
+        self:move(self.vel.x * dt, self.vel.y * dt)
+    end
     -- TODO: check for collisions and PONG.
 end
 
