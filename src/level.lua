@@ -10,7 +10,7 @@ end
 
 function Level:draw()
     for _, rock in pairs(self.rocks) do
-        love.graphics.polygon('fill',unpack(rock))
+        love.graphics.polygon('line',unpack(rock.polygon))
     end
 end
 

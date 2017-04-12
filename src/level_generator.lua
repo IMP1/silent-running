@@ -1,6 +1,7 @@
 -- https://github.com/interstellarDAVE/lualib-voronoi/blob/working/voronoi.lua
 local Voronoi = require 'lib.voronoi'
-local Level = require 'level'
+local Level   = require 'level'
+local Rock    = require 'rock'
 
 local LevelGenerator = {}
 
@@ -29,7 +30,7 @@ function LevelGenerator.generate(width, height, seed)
     for _, p in pairs(map.polygons) do
         if #p.points >= 6 then
             if math.random() <= rockiness then
-                table.insert(rocks, p.points)
+                table.insert(rocks, Rock.new(unpack(p.points)))
             end
         end
     end

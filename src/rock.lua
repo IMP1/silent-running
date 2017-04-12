@@ -23,9 +23,5 @@ function Rock:containsPoint(x, y)
     return false
 end
 
-function Rock:drawDebug()
-    love.graphics.polygon("fill", self.polygon)
-end
-
 return Rock
 
