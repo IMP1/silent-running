@@ -61,9 +61,6 @@ end
 
 function Player:draw()
     love.graphics.rectangle("fill", self.pos.x - 32, self.pos.y - 16, 64, 32)
-
-    love.graphics.print(tostring(self.vel.x), 0, 0)
-    love.graphics.print(tostring(self.vel.y), 0, 16)
 end
 
 return Player
