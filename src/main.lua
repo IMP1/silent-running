@@ -1,11 +1,12 @@
 DEBUG = {
-    showMap       = true,
-    showLog       = true,
+    showMap       = false,
+    showLog       = false,
     showPlayers   = true,
     showVelocity  = true,
     showPings     = true,
-    showTriangles = false,
+    showTriangles = true,
     keepPongs     = false,
+    showCommands  = false,
 }
 
 ---------------
@@ -65,10 +66,10 @@ function love.keypressed(key, isRepeat)
         if key == "g" then
             DEBUG.keepPongs = not DEBUG.keepPongs
         end
+        if key == "`" then
+            DEBUG.showCommands = not DEBUG.showCommands
+        end
     end
-
-
-
 end
 
 function love.mousepressed(mx, my, key)
@@ -267,4 +268,39 @@ function drawDebug()
     if log and DEBUG.showLog then
         log:draw()
     end
+    if DEBUG.showCommands then
+        love.graphics.print("M  : toggle map",        0, love.graphics.getHeight() - 24 * 1)
+        love.graphics.print("P  : toggle players",    0, love.graphics.getHeight() - 24 * 2)
+        love.graphics.print(".  : toggle pings",      0, love.graphics.getHeight() - 24 * 3)
+        love.graphics.print("V  : toggle velocity",   0, love.graphics.getHeight() - 24 * 4)
+        love.graphics.print("R  : toggle triangles",  0, love.graphics.getHeight() - 24 * 5)
+        love.graphics.print("TAB: toggle log",        0, love.graphics.getHeight() - 24 * 6)
+        love.graphics.print("G  : toggle keep pongs", 0, love.graphics.getHeight() - 24 * 7)
+        love.graphics.print("`  : toggle commands",   0, love.graphics.getHeight() - 24 * 8)
+    end
 end
+
+if key == "m" then
+            DEBUG.showMap = not DEBUG.showMap
+        end
+        if key == "p" then
+            DEBUG.showPlayers = not DEBUG.showPlayers
+        end
+        if key == "." then
+            DEBUG.showPings = not DEBUG.showPings
+        end
+        if key == "v" then
+            DEBUG.showVelocity = not DEBUG.showVelocity
+        end
+        if key == "r" then
+            DEBUG.showTriangles = not DEBUG.showTriangles
+        end
+        if key == "tab" then
+            DEBUG.showLog = not DEBUG.showLog
+        end
+        if key == "g" then
+            DEBUG.keepPongs = not DEBUG.keepPongs
+        end
+        if key == "`" then
+            DEBUG.showCommands = not DEBUG.showCommands
+        end

@@ -41,12 +41,19 @@ function Player:update(dt)
 
     -- TODO: check for collisions
 
-    self.vel.x = self.vel.x * Player.FRICTION ^ dt
-    if math.abs(self.vel.x) < Player.EPSILON then
+    local friction = Player.FRICTION
+    local epsilon  = Player.EPSILON
+    if love.keyboard.isDown("space") then
+        friction = friction / 10
+        epsilon  = epsilon * 2
+    end
+
+    self.vel.x = self.vel.x * friction ^ dt
+    if math.abs(self.vel.x) < epsilon then
         self.vel.x = 0
     end
-    self.vel.y = self.vel.y * Player.FRICTION ^ dt
-    if math.abs(self.vel.y) < Player.EPSILON then
+    self.vel.y = self.vel.y * friction ^ dt
+    if math.abs(self.vel.y) < epsilon then
         self.vel.y = 0
     end
 end
