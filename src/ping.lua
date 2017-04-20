@@ -1,3 +1,5 @@
+local PongGhost = require "pong_ghost"
+
 local Ping = {}
 Ping.__index = Ping
 
@@ -12,13 +14,19 @@ function Ping.new(x, y, vx, vy)
 end
 
 function Ping:update(dt)
+    if self.finished then return end
     local newX = self.pos.x + self.vel.x * dt
     local newY = self.pos.y + self.vel.y * dt
 
     if level:isPassable(newX, newY) then    
         self:move(self.vel.x * dt, self.vel.y * dt)
+    else
+        local imageData = level:getImageData(self.pos.x, self.pos.y, PongGhost.RADIUS)
+        server:sendToAll("pong", { self.pos.x, self.pos.y, imageData:getString() } )
+        log:add("pong at '" .. self.pos.x .. ", " .. self.pos.y .. "'.")
+        self.finished = true
+        -- TODO: maybe bounce instead and have a distance limit? or a bounce limit?
     end
-    -- TODO: check for collisions and PONG.
 end
 
 function Ping:move(dx, dy)
