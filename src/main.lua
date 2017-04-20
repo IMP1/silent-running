@@ -5,6 +5,7 @@ DEBUG = {
     showVelocity  = true,
     showPings     = true,
     showTriangles = false,
+    keepPongs     = false,
 }
 
 ---------------
@@ -26,6 +27,7 @@ local Log            = require 'log'
 local Rock           = require 'rock'
 local Player         = require 'player'
 local Ping           = require 'ping'
+local PongGhost      = require 'pong_ghost'
 
 function love.load()
     log = Log.new()
@@ -60,6 +62,9 @@ function love.keypressed(key, isRepeat)
         if key == "tab" then
             DEBUG.showLog = not DEBUG.showLog
         end
+        if key == "g" then
+            DEBUG.keepPongs = not DEBUG.keepPongs
+        end
     end
 
 
@@ -67,7 +72,8 @@ function love.keypressed(key, isRepeat)
 end
 
 function love.mousepressed(mx, my, key)
-    if player and key == "l" then
+    print(mx, my, key)
+    if player and key == 1 then
         local x = player.pos.x
         local y = player.pos.y
         local dx = mx - x
@@ -165,9 +171,10 @@ function startClient()
         map = LevelGenerator.generate(unpack(levelSetup))
     end)
 
-    client:on("pong", function(pongGhost)
-        log:add("Recieved '" .. tostring(pongGhost) .. "' from server.")
-        table.insert(pongGhosts, pongGhost)
+    client:on("pong", function(pongPosition)
+        log:add("Recieved '" .. pongPosition[1] .. ", " .. pongPosition[2] .. " from server.")
+        local pong = PongGhost.new(unpack(pongPosition))
+        table.insert(pongGhosts, pong)
     end)
 
     client:connect()
