@@ -34,6 +34,9 @@ function Level:draw()
     for _, rock in pairs(self.rocks) do
         love.graphics.polygon('fill', unpack(rock.polygon))
     end
+    for _, p in pairs(players) do
+        p:draw()
+    end
 end
 
 return Level

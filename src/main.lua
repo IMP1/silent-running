@@ -239,13 +239,6 @@ end
 
 function drawDebug()
     love.graphics.setColor(128, 255, 255, 128)
-    if players and DEBUG.showPlayers then
-        for _, p in pairs(players) do
-            if not player or p ~= player then
-                p:draw()
-            end
-        end
-    end
     if player and DEBUG.showVelocity then
         love.graphics.print(tostring(player.vel.x), 0, 0)
         love.graphics.print(tostring(player.vel.y), 0, 16)
@@ -269,38 +262,12 @@ function drawDebug()
         log:draw()
     end
     if DEBUG.showCommands then
-        love.graphics.print("M  : toggle map",        0, love.graphics.getHeight() - 24 * 1)
-        love.graphics.print("P  : toggle players",    0, love.graphics.getHeight() - 24 * 2)
-        love.graphics.print(".  : toggle pings",      0, love.graphics.getHeight() - 24 * 3)
-        love.graphics.print("V  : toggle velocity",   0, love.graphics.getHeight() - 24 * 4)
-        love.graphics.print("R  : toggle triangles",  0, love.graphics.getHeight() - 24 * 5)
-        love.graphics.print("TAB: toggle log",        0, love.graphics.getHeight() - 24 * 6)
-        love.graphics.print("G  : toggle keep pongs", 0, love.graphics.getHeight() - 24 * 7)
-        love.graphics.print("`  : toggle commands",   0, love.graphics.getHeight() - 24 * 8)
+        love.graphics.print("M  : toggle map objects", 0, love.graphics.getHeight() - 24 * 1)
+        love.graphics.print(".  : toggle pings",       0, love.graphics.getHeight() - 24 * 2)
+        love.graphics.print("V  : toggle velocity",    0, love.graphics.getHeight() - 24 * 3)
+        love.graphics.print("R  : toggle triangles",   0, love.graphics.getHeight() - 24 * 4)
+        love.graphics.print("TAB: toggle log",         0, love.graphics.getHeight() - 24 * 5)
+        love.graphics.print("G  : toggle keep pongs",  0, love.graphics.getHeight() - 24 * 6)
+        love.graphics.print("`  : toggle commands",    0, love.graphics.getHeight() - 24 * 7)
     end
 end
-
-if key == "m" then
-            DEBUG.showMap = not DEBUG.showMap
-        end
-        if key == "p" then
-            DEBUG.showPlayers = not DEBUG.showPlayers
-        end
-        if key == "." then
-            DEBUG.showPings = not DEBUG.showPings
-        end
-        if key == "v" then
-            DEBUG.showVelocity = not DEBUG.showVelocity
-        end
-        if key == "r" then
-            DEBUG.showTriangles = not DEBUG.showTriangles
-        end
-        if key == "tab" then
-            DEBUG.showLog = not DEBUG.showLog
-        end
-        if key == "g" then
-            DEBUG.keepPongs = not DEBUG.keepPongs
-        end
-        if key == "`" then
-            DEBUG.showCommands = not DEBUG.showCommands
-        end
