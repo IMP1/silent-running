@@ -9,6 +9,9 @@ PORT = 22122
 local bitser = require "lib.bitser"
 local sock   = require "lib.sock"
 
+local LevelGenerator = require 'level_generator'
+local Player         = require 'player'
+
 local Server = {}
 Server.__index = Server
 
@@ -25,16 +28,16 @@ function Server:start()
     self.playerCount = 0
     self.players = {}
     self.activePings = {}
-    self.level = love.filesystem.load("level.lua")()
+    self.level = LevelGenerator.generate(640, 640, 1337)
     
     self.server:on("connect", function(data, client)
         self.playerCount = self.playerCount + 1
         log:add("Added client.")
         local x = self.playerCount * 96
         local y = 256
-        players[client] = Player.new(x, y)
+        self.players[client] = Player.new(x, y)
         client:send("init", {x, y})
-        client:send("level", level)
+        client:send("level", self.level.params)
     end)
 
     self.server:on("active-ping", function(kinematicState, client)
@@ -48,7 +51,7 @@ function Server:start()
     end)
 
     self.server:on("move", function(offset, client)
-        players[client]:move(offset.x, offset.y)
+        self.players[client]:move(offset.x, offset.y)
     end)
 
     log:add("Started server.")
@@ -95,7 +98,7 @@ end
 function Server:draw()
     love.graphics.setColor(128, 255, 255, 128)
     if DEBUG.showPlayers then
-        for _, p in pairs(players) do
+        for _, p in pairs(self.players) do
             if not player or p ~= player then
                 p:draw()
             end
@@ -106,7 +109,7 @@ function Server:draw()
             p:draw()
         end
     end
-    level:draw()
+    self.level:draw()
 
     if DEBUG.showTriangles then
         for _, rock in pairs(self.level.rocks) do

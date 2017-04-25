@@ -1,3 +1,17 @@
+---------------
+-- Constants --
+---------------
+PORT = 22122
+
+---------------
+-- Libraries --
+---------------
+local bitser = require "lib.bitser"
+local sock   = require "lib.sock"
+
+local LevelGenerator = require 'level_generator'
+local Player         = require 'player'
+
 local Client = {}
 Client.__index = Client
 
@@ -34,7 +48,7 @@ function Client:start()
     self.client:on("level", function(level)
         log:add("Recieved level from server.")
         log:add(tostring(level))
-        self.map = level
+        self.map = LevelGenerator.generate(unpack(level))
     end)
 
     self.client:on("pong", function(pongGhost)
@@ -78,20 +92,26 @@ end
 
 function Client:update(dt)
     self.client:update()
-    self.player:update(dt)
-    self.client:send("move", player.lastMove)
-    for i = #self.pongGhosts, 1, -1 do
-        self.pongGhosts[i]:update(dt) -- TODO: have pongGhost class
-        -- TODO: pongGhost class will have a draw function and opacity levels.
-        if self.pongGhosts[i].opacity == 0 then
-            table.remove(self.pongGhosts, i)
+    if self.player then
+        self.player:update(dt)
+        self.client:send("move", self.player.lastMove)
+    end
+    if self.pongGhosts then
+        for i = #self.pongGhosts, 1, -1 do
+            self.pongGhosts[i]:update(dt) -- TODO: have pongGhost class
+            -- TODO: pongGhost class will have a draw function and opacity levels.
+            if self.pongGhosts[i].opacity == 0 then
+                table.remove(self.pongGhosts, i)
+            end
         end
     end
 end
 
 function Client:draw()
     love.graphics.setColor(255, 255, 255)
-    self.player:draw()
+    if self.player then
+        self.player:draw()
+    end
 
     if self.pongGhosts then
         for _, p in pairs(self.pongGhosts) do
@@ -99,9 +119,9 @@ function Client:draw()
         end 
     end
 
-    if DEBUG.showVelocity then
-        love.graphics.print(tostring(player.vel.x), 0, 0)
-        love.graphics.print(tostring(player.vel.y), 0, 16)
+    if DEBUG.showVelocity and self.player then
+        love.graphics.print(tostring(self.player.vel.x), 0, 0)
+        love.graphics.print(tostring(self.player.vel.y), 0, 16)
     end
     if DEBUG.showCommands then
         love.graphics.print("V  : toggle velocity",    0, love.graphics.getHeight() - 24 * 3)

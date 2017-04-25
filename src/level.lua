@@ -1,9 +1,10 @@
 local Level = {}
 Level.__index = Level
 
-function Level.new(rocks)
+function Level.new(width, height, seed, rocks)
     local this = {}
     setmetatable(this, Level)
+    this.params = { width, height, seed }
     this.rocks = rocks
     return this
 end
@@ -34,7 +35,7 @@ function Level:draw()
     for _, rock in pairs(self.rocks) do
         love.graphics.polygon('fill', unpack(rock.polygon))
     end
-    for _, p in pairs(players) do
+    for _, p in pairs(role.players) do
         p:draw()
     end
 end

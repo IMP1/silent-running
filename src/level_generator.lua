@@ -35,7 +35,7 @@ function LevelGenerator.generate(width, height, seed)
         end
     end
 
-    return Level.new(rocks)
+    return Level.new(width, height, seed, rocks)
 
 end
 

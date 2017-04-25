@@ -25,7 +25,6 @@ local sock   = require 'lib.sock'
 -------------
 local Server         = require 'server'
 local Client         = require 'client'
-local LevelGenerator = require 'level_generator'
 local Log            = require 'log'
 local Rock           = require 'rock'
 local Player         = require 'player'
@@ -55,7 +54,9 @@ function love.mousepressed(mx, my, key)
 end
 
 function love.update(dt)
-    role:update(dt)
+    if role then
+        role:update(dt)
+    end
     log:update()
 end
 
