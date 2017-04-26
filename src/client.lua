@@ -64,7 +64,7 @@ function Client:start()
 
     self.client:on("crash", function(crashData)
         log:add("Recieved crash (" .. crashData[1] .. ", " .. crashData[2] .. ") from server.")
-        -- TODO: handle crash (show animation and new position)
+        self.player:crash(unpack(crashData))
     end)
 
     self.client:connect()
@@ -73,7 +73,7 @@ end
 function Client:keypressed(key, isRepeat)
     if DEBUG then
         if key == "v" then
-            DEBUG.showVelocity = not DEBUG.showVelocity
+            DEBUG.showPlayerInfo = not DEBUG.showPlayerInfo
         end
         if key == "g" then
             DEBUG.keepPongs = not DEBUG.keepPongs
@@ -126,16 +126,16 @@ function Client:draw()
             p:draw()
         end 
     end
-    
+
     love.graphics.setColor(255, 255, 255)
     if self.player then
         self.player:draw()
     end
 
     love.graphics.setColor(255, 255, 255)
-    if DEBUG.showVelocity and self.player then
-        love.graphics.print(tostring(self.player.vel.x), 0, 0)
-        love.graphics.print(tostring(self.player.vel.y), 0, 16)
+    if DEBUG.showPlayerInfo and self.player then
+        love.graphics.print(tostring(self.player.health), 0, 0)
+        love.graphics.print(tostring(self.player.vel.x) .. "," .. tostring(self.player.vel.y), 0, 16)
     end
     if DEBUG.showCommands then
         love.graphics.print("V  : toggle velocity",    0, love.graphics.getHeight() - 24 * 3)

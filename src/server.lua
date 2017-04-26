@@ -75,8 +75,6 @@ function Server:movePlayer(client, dx, dy)
             -- TODO: work out crash message 
             --     new position of player (where it was before move), 
             --     damage (function of velocity)
-            local speed = math.sqrt(player.vel.x*player.vel.x + player.vel.y*player.vel.y)
-            
             client:send("crash", { oldX, oldY })
         end
     end

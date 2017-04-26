@@ -13,6 +13,7 @@ function Player.new(x, y)
     this.pos = { x = x, y = y }
     this.vel = { x = 0, y = 0 }
     this.lastMove = { x = 0, y = 0 }
+    this.health = 100
     return this
 end
 
@@ -64,6 +65,16 @@ function Player:move(dx, dy)
 
     self.pos.x = self.pos.x + dx
     self.pos.y = self.pos.y + dy
+end
+
+function Player:crash(x, y)
+    local speed = math.sqrt(self.vel.x * self.vel.x + self.vel.y * self.vel.y)
+    local damage = speed
+    self.pos.x = x
+    self.pos.y = y
+    self.vel.x = -self.vel.x * 0.2
+    self.vel.y = -self.vel.y * 0.2
+    self.health = self.health - damage
 end
 
 function Player:draw()
