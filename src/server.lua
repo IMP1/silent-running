@@ -65,15 +65,17 @@ end
 function Server:movePlayer(client, dx, dy)
     local player = self.players[client]
     player:move(dx, dy)
-    if not self.level:isPassable(player.position.x, player.position.y) then
-        local oldX = player.position.x - player.lastMove.x
-        local oldY = player.position.y - player.lastMove.y
+    if not self.level:isPassable(player.pos.x, player.pos.y) then
+        local oldX = player.pos.x - player.lastMove.x
+        local oldY = player.pos.y - player.lastMove.y
         if not self.level:isPassable(oldX, oldY) then
             -- something has gone wrong. cheating?
         else
             -- TODO: work out crash message 
             --     new position of player (where it was before move), 
             --     damage (function of velocity)
+            local speed = math.sqrt(player.vel.x*player.vel.x + player.vel.y*player.vel.y)
+            
             client:send("crash", { oldX, oldY })
         end
     end
