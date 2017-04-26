@@ -18,11 +18,11 @@ function Ping:update(dt)
     local newX = self.pos.x + self.vel.x * dt
     local newY = self.pos.y + self.vel.y * dt
 
-    if level:isPassable(newX, newY) then    
+    if role.level:isPassable(newX, newY) then    
         self:move(self.vel.x * dt, self.vel.y * dt)
     else
-        local imageData = level:getImageData(self.pos.x, self.pos.y, PongGhost.RADIUS)
-        server:sendToAll("pong", { self.pos.x, self.pos.y, imageData:getString() } )
+        local imageData = role.level:getImageData(self.pos.x, self.pos.y, PongGhost.RADIUS)
+        role.server:sendToAll("pong", { self.pos.x, self.pos.y, imageData:getString() } )
         log:add("pong at '" .. self.pos.x .. ", " .. self.pos.y .. "'.")
         self.finished = true
         -- TODO: maybe bounce instead and have a distance limit? or a bounce limit?

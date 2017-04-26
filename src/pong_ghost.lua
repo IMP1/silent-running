@@ -19,14 +19,14 @@ function PongGhost.new(x, y, imageDataString)
 end
 
 function PongGhost:update(dt)
+    self.radius  = math.min(PongGhost.RADIUS, self.radius + dt * PongGhost.GROW_SPEED)
     if DEBUG and DEBUG.keepPongs then return end
     self.opacity = math.max(0, self.opacity - dt * PongGhost.FADE_SPEED)
-    self.radius  = math.min(PongGhost.RADIUS, self.radius + dt * PongGhost.GROW_SPEED)
 end
 
 function PongGhost:draw()
     local function myStencilFunction()
-       love.graphics.circle("fill", self.pos.x, self.pos.y, self.radius)
+        love.graphics.circle("fill", self.pos.x, self.pos.y, self.radius)
     end
     love.graphics.stencil(myStencilFunction, "replace", 1)
     love.graphics.setStencilTest("greater", 0)
@@ -38,4 +38,3 @@ function PongGhost:draw()
 end
 
 return PongGhost
-

@@ -9,6 +9,7 @@ local sock   = require "lib.sock"
 -------------
 local LevelGenerator = require 'level_generator'
 local Player         = require 'player'
+local Ping           = require 'ping'
 
 --------------------------------------------------------------------------------
 -- # Server
@@ -33,7 +34,7 @@ function Server:start()
     self.playerCount = 0
     self.players = {}
     self.activePings = {}
-    self.level = LevelGenerator.generate(640, 640, 1337)
+    self.level = LevelGenerator.generate(640, 640, 1649)
     
     self.server:on("connect", function(data, client)
         self.playerCount = self.playerCount + 1
@@ -120,7 +121,7 @@ function Server:update(dt)
 end
 
 function Server:draw()
-    love.graphics.setColor(128, 255, 255, 128)
+    love.graphics.setColor(255, 255, 255)
     if DEBUG.showPlayers then
         for _, p in pairs(self.players) do
             if not player or p ~= player then
@@ -128,13 +129,18 @@ function Server:draw()
             end
         end
     end
-    if activePings then
-        for _, p in pairs(activePings) do
+
+    if self.activePings and DEBUG.showPings then
+        for _, p in pairs(self.activePings) do
             p:draw()
         end
     end
-    self.level:draw()
 
+    if self.level and DEBUG.showMap then
+        self.level:draw()
+    end
+
+    love.graphics.setColor(255, 255, 255)
     if DEBUG.showTriangles then
         for _, rock in pairs(self.level.rocks) do
             for _, tri in pairs(rock.triangles) do
@@ -142,12 +148,37 @@ function Server:draw()
             end
         end
     end
+
     if DEBUG.showCommands then
-        love.graphics.print("M  : toggle map objects", 0, love.graphics.getHeight() - 24 * 1)
-        love.graphics.print(".  : toggle pings",       0, love.graphics.getHeight() - 24 * 2)
-        love.graphics.print("R  : toggle triangles",   0, love.graphics.getHeight() - 24 * 4)
-        love.graphics.print("TAB: toggle log",         0, love.graphics.getHeight() - 24 * 5)
-        love.graphics.print("`  : toggle commands",    0, love.graphics.getHeight() - 24 * 7)
+        local w = 256
+        local h = 24 * 5
+        local x = 0
+        local y = love.graphics.getHeight() - h
+        love.graphics.setColor(0, 0, 0)
+        love.graphics.rectangle("fill", x, y, w, h)
+        love.graphics.setColor(255, 255, 255)
+        love.graphics.rectangle("line", x, y, w, h)
+        love.graphics.print("M  : [" .. (DEBUG.showMap       and "X" or " ") .. "] toggle map objects", 
+                            x + 4, y + 24 * 0 + 4)
+        love.graphics.print(".  : [" .. (DEBUG.showPings     and "X" or " ") .. "] toggle pings",       
+                            x + 4, y + 24 * 1 + 4)
+        love.graphics.print("R  : [" .. (DEBUG.showTriangles and "X" or " ") .. "] toggle triangles",   
+                            x + 4, y + 24 * 2 + 4)
+        love.graphics.print("TAB: [" .. (DEBUG.showLog       and "X" or " ") .. "] toggle log",         
+                            x + 4, y + 24 * 3 + 4)
+        love.graphics.print("`  : [" .. (DEBUG.showCommands  and "X" or " ") .. "] toggle commands",    
+                            x + 4, y + 24 * 4 + 4)
+    else
+        local w = 256
+        local h = 24 * 1
+        local x = 0
+        local y = love.graphics.getHeight() - h
+        love.graphics.setColor(0, 0, 0)
+        love.graphics.rectangle("fill", x, y, w, h)
+        love.graphics.setColor(255, 255, 255)
+        love.graphics.rectangle("line", x, y, w, h)
+        love.graphics.print("`  : [" .. (DEBUG.showCommands  and "X" or " ") .. "] toggle commands",    
+                            x + 4, y + 24 * 0 + 4)
     end
 end
 

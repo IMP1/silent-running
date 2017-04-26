@@ -1,12 +1,12 @@
 DEBUG = {
-    showMap       = false,
+    showMap       = true,
     showLog       = false,
     showPlayers   = true,
     showVelocity  = true,
     showPings     = true,
     showTriangles = true,
     keepPongs     = false,
-    showCommands  = false,
+    showCommands  = true,
 }
 
 ---------------

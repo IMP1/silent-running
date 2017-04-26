@@ -9,6 +9,7 @@ local sock   = require "lib.sock"
 -------------
 local LevelGenerator = require 'level_generator'
 local Player         = require 'player'
+local PongGhost      = require 'pong_ghost'
 
 --------------------------------------------------------------------------------
 -- # Client 
@@ -56,9 +57,9 @@ function Client:start()
     end)
 
     self.client:on("pong", function(pongGhostData)
-        log:add("Recieved pong ghost (" .. pongPosition[1] .. ", " .. pongPosition[2] .. ") from server.")
+        log:add("Recieved pong ghost (" .. pongGhostData[1] .. ", " .. pongGhostData[2] .. ") from server.")
         local pong = PongGhost.new(unpack(pongGhostData))
-        table.insert(pongGhosts, pong)
+        table.insert(self.pongGhosts, pong)
     end)
 
     self.client:on("crash", function(crashData)
@@ -119,16 +120,19 @@ end
 
 function Client:draw()
     love.graphics.setColor(255, 255, 255)
-    if self.player then
-        self.player:draw()
-    end
 
     if self.pongGhosts then
         for _, p in pairs(self.pongGhosts) do
             p:draw()
         end 
     end
+    
+    love.graphics.setColor(255, 255, 255)
+    if self.player then
+        self.player:draw()
+    end
 
+    love.graphics.setColor(255, 255, 255)
     if DEBUG.showVelocity and self.player then
         love.graphics.print(tostring(self.player.vel.x), 0, 0)
         love.graphics.print(tostring(self.player.vel.y), 0, 16)
