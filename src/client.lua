@@ -35,7 +35,7 @@ function Client:start()
     self.client:setSerialization(bitser.dumps, bitser.loads)
     self.player = nil
     self.map = nil
-    self.pongGhosts = nil
+    self.pongGhosts = {}
     
     ----------------------
     -- Client Callbacks --
@@ -45,20 +45,25 @@ function Client:start()
     end)
 
     self.client:on("init", function(playerPosition)
-        log:add("Recieved '" .. playerPosition[1] .. ", " .. playerPosition[2] .. "' from server.")
+        log:add("Recieved player position (" .. playerPosition[1] .. ", " .. playerPosition[2] .. ") from server.")
         self.player = Player.new(unpack(playerPosition))
-        self.pongGhosts = {}
     end)
 
-    self.client:on("level", function(level)
-        log:add("Recieved level from server.")
-        log:add(tostring(level))
-        self.map = LevelGenerator.generate(unpack(level))
+    self.client:on("level", function(levelParameters)
+        log:add("Recieved level parameters from server.")
+        log:add(tostring(levelParameters))
+        self.map = LevelGenerator.generate(unpack(levelParameters))
     end)
 
-    self.client:on("pong", function(pongGhost)
-        log:add("Recieved '" .. tostring(pongGhost) .. "' from server.")
-        table.insert(pongGhosts, pongGhost)
+    self.client:on("pong", function(pongGhostData)
+        log:add("Recieved pong ghost (" .. pongPosition[1] .. ", " .. pongPosition[2] .. ") from server.")
+        local pong = PongGhost.new(unpack(pongGhostData))
+        table.insert(pongGhosts, pong)
+    end)
+
+    self.client:on("crash", function(crashData)
+        log:add("Recieved crash (" .. crashData[1] .. ", " .. crashData[2] .. ") from server.")
+        -- TODO: handle crash (show animation and new position)
     end)
 
     self.client:connect()
@@ -99,13 +104,13 @@ function Client:update(dt)
     self.client:update()
     if self.player then
         self.player:update(dt)
-        self.client:send("move", self.player.lastMove)
+        self.client:send("move", {self.player.lastMove.x, self.player.lastMove.y})
     end
     if self.pongGhosts then
         for i = #self.pongGhosts, 1, -1 do
-            self.pongGhosts[i]:update(dt) -- TODO: have pongGhost class
-            -- TODO: pongGhost class will have a draw function and opacity levels.
+            self.pongGhosts[i]:update(dt)
             if self.pongGhosts[i].opacity == 0 then
+                -- TODO: make sure this is happening (have count of pong ghosts on debugging text)
                 table.remove(self.pongGhosts, i)
             end
         end
