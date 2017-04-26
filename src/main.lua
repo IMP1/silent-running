@@ -26,10 +26,6 @@ local sock   = require 'lib.sock'
 local Server         = require 'server'
 local Client         = require 'client'
 local Log            = require 'log'
-local Rock           = require 'rock'
-local Player         = require 'player'
-local Ping           = require 'ping'
-local PongGhost      = require 'pong_ghost'
 
 function love.load()
     log = Log.new()

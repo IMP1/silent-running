@@ -1,17 +1,22 @@
 ---------------
--- Constants --
----------------
-PORT = 22122
-
----------------
 -- Libraries --
 ---------------
 local bitser = require "lib.bitser"
 local sock   = require "lib.sock"
 
+-------------
+-- Classes --
+-------------
 local LevelGenerator = require 'level_generator'
 local Player         = require 'player'
 
+--------------------------------------------------------------------------------
+-- # Client 
+--------------
+-- Handles the client side of the game for the server. Handles user input and 
+-- sends it to the server. Recieves messages from the server and displays 
+-- ping responses and crashes to the user.
+--------------------------------------------------------------------------------
 local Client = {}
 Client.__index = Client
 
