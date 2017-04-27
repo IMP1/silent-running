@@ -1,18 +1,18 @@
 local PongGhost = {
     RADIUS = {
-        [true] = 64
+        [true] = 64,
         [false] = 128
-    }
+    },
     START_RADIUS = {
-        [true] = 16
+        [true] = 16,
         [false] = 32
-    }
+    },
     FADE_SPEED = {
-        [true] = 128
+        [true] = 128,
         [false] = 64
-    }
+    },
     GROW_SPEED = {
-        [true] = 256
+        [true] = 256,
         [false] = 256
     }
 }

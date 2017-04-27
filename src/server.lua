@@ -37,6 +37,7 @@ function Server:start()
     self.level = LevelGenerator.generate(640, 640, 1649)
     
     self.server:on("connect", function(data, client)
+        log:add("New connection.")
         self:addPlayer(client)
     end)
 
@@ -46,10 +47,13 @@ function Server:start()
     end)
 
     self.server:on("passive-ping", function(position, client)
+        log:add("Passive ping (" .. position[1] .. ", " .. position[2] ..").")
         -- TODO: check that this is near enough to the players location
         --       or maybe just use the player's location?
-        local newPing = Ping.new(unpack(position), 0, 0)
-        newPing:pong()
+        local x = position[1]
+        local y = position[2]
+        local newPing = Ping.new(x, y, 0, 0)
+        newPing:pong(false)
     end)
 
     self.server:on("move", function(offset, client)
@@ -60,7 +64,8 @@ function Server:start()
 end
 
 function Server:addPlayer(client)
-    local x = -1, y = -1
+    local x = -1
+    local y = -1
     while not self.level:isValidStartingPosition(x, y) do
         x = math.random() * self.level.width
         y = math.random() * self.level.height

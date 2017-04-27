@@ -42,7 +42,7 @@ function Client:start()
     -- Client Callbacks --
     ----------------------
     self.client:on("connect", function(data)
-        log:add("Connected to localhost")
+        log:add("Connected to server.")
     end)
 
     self.client:on("init", function(playerPosition)
@@ -138,7 +138,11 @@ function Client:draw()
     love.graphics.setColor(255, 255, 255)
     if DEBUG.showPlayerInfo and self.player then
         love.graphics.print(tostring(self.player.health), 0, 0)
-        love.graphics.print(tostring(self.player.vel.x) .. "," .. tostring(self.player.vel.y), 0, 16)
+        love.graphics.print(tostring(self.player.pos.x) .. "," .. tostring(self.player.pos.y), 0, 16)
+        love.graphics.print(tostring(self.player.vel.x) .. "," .. tostring(self.player.vel.y), 0, 32)
+        local state = "passive"
+        if self.player.isSilentRunning then state = "silent running" end
+        love.graphics.print(state, 0, 48)
     end
     if DEBUG.showCommands then
         love.graphics.print("V  : toggle velocity",    0, love.graphics.getHeight() - 24 * 3)

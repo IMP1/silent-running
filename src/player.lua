@@ -25,7 +25,7 @@ function Player:update(dt)
         
     else
         self.passivePingTimer = self.passivePingTimer - dt
-        if self.passivePingTimer == 0 then
+        if self.passivePingTimer <= 0 then
             self.passivePingTimer = Player.PASSIVE_PING_COOLDOWN
             role.client:send("passive-ping", {self.pos.x, self.pos.y})
         end

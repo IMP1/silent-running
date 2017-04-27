@@ -4,6 +4,7 @@ local Ping = {}
 Ping.__index = Ping
 
 function Ping.new(x, y, vx, vy)
+    log:add("new ping @ (" .. tostring(x) .. ", " .. tostring(y) .. ").")
     local this = {}
     setmetatable(this, Ping)
     this.finished = false

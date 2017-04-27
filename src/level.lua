@@ -19,7 +19,7 @@ function Level:isValidStartingPosition(x, y)
     if x > self.width or y > self.height then 
         return false 
     end
-    if not Level:isPassable(x, y) then 
+    if not self:isPassable(x, y) then 
         return false 
     end
     -- TODO: check for other players
