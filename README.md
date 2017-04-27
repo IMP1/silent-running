@@ -12,10 +12,10 @@ This is the Minimum Viable Product. It's something playable that can then be ite
 
 ### core/stealth
   - [ ] have terrain and other squares only draw on passive pings (and fade out)
-  - [ ] implement silent running (everything invisible but with active pings)
+  - [X] implement silent running (everything invisible but with active pings)
 
 ### core/levels
-  - [ ] procedurally generated levels (have cheat code to see the terrain)
+  - [X] procedurally generated levels (have cheat code to see the terrain)
       * terrain
       * starting positions
 
