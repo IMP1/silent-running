@@ -43,11 +43,13 @@ function Server:start()
     self.server:on("active-ping", function(kinematicState, client)
         local newPing = Ping.new(unpack(kinematicState))
         table.insert(self.activePings, newPing)
-        -- add to active pingsList, and return pongs on any bounces
     end)
 
     self.server:on("passive-ping", function(position, client)
-        -- take an image around the pong location and return that
+        -- TODO: check that this is near enough to the players location
+        --       or maybe just use the player's location?
+        local newPing = Ping.new(unpack(position), 0, 0)
+        newPing:pong()
     end)
 
     self.server:on("move", function(offset, client)

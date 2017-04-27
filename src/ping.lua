@@ -28,7 +28,7 @@ function Ping:update(dt)
 end
 
 function Ping:pong(isActive)
-    local imageData = role.level:getImageData(self.pos.x, self.pos.y, PongGhost.RADIUS)
+    local imageData = role.level:getImageData(self.pos.x, self.pos.y, PongGhost.RADIUS[isActive])
     role.server:sendToAll("pong", { self.pos.x, self.pos.y, imageData:getString(), isActive } )
     log:add("pong at '" .. self.pos.x .. ", " .. self.pos.y .. "'.")
 end
@@ -46,4 +46,3 @@ function Ping:draw()
 end
 
 return Ping
-
