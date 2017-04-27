@@ -4,9 +4,27 @@ Level.__index = Level
 function Level.new(width, height, seed, rocks)
     local this = {}
     setmetatable(this, Level)
+    this.width  = width
+    this.height = height
+    this.seed   = seed
     this.params = { width, height, seed }
-    this.rocks = rocks
+    this.rocks  = rocks
     return this
+end
+
+function Level:isValidStartingPosition(x, y)
+    if x < 0 or y < 0 then 
+        return false 
+    end
+    if x > self.width or y > self.height then 
+        return false 
+    end
+    if not Level:isPassable(x, y) then 
+        return false 
+    end
+    -- TODO: check for other players
+    -- TODO: check for other objects
+    return true
 end
 
 function Level:isPassable(x, y)

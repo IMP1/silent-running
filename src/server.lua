@@ -37,13 +37,7 @@ function Server:start()
     self.level = LevelGenerator.generate(640, 640, 1649)
     
     self.server:on("connect", function(data, client)
-        self.playerCount = self.playerCount + 1
-        log:add("Added client.")
-        local x = self.playerCount * 96
-        local y = 256
-        self.players[client] = Player.new(x, y)
-        client:send("init", {x, y})
-        client:send("level", self.level.params)
+        self:addPlayer(client)
     end)
 
     self.server:on("active-ping", function(kinematicState, client)
@@ -61,6 +55,19 @@ function Server:start()
     end)
 
     log:add("Started server.")
+end
+
+function Server:addPlayer(client)
+    local x = -1, y = -1
+    while not self.level:isValidStartingPosition(x, y) do
+        x = math.random() * self.level.width
+        y = math.random() * self.level.height
+    end
+    self.players[client] = Player.new(x, y)
+    client:send("init", {x, y})
+    client:send("level", self.level.params)
+    self.playerCount = self.playerCount + 1
+    log:add("Added new player.")
 end
 
 function Server:movePlayer(client, dx, dy)
