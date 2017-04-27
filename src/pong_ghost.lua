@@ -1,12 +1,24 @@
 local PongGhost = {
-    RADIUS       = 64,
-    START_RADIUS = 16,
-    FADE_SPEED   = 128,
-    GROW_SPEED   = 256,
+    RADIUS = {
+        [true] = 64
+        [false] = 128
+    }
+    START_RADIUS = {
+        [true] = 16
+        [false] = 32
+    }
+    FADE_SPEED = {
+        [true] = 128
+        [false] = 64
+    }
+    GROW_SPEED = {
+        [true] = 256
+        [false] = 256
+    }
 }
 PongGhost.__index = PongGhost
 
-function PongGhost.new(x, y, imageDataString)
+function PongGhost.new(x, y, imageDataString, startRadius, finalRadius, growSpeed, fadeSpeed)
     local this = {}
     setmetatable(this, PongGhost)
     this.finished = false

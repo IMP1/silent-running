@@ -6,6 +6,7 @@ Player.__index = Player
 Player.ACCELLERATION = 256
 Player.FRICTION = 0.99
 Player.EPSILON = 0.5
+Player.PASSIVE_PING_COOLDOWN = 1
 
 function Player.new(x, y)
     local this = {}
@@ -14,10 +15,18 @@ function Player.new(x, y)
     this.vel = { x = 0, y = 0 }
     this.lastMove = { x = 0, y = 0 }
     this.health = 100
+    this.passivePingTimer = Player.PASSIVE_PING_COOLDOWN
+    this.isSilentRunning = true
     return this
 end
 
 function Player:update(dt)
+    if self.isSilentRunning then
+        
+    else
+        
+    end
+
     local dx, dy = 0, 0
     if love.keyboard.isDown("w") then
         dy = dy - 1

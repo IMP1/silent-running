@@ -71,6 +71,9 @@ function Client:start()
 end
 
 function Client:keypressed(key, isRepeat)
+    if key == "space" then
+        self.player.isSilentRunning = not self.player.isSilentRunning
+    end
     if DEBUG then
         if key == "v" then
             DEBUG.showPlayerInfo = not DEBUG.showPlayerInfo
@@ -88,7 +91,7 @@ function Client:keypressed(key, isRepeat)
 end
 
 function Client:mousepressed(mx, my, key)
-    if key == 1 then
+    if self.player.isSilentRunning and key == 1 then
         local x = self.player.pos.x
         local y = self.player.pos.y
         local dx = mx - x
