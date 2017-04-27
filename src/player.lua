@@ -57,7 +57,7 @@ function Player:update(dt)
 
     local friction = Player.FRICTION
     local epsilon  = Player.EPSILON
-    if love.keyboard.isDown("space") then
+    if love.keyboard.isDown("lshift") then
         friction = friction / 10
         epsilon  = epsilon * 2
     end
