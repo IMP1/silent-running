@@ -41,6 +41,12 @@ function Server:start()
         self:addPlayer(client)
     end)
 
+    self.server:on("disconnect", function(data, client)
+        log:add("Disconection")
+        print(data)
+        print(client)
+    end)
+
     self.server:on("active-ping", function(kinematicState, client)
         local newPing = Ping.new(unpack(kinematicState))
         table.insert(self.activePings, newPing)

@@ -27,8 +27,14 @@ local Server         = require 'server'
 local Client         = require 'client'
 local Log            = require 'log'
 
-function love.load()
+function love.load(args)
     log = Log.new()
+    if args[2] == "server" then
+        role = Server.new()
+    end
+    if args[2] == "client" then
+        role = Client.new()
+    end
 end
 
 function love.keypressed(key, isRepeat)
