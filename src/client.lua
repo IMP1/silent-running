@@ -9,6 +9,7 @@ local sock   = require "lib.sock"
 -------------
 local LevelGenerator = require 'level_generator'
 local Player         = require 'player'
+local Noise          = require 'noise'
 local PongGhost      = require 'pong_ghost'
 
 --------------------------------------------------------------------------------
@@ -36,7 +37,7 @@ function Client:start()
     self.client:setSerialization(bitser.dumps, bitser.loads)
     self.player = nil
     self.map = nil
-    self.pongGhosts = {}
+    self.sounds = {}
     
     ----------------------
     -- Client Callbacks --
@@ -59,12 +60,18 @@ function Client:start()
     self.client:on("pong", function(pongGhostData)
         log:add("Recieved pong ghost (" .. pongGhostData[1] .. ", " .. pongGhostData[2] .. ") from server.")
         local pong = PongGhost.new(unpack(pongGhostData))
-        table.insert(self.pongGhosts, pong)
+        table.insert(self.sounds, pong)
     end)
 
     self.client:on("crash", function(crashData)
         log:add("Recieved crash (" .. crashData[1] .. ", " .. crashData[2] .. ") from server.")
         self.player:crash(unpack(crashData))
+    end)
+
+    self.client:on("sound", function(soundData)
+        log:add("Heard sound (" .. soundData[1] .. ", " .. soundData[2] .. ") from server.")
+        local sound = Noise.new(unpack(soundData))
+        table.insert(self.sounds, sound)
     end)
 
     self.client:connect()
@@ -110,12 +117,12 @@ function Client:update(dt)
         self.player:update(dt)
         self.client:send("move", {self.player.lastMove.x, self.player.lastMove.y})
     end
-    if self.pongGhosts then
-        for i = #self.pongGhosts, 1, -1 do
-            self.pongGhosts[i]:update(dt)
-            if self.pongGhosts[i].opacity == 0 then
+    if self.sounds then
+        for i = #self.sounds, 1, -1 do
+            self.sounds[i]:update(dt)
+            if self.sounds[i].opacity == 0 then
                 -- TODO: make sure this is happening (have count of pong ghosts on debugging text)
-                table.remove(self.pongGhosts, i)
+                table.remove(self.sounds, i)
             end
         end
     end
@@ -124,8 +131,8 @@ end
 function Client:draw()
     love.graphics.setColor(255, 255, 255)
 
-    if self.pongGhosts then
-        for _, p in pairs(self.pongGhosts) do
+    if self.sounds then
+        for _, p in pairs(self.sounds) do
             p:draw()
         end 
     end
