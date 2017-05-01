@@ -80,6 +80,9 @@ function Client:keypressed(key, isRepeat)
     if key == "space" then
         self.player.isSilentRunning = not self.player.isSilentRunning
     end
+    if key == "t" then
+        self.player.currentWeapon = "torpedo"
+    end
     if DEBUG then
         if key == "v" then
             DEBUG.showPlayerInfo = not DEBUG.showPlayerInfo
@@ -97,6 +100,14 @@ function Client:keypressed(key, isRepeat)
 end
 
 function Client:mousepressed(mx, my, key)
+    if key == 2 then
+        local x = self.player.pos.x
+        local y = self.player.pos.y
+        local dx = mx - x
+        local dy = my - y
+        self.player:fireWeapon(dx, dy)
+        print("pew pew")
+    end
     if self.player.isSilentRunning and key == 1 then
         local x = self.player.pos.x
         local y = self.player.pos.y

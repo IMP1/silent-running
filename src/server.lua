@@ -11,6 +11,7 @@ local LevelGenerator = require 'level_generator'
 local Player         = require 'player'
 local Ping           = require 'ping'
 local Noise          = require 'noise'
+local Torpedo        = require 'torpedo'
 
 --------------------------------------------------------------------------------
 -- # Server
@@ -34,6 +35,7 @@ function Server:start()
     self.server:setSerialization(bitser.dumps, bitser.loads)
     self.playerCount = 0
     self.players = {}
+    self.missiles = {}
     self.activePings = {}
     self.level = LevelGenerator.generate(640, 640, 1649)
     
@@ -70,6 +72,11 @@ function Server:start()
 
     self.server:on("death", function(playerData, client)
         self.players[client] = nil
+    end)
+
+    self.server:on("torpedo", function(torpedoData, client)
+        local torpedo = Torpedo.new(unpack(torpedoData))
+        table.insert(self.missiles, torpedo)
     end)
 
     log:add("Started server.")
@@ -160,6 +167,12 @@ function Server:update(dt)
         self.activePings[i]:update(dt)
         if self.activePings[i].finished then
             table.remove(self.activePings, i)
+        end
+    end
+    for i = #self.missiles, 1, -1 do
+        self.missiles[i]:update(dt)
+        if self.missiles[i].finished then
+            table.remove(self.missiles, i)
         end
     end
 end

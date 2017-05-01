@@ -17,18 +17,15 @@ function Player.new(x, y)
     this.health = 100
     this.passivePingTimer = Player.PASSIVE_PING_COOLDOWN
     this.isSilentRunning = true
+    this.currentWeapon = nil
     return this
 end
 
 function Player:update(dt)
-    if self.isSilentRunning then
-        
-    else
-        self.passivePingTimer = self.passivePingTimer - dt
-        if self.passivePingTimer <= 0 then
-            self.passivePingTimer = Player.PASSIVE_PING_COOLDOWN
-            role.client:send("passive-ping", {self.pos.x, self.pos.y})
-        end
+    self.passivePingTimer = math.max(0, self.passivePingTimer - dt)
+    if not self.isSilentRunning and self.passivePingTimer == 0 then
+        self.passivePingTimer = Player.PASSIVE_PING_COOLDOWN
+        role.client:send("passive-ping", {self.pos.x, self.pos.y})
     end
 
     local dx, dy = 0, 0
@@ -78,6 +75,17 @@ function Player:move(dx, dy)
 
     self.pos.x = self.pos.x + dx
     self.pos.y = self.pos.y + dy
+end
+
+function Player:fireWeapon(dx, dy)
+    if self.currentWeapon == nil then return end
+    if self.currentWeapon == "torpedo" then
+        if dx > 0 then
+            role.client:send("torpedo", {self.pos.x + 32, self.pos.y + 40,  1})
+        elseif dx < 0 then
+            role.client:send("torpedo", {self.pos.x + 32, self.pos.y + 40, -1})
+        end
+    end
 end
 
 function Player:crash(x, y)
