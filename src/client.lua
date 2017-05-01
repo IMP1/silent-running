@@ -10,7 +10,6 @@ local sock   = require "lib.sock"
 local LevelGenerator = require 'level_generator'
 local Player         = require 'player'
 local Noise          = require 'noise'
-local PongGhost      = require 'pong_ghost'
 
 --------------------------------------------------------------------------------
 -- # Client 
@@ -57,9 +56,9 @@ function Client:start()
         self.map = LevelGenerator.generate(unpack(levelParameters))
     end)
 
-    self.client:on("pong", function(pongGhostData)
-        log:add("Recieved pong ghost (" .. pongGhostData[1] .. ", " .. pongGhostData[2] .. ") from server.")
-        local pong = PongGhost.new(unpack(pongGhostData))
+    self.client:on("pong", function(noiseData)
+        log:add("Recieved pong ghost (" .. noiseData[1] .. ", " .. noiseData[2] .. ") from server.")
+        local pong = Noise.new(unpack(noiseData))
         table.insert(self.sounds, pong)
     end)
 
