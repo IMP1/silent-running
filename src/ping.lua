@@ -1,4 +1,4 @@
-local PongGhost = require "pong_ghost"
+local Noise = require "noise"
 
 local Ping = {}
 Ping.__index = Ping
@@ -29,9 +29,7 @@ function Ping:update(dt)
 end
 
 function Ping:pong(isActive)
-    local imageData = role.level:getImageData(self.pos.x, self.pos.y, PongGhost.RADIUS[isActive])
-    role.server:sendToAll("pong", { self.pos.x, self.pos.y, imageData:getString(), isActive } )
-    log:add("pong at '" .. self.pos.x .. ", " .. self.pos.y .. "'.")
+    role:sendSound(self.pos.x, self.pos.y, Noise.pong)
 end
 
 function Ping:move(dx, dy)
