@@ -88,7 +88,7 @@ function Player:crash(x, y)
     self.vel.x = -self.vel.x * 0.2
     self.vel.y = -self.vel.y * 0.2
     self:damage(damage)
-    role.client:send("noise", {self.pos.x, self.pos.y, damage})
+    role.client:send("noise", {self.pos.x, self.pos.y, damage * 2})
 end
 
 function Player:damage(damage)
