@@ -66,6 +66,17 @@ function Server:start()
         self:movePlayer(client, unpack(offset))
     end)
 
+    self.server:on("noise", function(noiseData, client)
+        local x = noiseData[1]
+        local y = noiseData[2]
+        local newPing = Ping.new(x, y, 0, 0)
+        newPing:pong(true)
+    end)
+
+    self.server:on("death", function(playerData, client)
+        self.players[client] = nil
+    end)
+
     log:add("Started server.")
 end
 
