@@ -15,7 +15,7 @@ end
 
 function Log:update()
     if (#self.messages + 1) * 16 > love.graphics.getHeight() then
-        table.remove(self.messages, 0)
+        table.remove(self.messages, 1)
     end
 end
 
