@@ -69,8 +69,9 @@ function Server:start()
     self.server:on("noise", function(noiseData, client)
         local x = noiseData[1]
         local y = noiseData[2]
-        local newPing = Ping.new(x, y, 0, 0)
-        newPing:pong(true)
+        local size = noiseData[3]
+        local imageData = role.level:getImageData(x, y, size)
+        self.server:sendToAll("sound", {x, y, imageData:getString(), size, 0, 256, 256, 255})
     end)
 
     self.server:on("death", function(playerData, client)
