@@ -10,6 +10,7 @@ local sock   = require "lib.sock"
 local LevelGenerator = require 'level_generator'
 local Player         = require 'player'
 local Ping           = require 'ping'
+local Noise          = require 'noise'
 
 --------------------------------------------------------------------------------
 -- # Server
@@ -56,10 +57,7 @@ function Server:start()
         log:add("Passive ping (" .. position[1] .. ", " .. position[2] ..").")
         -- TODO: check that this is near enough to the players location
         --       or maybe just use the player's location?
-        local x = position[1]
-        local y = position[2]
-        local newPing = Ping.new(x, y, 0, 0)
-        newPing:pong(false)
+        self:sendSound(position[1], position[2], Noise.scan)
     end)
 
     self.server:on("move", function(offset, client)
@@ -67,11 +65,7 @@ function Server:start()
     end)
 
     self.server:on("noise", function(noiseData, client)
-        local x = noiseData[1]
-        local y = noiseData[2]
-        local size = noiseData[3]
-        local imageData = role.level:getImageData(x, y, size)
-        self.server:sendToAll("sound", {x, y, imageData:getString(), size, 0, 256, 256, 255})
+        self:sendSound(noiseData[1], noiseData[2], Noise.general, noiseData[3])
     end)
 
     self.server:on("death", function(playerData, client)
@@ -93,6 +87,26 @@ function Server:addPlayer(client)
     client:send("level", self.level.params)
     self.playerCount = self.playerCount + 1
     log:add("Added new player.")
+end
+
+function Server:sendSound(x, y, soundType, sizeScale)
+    local size         = soundType.RADIUS * (sizeScale or 1)
+    local imageData    = role.level:getImageData(x, y, size)
+    local startSize    = soundType.START_RADIUS
+    local growSpeed    = soundType.GROW_SPEED
+    local fadeSpeed    = soundType.FADE_SPEED
+    local startOpacity = soundType.START_OPACITY
+    local noiseData = {
+        x, 
+        y, 
+        imageData:getString(), 
+        size, 
+        startSize, 
+        growSpeed, 
+        fadeSpeed,
+        startOpacity
+    }
+    self.server:sendToAll("sound", noiseData)
 end
 
 function Server:movePlayer(client, dx, dy)

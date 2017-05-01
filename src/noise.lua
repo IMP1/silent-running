@@ -1,4 +1,25 @@
 local Noise = {}
+Noise.pong = {
+    RADIUS        = 64,
+    START_RADIUS  = 16,
+    FADE_SPEED    = 128,
+    GROW_SPEED    = 256,
+    START_OPACITY = 255,
+}
+Noise.scan = {
+    RADIUS        = 128,
+    START_RADIUS  = 32,
+    FADE_SPEED    = 64,
+    GROW_SPEED    = 256,
+    START_OPACITY = 255,
+}
+Noise.general = {
+    RADIUS        = 1, -- to be scaled
+    START_RADIUS  = 32,
+    FADE_SPEED    = 256,
+    GROW_SPEED    = 256,
+    START_OPACITY = 255,
+}
 Noise.__index = Noise
 
 function Noise.new(x, y, imageDataString, size, startSize, growSpeed, fadeSpeed, startOpacity)
