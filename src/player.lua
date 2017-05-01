@@ -87,7 +87,20 @@ function Player:crash(x, y)
     self.pos.y = y
     self.vel.x = -self.vel.x * 0.2
     self.vel.y = -self.vel.y * 0.2
+    self:damage(damage)
+    role.client:send("noise", {self.pos.x, self.pos.y, damage})
+end
+
+function Player:damage(damage)
     self.health = self.health - damage
+    if self.health < 0 then
+        self:die()
+    end
+end
+
+function Player:die()
+    role.client:send("death", {self.pos.x, self.pos.y})
+    role.player = nil
 end
 
 function Player:draw()
