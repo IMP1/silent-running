@@ -13,6 +13,13 @@ Noise.scan = {
     GROW_SPEED    = 256,
     START_OPACITY = 255,
 }
+Noise.torpedo = {
+    RADIUS        = 64,
+    START_RADIUS  = 16,
+    FADE_SPEED    = 32,
+    GROW_SPEED    = 256,
+    START_OPACITY = 255,
+}
 Noise.general = {
     RADIUS        = 1, -- to be scaled
     START_RADIUS  = 32,

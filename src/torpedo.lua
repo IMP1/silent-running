@@ -1,3 +1,5 @@
+local Noise = require 'noise'
+
 local Torpedo = {
     SPEED = 128,
 }
@@ -23,7 +25,8 @@ function Torpedo:update(dt)
     else
         -- TODO: check for player or something damagable and do damage
         role.server:sendToAll("damage", {self.pos.x, self.pos.y, 40, self.vel.x, self.vel.y})
-        -- TODO: only sent to relevant player
+        -- TODO: only send to relevant player?
+        role.server:sendSound(self.pos.x, self.pos.y, Noise.torpedo)
         self.finished = true
     end
 end
