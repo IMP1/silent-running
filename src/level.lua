@@ -27,10 +27,20 @@ function Level:isValidStartingPosition(x, y)
     return true
 end
 
-function Level:isPassable(x, y)
+function Level:isPassable(x, y, objectToIgnore)
     for _, r in pairs(self.rocks) do
         if r:containsPoint(x, y) then
             return false
+        end
+    end
+    for _, p in pairs(role.players) do
+        if objectToIgnore and p ~= objectToIgnore then
+            local dx = p.pos.x - x
+            local dy = p.pos.y - y
+            local dr = 24
+            if dx*dx + dy*dy < dr*dr then
+                return false
+            end
         end
     end
     return true

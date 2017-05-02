@@ -119,7 +119,7 @@ end
 function Server:movePlayer(client, dx, dy)
     local player = self.players[client]
     player:move(dx, dy)
-    if not self.level:isPassable(player.pos.x, player.pos.y) then
+    if not self.level:isPassable(player.pos.x, player.pos.y, player) then
         local oldX = player.pos.x - player.lastMove.x
         local oldY = player.pos.y - player.lastMove.y
         if not self.level:isPassable(oldX, oldY) then
