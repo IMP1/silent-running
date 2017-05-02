@@ -170,6 +170,21 @@ function Client:draw()
     love.graphics.setColor(255, 255, 255)
     if self.player then
         self.player:draw()
+
+        if self.player.currentWeapon then
+            if self.player.cooldowns[self.player.currentWeapon] > 0 then
+                love.graphics.setColor(192, 192, 192)
+            else
+                love.graphics.setColor(255, 255, 255)
+            end
+            love.graphics.print(self.player.currentWeapon, 360, 0)
+            love.graphics.rectangle("line", 360, 24, 100, 8)
+            local n = Player.COOLDOWNS[self.player.currentWeapon]
+            local i = self.player.cooldowns[self.player.currentWeapon]
+            local w = 100 * (n - i) / n
+            love.graphics.rectangle("fill", 360, 24, w, 8)
+            
+        end
     end
 
     if self.screen then

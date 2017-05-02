@@ -1,8 +1,8 @@
 local Screen = {}
 Screen.__index = Screen
 
-Screen.WIDTH = love.window.getWidth()
-Screen.HEIGHT = love.window.getHeight()
+Screen.WIDTH = love.graphics.getWidth()
+Screen.HEIGHT = love.graphics.getHeight()
 
 Screen.shakes = {}
 

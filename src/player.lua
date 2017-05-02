@@ -6,7 +6,10 @@ Player.__index = Player
 Player.ACCELLERATION = 256
 Player.FRICTION = 0.99
 Player.EPSILON = 0.5
-Player.PASSIVE_PING_COOLDOWN = 1
+Player.COOLDOWNS = {
+    passivePing = 1,
+    torpedo = 1,
+}
 
 function Player.new(x, y)
     local this = {}
@@ -15,16 +18,22 @@ function Player.new(x, y)
     this.vel = { x = 0, y = 0 }
     this.lastMove = { x = 0, y = 0 }
     this.health = 100
-    this.passivePingTimer = Player.PASSIVE_PING_COOLDOWN
+    this.cooldowns = {}
+    for k, v in pairs(Player.COOLDOWNS) do
+        this.cooldowns[k] = v
+    end
     this.isSilentRunning = true
     this.currentWeapon = nil
     return this
 end
 
 function Player:update(dt)
-    self.passivePingTimer = math.max(0, self.passivePingTimer - dt)
-    if not self.isSilentRunning and self.passivePingTimer == 0 then
-        self.passivePingTimer = Player.PASSIVE_PING_COOLDOWN
+    for k, v in pairs(self.cooldowns) do
+        self.cooldowns[k] = math.max(0, v - dt)
+    end
+
+    if not self.isSilentRunning and self.cooldowns.passivePing == 0 then
+        self.cooldowns.passivePing = Player.COOLDOWNS.passivePing
         role.client:send("passive-ping", {self.pos.x, self.pos.y})
     end
 
@@ -77,6 +86,11 @@ end
 
 function Player:fireWeapon(dx, dy)
     if self.currentWeapon == nil then return end
+    if self.cooldowns[self.currentWeapon] == nil then return end
+    if self.cooldowns[self.currentWeapon] > 0 then return end
+
+    self.cooldowns[self.currentWeapon] = Player.COOLDOWNS[self.currentWeapon]
+
     if self.currentWeapon == "torpedo" then
         if dx > 0 then
             role.client:send("torpedo", {self.pos.x + 32, self.pos.y + 40,  1})

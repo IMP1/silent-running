@@ -26,7 +26,7 @@ function Torpedo:update(dt)
         -- TODO: check for player or something damagable and do damage
         role.server:sendToAll("damage", {self.pos.x, self.pos.y, 40, self.vel.x, self.vel.y})
         -- TODO: only send to relevant player?
-        role.server:sendSound(self.pos.x, self.pos.y, Noise.torpedo)
+        role:sendSound(self.pos.x, self.pos.y, Noise.torpedo)
         self.finished = true
     end
 end

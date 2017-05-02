@@ -193,6 +193,12 @@ function Server:draw()
         end
     end
 
+    if self.missiles then
+        for _, m in pairs(self.missiles) do
+            m:draw()
+        end
+    end
+
     if self.level and DEBUG.showMap then
         self.level:draw()
     end
