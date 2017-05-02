@@ -22,6 +22,8 @@ function Torpedo:update(dt)
         self:move(self.vel.x * dt, self.vel.y * dt)
     else
         -- TODO: check for player or something damagable and do damage
+        role.server:sendToAll("damage", {self.pos.x, self.pos.y, 40, self.vel.x, self.vel.y})
+        -- TODO: only sent to relevant player
         self.finished = true
     end
 end

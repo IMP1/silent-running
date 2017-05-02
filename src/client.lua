@@ -10,6 +10,7 @@ local sock   = require "lib.sock"
 local LevelGenerator = require 'level_generator'
 local Player         = require 'player'
 local Noise          = require 'noise'
+local Screen         = require 'screen'
 
 --------------------------------------------------------------------------------
 -- # Client 
@@ -37,6 +38,7 @@ function Client:start()
     self.player = nil
     self.map = nil
     self.sounds = {}
+    self.screen = Screen.new()
     
     ----------------------
     -- Client Callbacks --
@@ -71,6 +73,17 @@ function Client:start()
         log:add("Heard sound (" .. soundData[1] .. ", " .. soundData[2] .. ") from server.")
         local sound = Noise.new(unpack(soundData))
         table.insert(self.sounds, sound)
+    end)
+
+    self.client:on("damage", function(damageData)
+        log:add("Recieved " .. damageData[3] .. " damage!")
+        -- TODO: this should be handled by the server:
+        local dx = self.player.pos.x - damageData[1]
+        local dy = self.player.pos.y - damageData[2]
+        local d  = 32
+        if dx*dx + dy*dy < d*d then
+            self.player:damage(damageData[3], damageData[4], damageData[5])
+        end
     end)
 
     self.client:connect()
@@ -127,6 +140,9 @@ function Client:update(dt)
         self.player:update(dt)
         self.client:send("move", {self.player.lastMove.x, self.player.lastMove.y})
     end
+    if self.screen then
+        self.screen:update(dt)
+    end
     if self.sounds then
         for i = #self.sounds, 1, -1 do
             self.sounds[i]:update(dt)
@@ -141,6 +157,10 @@ end
 function Client:draw()
     love.graphics.setColor(255, 255, 255)
 
+    if self.screen then
+        self.screen:set()
+    end
+
     if self.sounds then
         for _, p in pairs(self.sounds) do
             p:draw()
@@ -150,6 +170,10 @@ function Client:draw()
     love.graphics.setColor(255, 255, 255)
     if self.player then
         self.player:draw()
+    end
+
+    if self.screen then
+        self.screen:unset()
     end
 
     love.graphics.setColor(255, 255, 255)

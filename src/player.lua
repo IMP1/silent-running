@@ -97,9 +97,12 @@ function Player:crash(x, y)
     self.vel.y = -self.vel.y * 0.2
     self:damage(damage)
     role.client:send("noise", {self.pos.x, self.pos.y, damage * 2})
+    role.screen:shake(0.5, 8, 0.3) -- TODO: test this and tweak until it feels right
 end
 
-function Player:damage(damage)
+function Player:damage(damage, impactX, impactY)
+    self.vel.x = self.vel.x + (impactX or 0)
+    self.vel.y = self.vel.y + (impactY or 0)
     self.health = self.health - damage
     if self.health < 0 then
         self:die()
