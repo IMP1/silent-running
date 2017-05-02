@@ -14,9 +14,9 @@ Noise.scan = {
     START_OPACITY = 255,
 }
 Noise.torpedo = {
-    RADIUS        = 64,
+    RADIUS        = 32,
     START_RADIUS  = 16,
-    FADE_SPEED    = 32,
+    FADE_SPEED    = 128,
     GROW_SPEED    = 256,
     START_OPACITY = 255,
 }
