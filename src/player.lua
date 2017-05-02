@@ -50,8 +50,6 @@ function Player:update(dt)
 
     self:move(self.vel.x * dt, self.vel.y * dt)
 
-    -- TODO: check for collisions
-
     local friction = Player.FRICTION
     local epsilon  = Player.EPSILON
     if love.keyboard.isDown("lshift") then
@@ -91,12 +89,13 @@ end
 function Player:crash(x, y)
     local speed = math.sqrt(self.vel.x * self.vel.x + self.vel.y * self.vel.y)
     local damage = speed
+    local loudness = damage * 2
     self.pos.x = x
     self.pos.y = y
     self.vel.x = -self.vel.x * 0.2
     self.vel.y = -self.vel.y * 0.2
     self:damage(damage)
-    role.client:send("noise", {self.pos.x, self.pos.y, damage * 2})
+    role.client:send("noise", {self.pos.x, self.pos.y, loudness})
     role.screen:shake(0.5, 8, 0.3) -- TODO: test this and tweak until it feels right
 end
 
