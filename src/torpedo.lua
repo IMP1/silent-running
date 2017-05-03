@@ -20,7 +20,7 @@ function Torpedo:update(dt)
     local newX = self.pos.x + self.vel.x * dt
     local newY = self.pos.y + self.vel.y * dt
 
-    if role.level:isPassable(newX, newY) then    
+    if role.level:isPassable(newX, newY, self) then    
         self:move(self.vel.x * dt, self.vel.y * dt)
     else
         -- TODO: check for player or something damagable and do damage
