@@ -1,85 +1,18 @@
-# RoadMap
+# Silent Running
 
-### mvp
-  - [X] move square around
-  - [X] have other player(s) move other square(s) around
-  - [X] have single level with terrain across network.
+## Roadmap
 
-## 0.1.0
-<sup>the mvp branch done</sup>
+The planned features for Silent Running can be found on [the project's roadmap](https://github.com/IMP1/silent-running/blob/master/roadmap.md#roadmap)
+If there's something you want, feel free to [make an issue](https://github.com/IMP1/silent-running/issues/new?title=[Suggestion]&labels=suggestion) for it.
 
-This is the Minimum Viable Product. It's something playable that can then be iterated upon.
+## Releases
 
-### core/stealth
-  - [X] have terrain and other squares only draw on passive pings (and fade out)
-  - [X] implement silent running (everything invisible but with active pings)
+There are no releases of Silent Running currently. The first release is expected to be for version 0.3.0!
 
-### core/levels
-  - [X] procedurally generated levels (have cheat code to see the terrain)
-      * terrain
-      * starting positions
+## Running
 
-### core/battle
-  - [X] have torpedos be firable.
-  - [ ] have torpedos damage the player (and cause a noise?)
+To run the current state of the code, you'll need [LÖVE](https://love2d.org/). You'll also need the current code.
+If you're on **windows**, you can drag the `src` folder onto the LÖVE executable.
+If you're on **linux**, you can run `love path/to/silent-running/src` from the terminal.
 
-## 0.2.0
-<sup>all the above core/* branches done</sup>
 
-This is the core game. The basic mechanics are implemented.
-
-### core/winloss
-  - [ ] win conditions on all enemies destroyed
-  - [ ] loss condition on submarine being destroyed
-
-### core/lobby
-  - [ ] option to start game or join game
-
-## 0.3.0
-<sup>all the above core/* branches done</sup>
-
-### juice/movement
-  - [ ] have player movement feel good
-
-### juice/impact
-  - [ ] have hitting an enemy feel good (screenshake?)
-  - [ ] have being hit by an enemy feel bad (screenshake!)
-
-## 0.4.0
-<sup>all the above juice/* branches done</sup>
-
-This is an improved version of the core game, but still with placeholder assets.
-
-### polish/input
-  - [ ] configurable keybindings
-  - [ ] game controllers working
-
-### polish/graphics
-  - [ ] slick graphics
-
-### polish/audio
-  - [ ] atmospheric sound effects
-  - [ ] minimal soundtrack
-
-### polish/menu
-  - [ ] title screen
-  - [ ] settings
-  - [ ] better looking lobby
-  
-### polish/localisation
-  - [ ] refactored internationalisation
-  - [ ] English 'translation'
-
-## 1.0.0
-<sup>all the above polish/* branches done</sup>
-
-This is the finished game, releasable.
-
-# Ideas
-
-## Map Features
-  * something that the submarine can traverse through, but pings bounce off (seaweed?)
-  * fish/aquatic mammals
-  * mines (explosive)
-  * ping mines
-  * depth charges (for firing down)
