@@ -11,7 +11,7 @@
 This is the Minimum Viable Product. It's something playable that can then be iterated upon.
 
 ### core/stealth
-  - [ ] have terrain and other squares only draw on passive pings (and fade out)
+  - [X] have terrain and other squares only draw on passive pings (and fade out)
   - [X] implement silent running (everything invisible but with active pings)
 
 ### core/levels
@@ -20,7 +20,7 @@ This is the Minimum Viable Product. It's something playable that can then be ite
       * starting positions
 
 ### core/battle
-  - [ ] have torpedos be firable.
+  - [X] have torpedos be firable.
   - [ ] have torpedos damage the player (and cause a noise?)
 
 ## 0.2.0
