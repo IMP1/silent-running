@@ -10,6 +10,7 @@ local sock   = require "lib.sock"
 local LevelGenerator = require 'level_generator'
 local Player         = require 'player'
 local Noise          = require 'noise'
+local Camera         = require 'camera'
 local Screen         = require 'screen'
 
 --------------------------------------------------------------------------------
@@ -37,6 +38,7 @@ function Client:start()
     self.client:setSerialization(bitser.dumps, bitser.loads)
     self.player = nil
     self.map = nil
+    self.camera = Camera.new()
     self.sounds = {}
     self.screen = Screen.new()
     
@@ -160,6 +162,10 @@ function Client:draw()
     if self.screen then
         self.screen:set()
     end
+    if self.camera then
+        self.camera:set()
+        -- TODO: test camera works
+    end
 
     if self.sounds then
         for _, p in pairs(self.sounds) do
@@ -187,6 +193,9 @@ function Client:draw()
         end
     end
 
+    if self.camera then
+        self.camera:unset()
+    end
     if self.screen then
         self.screen:unset()
     end

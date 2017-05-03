@@ -12,6 +12,7 @@ local Player         = require 'player'
 local Ping           = require 'ping'
 local Noise          = require 'noise'
 local Torpedo        = require 'torpedo'
+local Camera         = require 'camera'
 
 --------------------------------------------------------------------------------
 -- # Server
@@ -38,6 +39,7 @@ function Server:start()
     self.missiles = {}
     self.activePings = {}
     self.level = LevelGenerator.generate(640, 640, 1649)
+    self.camera = Camera.new()
     
     self.server:on("connect", function(data, client)
         log:add("New connection.")
@@ -178,6 +180,11 @@ function Server:update(dt)
 end
 
 function Server:draw()
+    if self.camera then
+        self.camera:set()
+    end
+    -- TODO: test camera
+
     love.graphics.setColor(255, 255, 255)
     if DEBUG.showPlayers then
         for _, p in pairs(self.players) do
@@ -210,6 +217,10 @@ function Server:draw()
                 love.graphics.polygon("line", unpack(tri))
             end
         end
+    end
+
+    if self.camera then
+        self.camera:unset()
     end
 
     if DEBUG.showCommands then
