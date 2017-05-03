@@ -22,28 +22,36 @@ function Level:isValidStartingPosition(x, y)
     if not self:isPassable(x, y) then 
         return false 
     end
-    -- TODO: check for other players
-    -- TODO: check for other objects
     return true
 end
 
-function Level:isPassable(x, y, objectToIgnore)
-    for _, r in pairs(self.rocks) do
-        if r:containsPoint(x, y) then
-            return false
-        end
+function Level:isPassable(x, y, objectToIgnore, leeway)
+    if self:isSolid(x, y) then
+        return false
     end
+    -- TODO: check for other players
     for _, p in pairs(role.players) do
+        local dr = 24 + (leeway or 0) -- TODO: change 24 to whatever is appropriate for players
         if objectToIgnore and p ~= objectToIgnore then
             local dx = p.pos.x - x
             local dy = p.pos.y - y
-            local dr = 24
             if dx*dx + dy*dy < dr*dr then
                 return false
             end
         end
     end
+    -- TODO: check for other objects
+    
     return true
+end
+
+function Level:isSolid(x, y)
+    for _, r in pairs(self.rocks) do
+        if r:containsPoint(x, y) then
+            return true
+        end
+    end
+    return false
 end
 
 function Level:getImageData(x, y, size)
