@@ -52,6 +52,7 @@ function Client:start()
     self.client:on("init", function(playerPosition)
         log:add("Recieved player position (" .. playerPosition[1] .. ", " .. playerPosition[2] .. ") from server.")
         self.player = Player.new(unpack(playerPosition))
+        self.camera:centreOn(unpack(playerPosition))
     end)
 
     self.client:on("level", function(levelParameters)
@@ -115,19 +116,20 @@ function Client:keypressed(key, isRepeat)
 end
 
 function Client:mousepressed(mx, my, key)
+    local wx, wy = self.camera:toWorldPosition(mx, my)
     if key == 2 then
         local x = self.player.pos.x
         local y = self.player.pos.y
-        local dx = mx - x
-        local dy = my - y
+        local dx = wx - x
+        local dy = wy - y
         self.player:fireWeapon(dx, dy)
         print("pew pew")
     end
     if self.player.isSilentRunning and key == 1 then
         local x = self.player.pos.x
         local y = self.player.pos.y
-        local dx = mx - x
-        local dy = my - y
+        local dx = wx - x
+        local dy = wy - y
         local magnitude = math.sqrt(dx * dx + dy * dy)
         local pingSpeed = 256
         dx = pingSpeed * dx / magnitude
@@ -141,6 +143,7 @@ function Client:update(dt)
     if self.player then
         self.player:update(dt)
         self.client:send("move", {self.player.lastMove.x, self.player.lastMove.y})
+        self.camera:move(self.player.lastMove.x, self.player.lastMove.y)
     end
     if self.screen then
         self.screen:update(dt)

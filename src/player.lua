@@ -127,8 +127,8 @@ function Player:die()
     role.player = nil
 end
 
-function Player:draw()
-    love.graphics.rectangle("fill", self.pos.x - 32, self.pos.y - 16, 64, 32)
+function Player:draw(ox, oy)
+    love.graphics.rectangle("fill", self.pos.x - 32 + (ox or 0), self.pos.y - 16 + (oy or 0), 64, 32)
 end
 
 return Player
