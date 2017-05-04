@@ -86,12 +86,12 @@ end
 
 function Camera:toWorldPosition(screenX, screenY)
     -- TODO: include rotation
-    return (screenX - self.x) / self.scaleX, (screenY - self.y) / self.scaleY
+    return (screenX + self.x) / self.scaleX, (screenY + self.y) / self.scaleY
 end
 
 function Camera:toScreenPosition(worldX, worldY)
     -- TODO: include rotation
-    return worldX * math.abs(self.scaleX) + self.x, worldY * self.scaleY + self.y
+    return worldX * math.abs(self.scaleX) - self.x, worldY * self.scaleY - self.y
 end
 
 return Camera
