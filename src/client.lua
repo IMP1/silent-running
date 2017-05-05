@@ -179,6 +179,12 @@ function Client:draw()
     love.graphics.setColor(255, 255, 255)
     if self.player then
         self.player:draw()
+        love.graphics.setColor(255, 255, 255, 32)
+        local r = math.atan2(self.player.lastMove.y, self.player.lastMove.x)
+        local ox = self.player.pos.x
+        local oy = self.player.pos.y
+        love.graphics.line(ox, oy, ox + 32 * math.cos(r), oy + 32 * math.sin(r))
+        -- TODO: have better way of indicating current direction of motion.
 
         if self.player.currentWeapon then
             if self.player.cooldowns[self.player.currentWeapon] > 0 then
