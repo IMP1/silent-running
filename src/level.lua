@@ -32,7 +32,7 @@ function Level:isPassable(x, y, objectToIgnore, leeway)
     -- TODO: check for other players
     for _, p in pairs(role.players) do
         local dr = 24 + (leeway or 0) -- TODO: change 24 to whatever is appropriate for players
-        if objectToIgnore and p ~= objectToIgnore then
+        if objectToIgnore == nil or p ~= objectToIgnore then
             local dx = p.pos.x - x
             local dy = p.pos.y - y
             if dx*dx + dy*dy < dr*dr then

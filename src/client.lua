@@ -130,10 +130,14 @@ function Client:mousepressed(mx, my, key)
         local y = self.player.pos.y
         local dx = wx - x
         local dy = wy - y
-        local magnitude = math.sqrt(dx * dx + dy * dy)
+        local r = math.atan2(dy, dx)
         local pingSpeed = 256
-        dx = pingSpeed * dx / magnitude
-        dy = pingSpeed * dy / magnitude
+        dx = math.cos(r)
+        dy = math.sin(r)
+        x = x + dx * 26 -- TODO: change 26 for player size + epsilon
+        y = y + dy * 26 -- TODO: change 26 for player size + epsilon
+        dx = dx * pingSpeed
+        dy = dy * pingSpeed
         self.client:send("active-ping", {x, y, dx, dy})
     end
 end
