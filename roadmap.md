@@ -21,7 +21,7 @@ This is the Minimum Viable Product. It's something playable that can then be ite
 
 ### core/battle
   - [X] have torpedos be firable.
-  - [ ] have torpedos damage the player (and cause a noise?)
+  - [X] have torpedos damage the player (and cause a noise?)
 
 ## 0.2.0
 <sup>all the above core/* branches done</sup>
