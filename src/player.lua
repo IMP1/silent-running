@@ -84,6 +84,11 @@ function Player:move(dx, dy)
     self.pos.y = self.pos.y + dy
 end
 
+function Player:changeWeapon(weapon)
+    self.currentWeapon = weapon
+    self.cooldowns[self.currentWeapon] = Player.COOLDOWNS[self.currentWeapon]
+end
+
 function Player:fireWeapon(dx, dy)
     if self.currentWeapon == nil then return end
     if self.cooldowns[self.currentWeapon] == nil then return end

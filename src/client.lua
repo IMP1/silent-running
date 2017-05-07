@@ -97,7 +97,7 @@ function Client:keypressed(key, isRepeat)
         self.player.isSilentRunning = not self.player.isSilentRunning
     end
     if key == "t" then
-        self.player.currentWeapon = "torpedo"
+        self.player:changeWeapon("torpedo")
     end
     if DEBUG then
         if key == "v" then
@@ -186,6 +186,17 @@ function Client:draw()
         love.graphics.line(ox, oy, ox + 32 * math.cos(r), oy + 32 * math.sin(r))
         -- TODO: have better way of indicating current direction of motion.
 
+    end
+
+    if self.camera then
+        self.camera:unset()
+    end
+    if self.screen then
+        self.screen:unset()
+    end
+
+    love.graphics.setColor(255, 255, 255)
+    if self.player then
         if self.player.currentWeapon then
             if self.player.cooldowns[self.player.currentWeapon] > 0 then
                 love.graphics.setColor(192, 192, 192)
@@ -200,23 +211,14 @@ function Client:draw()
             love.graphics.rectangle("fill", 360, 24, w, 8)
             
         end
-    end
-
-    if self.camera then
-        self.camera:unset()
-    end
-    if self.screen then
-        self.screen:unset()
-    end
-
-    love.graphics.setColor(255, 255, 255)
-    if DEBUG.showPlayerInfo and self.player then
-        love.graphics.print(tostring(self.player.health), 0, 0)
-        love.graphics.print(tostring(self.player.pos.x) .. "," .. tostring(self.player.pos.y), 0, 16)
-        love.graphics.print(tostring(self.player.vel.x) .. "," .. tostring(self.player.vel.y), 0, 32)
-        local state = "passive"
-        if self.player.isSilentRunning then state = "silent running" end
-        love.graphics.print(state, 0, 48)
+        if DEBUG.showPlayerInfo then
+            love.graphics.print(tostring(self.player.health), 0, 0)
+            love.graphics.print(tostring(self.player.pos.x) .. "," .. tostring(self.player.pos.y), 0, 16)
+            love.graphics.print(tostring(self.player.vel.x) .. "," .. tostring(self.player.vel.y), 0, 32)
+            local state = "passive"
+            if self.player.isSilentRunning then state = "silent running" end
+            love.graphics.print(state, 0, 48)
+        end
     end
     if DEBUG.showCommands then
         love.graphics.print("V  : toggle velocity",    0, love.graphics.getHeight() - 24 * 3)
