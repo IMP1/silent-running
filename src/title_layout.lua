@@ -1,4 +1,4 @@
-local mortar = require 'mortar'
+local mortar = require 'lib.mortar'
 
 --[[
 <layout>
@@ -13,26 +13,32 @@ local mortar = require 'mortar'
 </layout>
 ]]
 
-layout = mortar.layout({
-    mortar.title("Welcome to Silent Running"),
-    mortar.group("options", {
-        mortar.button({
-            text = "Start a Server",
-            onclick = function() end,
-        }),
-        mortar.group({
-            mortar.text_input("ipAddress", {
-                placeholder = "IP Address",
-            })
+local layout = mortar.layout({
+    mortar.title({0, 10, 100, 10, "top", "centre"}, {
+        text = "Welcome to Silent Running",
+    }),
+    mortar.group("options", {0, 30, 100, 60, "top", "centre"}, {
+        members = {
             mortar.button({
-                text = "Join a Server",
+                text = "Start a Server",
                 onclick = function() end,
             }),
-        })
+            mortar.group({
+                members = {
+                    mortar.text_input("ipAddress", {
+                        placeholder = "IP Address",
+                    }),
+                    mortar.button({
+                        text = "Join a Server",
+                        onclick = function() end,
+                    }),
+                },
+            })
+        },
     })
 })
 
-layout:style({
+mortar.style(layout, {
     title = {
         font   = "",
         colour = "",

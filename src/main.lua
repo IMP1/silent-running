@@ -23,7 +23,6 @@ local sock   = require 'lib.sock'
 -------------
 -- Classes --
 -------------
-local UiCollection   = require 'mortar'
 local Server         = require 'server'
 local Client         = require 'client'
 local Log            = require 'log'
