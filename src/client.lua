@@ -30,11 +30,11 @@ function Client.new()
     return this
 end
 
-function Client:start()
+function Client:start(address)
     ----------------------
     -- Client Variables --
     ----------------------
-    self.client = sock.newClient("localhost", PORT)
+    self.client = sock.newClient(address, PORT)
     self.client:setSerialization(bitser.dumps, bitser.loads)
     self.player = nil
     self.map = nil

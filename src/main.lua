@@ -42,7 +42,7 @@ function love.keypressed(key, isRepeat)
         if key == "1" then
             role = Server.new()
         elseif key == "2" then
-            role = Client.new()
+            role = Client.new("localhost")
         end
     else
         role:keypressed(key, isRepeat)
