@@ -66,13 +66,17 @@ function love.draw()
     if role then
         role:draw()
     else
-        love.graphics.setColor(255, 255, 255)
-        love.graphics.printf("WAITING", 0, 96, love.graphics.getWidth(), "center")
+        drawLobby()
     end
 
     if DEBUG then
         drawDebug()
     end
+end
+
+function drawLobby()
+    love.graphics.setColor(255, 255, 255)
+    love.graphics.printf("WAITING", 0, 96, love.graphics.getWidth(), "center")
 end
 
 function drawDebug()
