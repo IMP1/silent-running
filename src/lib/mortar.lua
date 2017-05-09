@@ -27,6 +27,8 @@ local mortar = {
     ]]
 }
 
+-- https://airstruck.github.io/luigi/doc/classes/Layout.html
+
 local function newUIElement()
     return {
         x = 0, 
@@ -43,7 +45,7 @@ local Button_mt = {__index = Button}
 function Button:keypressed
 
 function mortar.layout(layout)
-    
+
 end
 
 return mortar
