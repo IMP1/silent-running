@@ -208,6 +208,19 @@ function Group:keypressed(key, isRepeat)
     end
 end
 
+function Group:draw()
+    love.graphics.push()
+    love.graphics.translate(ox or 0, oy or 0)
+
+    for _, element in pairs(self.elements) do
+        if element.draw then
+            element:draw()
+        end
+    end
+
+    love.graphics.pop()
+end
+
 --------------------------------------------------------------------------------
 -- # Layout
 --------------
