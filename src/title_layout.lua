@@ -20,13 +20,13 @@ local layout = mortar.layout({0, 0, 100, 100}, {
         }),
         mortar.group("options", {0, 30, 100, 60, "top", "center"}, {
             elements = {
-                mortar.button({0, 0, 50, 100}, {
+                mortar.button({0, 0, 50, 50}, {
                     text = "Start a Server",
                     onclick = function() end,
                 }),
-                mortar.group({50, 0, 50, 100}, {
+                mortar.group({50, 0, 50, 50}, {
                     elements = {
-                        mortar.text_input("ipAddress", {
+                        mortar.text_input("ipAddress", {0, 25, 100, 50}, {
                             placeholder = "IP Address",
                         }),
                         mortar.button({

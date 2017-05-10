@@ -136,8 +136,6 @@ end
 function Button:draw()
     local x, y, w, h = unpack(self:getRelativeBounds())
     local align = self.pos[6]
-    print(tostring(self) .. " properties")
-    print(x, y, w, h, align)
     love.graphics.rectangle("line", x, y, w, h)
     love.graphics.printf(self.text, x, y, w, align)
 end
@@ -211,6 +209,19 @@ function TextInput:keytyped(text)
     self.text = self.text .. text
 end
 
+function TextInput:draw()
+    local oldColour = { love.graphics.getColor() }
+    local x, y, w, h = unpack(self:getRelativeBounds())
+    if self.selected then
+        love.graphics.setColor(128, 128, 255)
+    else
+        love.graphics.setColor(192, 192, 192)
+    end
+    love.graphics.line(x, y + h, x + w, y + h)
+    love.graphics.setColor(unpack(oldColour))
+    love.graphics.printf(self.text, x, y, w, self.pos[6])
+end
+
 --------------------------------------------------------------------------------
 -- # Group
 --------------
@@ -263,8 +274,6 @@ end
 function Group:draw()
     love.graphics.push()
     local x, y = unpack(self:getRelativePosition())
-    print(tostring(self) .. " relative position")
-    print(x, y)
     love.graphics.translate(x, y)
 
     for _, element in pairs(self.elements) do
