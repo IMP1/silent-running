@@ -38,6 +38,7 @@ local mortar = {
 --------------------------------------------------------------------------------
 
 local element = {}
+local element_mt = { __index = element }
 element.__index = element
 
 function element.new(id, pos, options)
@@ -51,7 +52,7 @@ function element.new(id, pos, options)
     return obj
 end
 
-function element.getScreenBounds(self)
+function element:getScreenBounds()
     local parentBounds
     if self.parent == nil then
         parentBounds = { 0, 0, love.graphics.getWidth(), love.graphics.getHeight() }
@@ -66,7 +67,7 @@ function element.getScreenBounds(self)
     }
 end
 
-function element.isMouseOver(self, mx, my)
+function element:isMouseOver(mx, my)
     local bounds = element.getScreenBounds(self)
     local x, y, w, h = unpack(bounds)
     return (mx >= x and 
@@ -75,12 +76,27 @@ function element.isMouseOver(self, mx, my)
             my <= y + h)
 end
 
-function element.getRelativePosition(self)
+function element:getSize()
+    if self.parent == nil then
+        return { 
+            love.graphics.getWidth(), 
+            love.graphics.getHeight() 
+        }
+    else
+        local parentSize = self.parent:getSize()
+        return {
+            parentSize[1] * self.pos[3] / 100,
+            parentSize[2] * self.pos[4] / 100,
+        }
+    end
+end
+
+function element:getRelativePosition()
     local parentSize
     if self.parent == nil then
         parentSize = { love.graphics.getWidth(), love.graphics.getHeight() }
     else
-        parentSize = { self.parent.pos[3], self.parent.pos[4] }
+        parentSize = self.parent:getSize()
     end
     return {
         self.pos[1] * parentSize[1] / 100,
@@ -95,6 +111,7 @@ end
 -- the button is clicked.
 --------------------------------------------------------------------------------
 local Button = {}
+setmetatable(Button, element_mt)
 Button.__index = Button
 function Button:__tostring()
     return "<Button>"
@@ -120,6 +137,7 @@ end
 -- A simple class for displaying text. 
 --------------------------------------------------------------------------------
 local Text = {}
+setmetatable(Text, element_mt)
 Text.__index = Text
 function Text:__tostring()
     return "<Text>"
@@ -147,6 +165,7 @@ end
 -- A class for allowing a user to input text. 
 --------------------------------------------------------------------------------
 local TextInput = {}
+setmetatable(TextInput, element_mt)
 TextInput.__index = TextInput
 function TextInput:__tostring()
     return "<TextInput>"
@@ -187,6 +206,7 @@ end
 -- A group of other elements.
 --------------------------------------------------------------------------------
 local Group = {}
+setmetatable(Group, element_mt)
 Group.__index = Group
 function Group:__tostring()
     return "<Group>"
@@ -232,7 +252,6 @@ function Group:draw()
     love.graphics.push()
     love.graphics.translate(ox or 0, oy or 0)
     local x, y = unpack(element.getRelativePosition(self))
-    print(x, y, self.pos[1], self.pos[2])
     love.graphics.translate(x, y)
 
     for _, element in pairs(self.elements) do
@@ -250,6 +269,7 @@ end
 -- The top-level container.
 --------------------------------------------------------------------------------
 local Layout = {}
+setmetatable(Layout, element_mt)
 Layout.__index = Layout
 function Layout:__tostring()
     return "<Layout>"
