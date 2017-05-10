@@ -32,14 +32,60 @@ local mortar = {
 local function createDefaultOptions(id, pos, options)
     local obj = {}
 
-    obj.id   = id
-    obj.pos  = pos or {0, 0, 100, 100, "top", "left"}
-    obj.tags = options.tags or {}
+    obj.id    = id
+    obj.pos   = pos or {0, 0, 100, 100, "top", "left"}
+    obj.tags  = options.tags or {}
+    obj.style = options.style or {}
 
     return obj
 end
 
+local function getScreenBounds(obj)
+    local parentBounds
+    if getmetatable(obj) == Layout then
+        parentBounds = { 0, 0, love.graphics.getWidth(), love.graphics.getHeight() }
+    else
+        parentBounds = getScreenBounds(obj.parent)
+    end
+    return {
+        obj.pos[1] + parentBounds[1],
+        obj.pos[2] + parentBounds[2],
+        obj.pos[3] * parentBounds[3] / 100,
+        obj.pos[4] * parentBounds[4] / 100
+    }
+end
 
+local function getWidth(obj)
+    if getmetatable(obj) == Layout then
+        return obj.pos[3] * love.graphics.getWidth()
+    else
+        return obj.pos[3] * getWidth(obj.parent)
+    end
+end
+
+local function getHeight(obj)
+    if getmetatable(obj) == Layout then
+        return obj.pos[4] * love.graphics.getHeight()
+    else
+        return obj.pos[4] * getHeight(obj.parent)
+    end
+end
+
+local function mousePressed(obj, mx, my, key)
+    local bounds = getScreenBounds(obj)
+    local x, y, w, h = unpack(bounds)
+    if mx < x or my < y or mx > x + w or my > y + h then
+        return
+    end
+    
+end
+
+--------------------------------------------------------------------------------
+-- # Button
+--------------
+-- A simple text button class. It is connected to an action which will fire when
+-- the button is clicked.
+--------------------------------------------------------------------------------
 local Button = {}
 Button.__index = Button
 
@@ -51,13 +97,17 @@ function Button.new(id, position, options)
     return this
 end
 
+--------------------------------------------------------------------------------
+-- # Text
+--------------
+-- A simple class for displaying text. 
+--------------------------------------------------------------------------------
+local Text = {}
+Text.__index = Text
 
-local Title = {}
-Title.__index = Title
-
-function Title.new(id, position, options)
+function Text.new(id, position, options)
     local this = createDefaultOptions(id, pos, options)
-    setmetatable(this, Title)
+    setmetatable(this, Text)
     this.text = options.text or ""
     return this
 end
@@ -80,7 +130,10 @@ Group.__index = Group
 function Group.new(id, position, options)
     local this = createDefaultOptions(id, pos, options)
     setmetatable(this, Group)
-    this.members = options.members or {}
+    this.elements = options.elements or {}
+    for _, e in pairs(this.elements) do
+        e.parent = this
+    end
     return this
 end
 
@@ -88,10 +141,13 @@ end
 local Layout = {}
 Layout.__index = Layout
 
-function Layout.new(_, _, elements)
-    local this = {}
+function Layout.new(id, position, options)
+    local this = createDefaultOptions(id, pos, options)
     setmetatable(this, Layout)
-    this.elements = elements
+    this.elements = options.elements or {}
+    for _, e in pairs(this.elements) do
+        e.parent = this
+    end
     return this
 end
 
@@ -100,11 +156,40 @@ function Layout:update(dt)
 end
 
 function Layout:mousepressed(mx, my, key)
+    
     -- TODO: Implement
 end
 
-function Layout:draw()
-    -- TODO: Implement
+function Layout:draw(ox, oy)
+    love.graphics.push()
+    love.graphics.translate(ox or 0, oy or 0)
+
+    for _, element in pairs(self.elements) do
+        if element.draw then
+            element:draw()
+        end
+    end
+
+    love.graphics.pop()
+end
+
+function Layout:elementWithId(id)
+    for _, e in pairs(self.elements) do
+        if e.id == id then 
+            return e 
+        end
+        if e.elementWithId then
+            local element = e:elementWithId(id)
+            if element ~= nil then 
+                return element 
+            end
+        end
+    end
+    return nil
+end
+
+function Layout:style(styleRules)
+    mortar.style(self, styleRules)
 end
 
 local function default_constructor_for(ObjectClass)
@@ -132,7 +217,7 @@ local function default_constructor_for(ObjectClass)
     end
 end
 
-mortar.title      = default_constructor_for(Title)
+mortar.text       = default_constructor_for(Text)
 mortar.button     = default_constructor_for(Button)
 mortar.text_input = default_constructor_for(TextInput)
 mortar.group      = default_constructor_for(Group)
