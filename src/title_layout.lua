@@ -15,10 +15,10 @@ local mortar = require 'lib.mortar'
 
 local layout = mortar.layout({0, 0, 100, 100}, {
     elements = {
-        mortar.text("title", {0, 10, 100, 10, "top", "centre"}, {
+        mortar.text("title", {0, 10, 100, 10, "top", "center"}, {
             text = "Welcome to Silent Running",
         }),
-        mortar.group("options", {0, 30, 100, 60, "top", "centre"}, {
+        mortar.group("options", {0, 30, 100, 60, "top", "center"}, {
             elements = {
                 mortar.button({
                     text = "Start a Server",

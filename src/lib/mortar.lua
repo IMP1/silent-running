@@ -40,7 +40,7 @@ local mortar = {
 local element = {}
 element.__index = element
 
-local element.new(id, pos, options)
+function element.new(id, pos, options)
     local obj = {}
 
     obj.id    = id
@@ -52,17 +52,16 @@ local element.new(id, pos, options)
 end
 
 function element.getScreenBounds(self)
-    local parentBounds
-    if getmetatable(obj) == Layout then
+    if self.parent == nil then
         parentBounds = { 0, 0, love.graphics.getWidth(), love.graphics.getHeight() }
     else
-        parentBounds = getScreenBounds(obj.parent)
+        parentBounds = element.getScreenBounds(self.parent)
     end
     return {
-        parentBounds[1] + obj.pos[1] * parentBounds[3],
-        parentBounds[2] + obj.pos[2] * parentBounds[4],
-        parentBounds[3] * obj.pos[3] / 100,
-        parentBounds[4] * obj.pos[4] / 100
+        parentBounds[1] + self.pos[1] * parentBounds[3] / 100,
+        parentBounds[2] + self.pos[2] * parentBounds[4] / 100,
+        parentBounds[3] * self.pos[3] / 100,
+        parentBounds[4] * self.pos[4] / 100
     }
 end
 
@@ -83,6 +82,9 @@ end
 --------------------------------------------------------------------------------
 local Button = {}
 Button.__index = Button
+function Button:__tostring()
+    return "<Button>"
+end
 
 function Button.new(id, position, options)
     local this = element.new(id, pos, options)
@@ -99,9 +101,12 @@ end
 --------------------------------------------------------------------------------
 local Text = {}
 Text.__index = Text
+function Text:__tostring()
+    return "<Text>"
+end
 
 function Text.new(id, position, options)
-    local this = element.new(id, pos, options)
+    local this = element.new(id, position, options)
     setmetatable(this, Text)
     this.text = options.text or ""
     return this
@@ -111,7 +116,8 @@ function Text:draw()
     if self.style.font then
         -- TODO: set font. reset old font afterwards?
     end
-    local x, y, w, h, _, align = element.getScreenBounds(self)
+    local x, y, w, h = unpack(element.getScreenBounds(self))
+    local align = self.pos[6]
     love.graphics.printf(self.text, x, y, w, align)
 end
 
@@ -122,6 +128,9 @@ end
 --------------------------------------------------------------------------------
 local TextInput = {}
 TextInput.__index = TextInput
+function TextInput:__tostring()
+    return "<TextInput>"
+end
 
 function TextInput.new(id, position, options)
     local this = element.new(id, pos, options)
@@ -159,6 +168,9 @@ end
 --------------------------------------------------------------------------------
 local Group = {}
 Group.__index = Group
+function Group:__tostring()
+    return "<Group>"
+end
 
 function Group.new(id, position, options)
     local this = element.new(id, pos, options)
@@ -203,6 +215,9 @@ end
 --------------------------------------------------------------------------------
 local Layout = {}
 Layout.__index = Layout
+function Layout:__tostring()
+    return "<Layout>"
+end
 
 function Layout.new(id, position, options)
     local this = element.new(id, pos, options)
