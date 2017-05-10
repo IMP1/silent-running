@@ -52,6 +52,7 @@ function element.new(id, pos, options)
 end
 
 function element.getScreenBounds(self)
+    local parentBounds
     if self.parent == nil then
         parentBounds = { 0, 0, love.graphics.getWidth(), love.graphics.getHeight() }
     else
@@ -74,6 +75,19 @@ function element.isMouseOver(self, mx, my)
             my <= y + h)
 end
 
+function element.getRelativePosition(self)
+    local parentSize
+    if self.parent == nil then
+        parentSize = { love.graphics.getWidth(), love.graphics.getHeight() }
+    else
+        parentSize = { self.parent.pos[3], self.parent.pos[4] }
+    end
+    return {
+        self.pos[1] * parentSize[1] / 100,
+        self.pos[2] * parentSize[2] / 100
+    }
+end
+
 --------------------------------------------------------------------------------
 -- # Button
 --------------
@@ -87,11 +101,17 @@ function Button:__tostring()
 end
 
 function Button.new(id, position, options)
-    local this = element.new(id, pos, options)
+    local this = element.new(id, position, options)
     setmetatable(this, Button)
     this.text     = options.text or ""
     this.onclick  = options.onclick
     return this
+end
+
+function Button:draw()
+    local x, y, w, h = unpack(element.getScreenBounds(self))
+    local align = self.pos[6]
+    love.graphics.printf(self.text, x, y, w, align)
 end
 
 --------------------------------------------------------------------------------
@@ -133,7 +153,7 @@ function TextInput:__tostring()
 end
 
 function TextInput.new(id, position, options)
-    local this = element.new(id, pos, options)
+    local this = element.new(id, position, options)
     setmetatable(this, TextInput)
     this.placeholder = options.placeholder or ""
     this.selected    = false
@@ -173,7 +193,7 @@ function Group:__tostring()
 end
 
 function Group.new(id, position, options)
-    local this = element.new(id, pos, options)
+    local this = element.new(id, position, options)
     setmetatable(this, Group)
     this.elements = options.elements or {}
     for _, e in pairs(this.elements) do
@@ -211,6 +231,9 @@ end
 function Group:draw()
     love.graphics.push()
     love.graphics.translate(ox or 0, oy or 0)
+    local x, y = unpack(element.getRelativePosition(self))
+    print(x, y, self.pos[1], self.pos[2])
+    love.graphics.translate(x, y)
 
     for _, element in pairs(self.elements) do
         if element.draw then
@@ -233,7 +256,7 @@ function Layout:__tostring()
 end
 
 function Layout.new(id, position, options)
-    local this = element.new(id, pos, options)
+    local this = element.new(id, position, options)
     setmetatable(this, Layout)
     this.elements = options.elements or {}
     for _, e in pairs(this.elements) do
@@ -275,6 +298,8 @@ end
 function Layout:draw(ox, oy)
     love.graphics.push()
     love.graphics.translate(ox or 0, oy or 0)
+    local x, y = unpack(element.getRelativePosition(self))
+    love.graphics.translate(x, y)
 
     for _, element in pairs(self.elements) do
         if element.draw then
