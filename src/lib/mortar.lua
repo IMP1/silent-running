@@ -1,3 +1,5 @@
+local utf8 = require("utf8")
+
 local mortar = {
     _VERSION     = 'v0.0.1',
     _DESCRIPTION = 'A Lua UI library for LÖVE games',
@@ -29,7 +31,16 @@ local mortar = {
 
 -- https://airstruck.github.io/luigi/doc/classes/Layout.html
 
-local function createDefaultOptions(id, pos, options)
+--------------------------------------------------------------------------------
+-- # Element
+--------------
+-- A generic UI element, with common properties and actions.
+--------------------------------------------------------------------------------
+
+local element = {}
+element.__index = element
+
+local element.new(id, pos, options)
     local obj = {}
 
     obj.id    = id
@@ -40,7 +51,7 @@ local function createDefaultOptions(id, pos, options)
     return obj
 end
 
-local function getScreenBounds(obj)
+function element.getScreenBounds(self)
     local parentBounds
     if getmetatable(obj) == Layout then
         parentBounds = { 0, 0, love.graphics.getWidth(), love.graphics.getHeight() }
@@ -48,36 +59,20 @@ local function getScreenBounds(obj)
         parentBounds = getScreenBounds(obj.parent)
     end
     return {
-        obj.pos[1] + parentBounds[1],
-        obj.pos[2] + parentBounds[2],
-        obj.pos[3] * parentBounds[3] / 100,
-        obj.pos[4] * parentBounds[4] / 100
+        parentBounds[1] + obj.pos[1] * parentBounds[3],
+        parentBounds[2] + obj.pos[2] * parentBounds[4],
+        parentBounds[3] * obj.pos[3] / 100,
+        parentBounds[4] * obj.pos[4] / 100
     }
 end
 
-local function getWidth(obj)
-    if getmetatable(obj) == Layout then
-        return obj.pos[3] * love.graphics.getWidth()
-    else
-        return obj.pos[3] * getWidth(obj.parent)
-    end
-end
-
-local function getHeight(obj)
-    if getmetatable(obj) == Layout then
-        return obj.pos[4] * love.graphics.getHeight()
-    else
-        return obj.pos[4] * getHeight(obj.parent)
-    end
-end
-
-local function mousePressed(obj, mx, my, key)
-    local bounds = getScreenBounds(obj)
+function element.isMouseOver(self, mx, my)
+    local bounds = element.getScreenBounds(self)
     local x, y, w, h = unpack(bounds)
-    if mx < x or my < y or mx > x + w or my > y + h then
-        return
-    end
-    
+    return (mx >= x and 
+            my >= y and 
+            mx <= x + w and 
+            my <= y + h)
 end
 
 --------------------------------------------------------------------------------
@@ -90,7 +85,7 @@ local Button = {}
 Button.__index = Button
 
 function Button.new(id, position, options)
-    local this = createDefaultOptions(id, pos, options)
+    local this = element.new(id, pos, options)
     setmetatable(this, Button)
     this.text     = options.text or ""
     this.onclick  = options.onclick
@@ -106,29 +101,67 @@ local Text = {}
 Text.__index = Text
 
 function Text.new(id, position, options)
-    local this = createDefaultOptions(id, pos, options)
+    local this = element.new(id, pos, options)
     setmetatable(this, Text)
     this.text = options.text or ""
     return this
 end
 
+function Text:draw()
+    if self.style.font then
+        -- TODO: set font. reset old font afterwards?
+    end
+    local x, y, w, h, _, align = element.getScreenBounds(self)
+    love.graphics.printf(self.text, x, y, w, align)
+end
 
+--------------------------------------------------------------------------------
+-- # TextInput
+--------------
+-- A class for allowing a user to input text. 
+--------------------------------------------------------------------------------
 local TextInput = {}
 TextInput.__index = TextInput
 
 function TextInput.new(id, position, options)
-    local this = createDefaultOptions(id, pos, options)
+    local this = element.new(id, pos, options)
     setmetatable(this, TextInput)
     this.placeholder = options.placeholder or ""
+    this.selected    = false
+    this.text        = ""
     return this
 end
 
+function TextInput:mousepressed(mx, my, key)
+    self.selected = element.isMouseOver(self, mx, my)
+end
 
+function TextInput:keypressed(key, isRepeat)
+    if not self.selected then return end
+    if key == "backspace" then
+        -- SEE: https://love2d.org/wiki/love.textinput
+        local offset = utf8.offset(self.text, -1)
+        if offset then
+            self.text = self.text:sub(1, offset - 1)
+        end
+    end
+end
+
+function TextInput:keytyped(text)
+    if not self.selected then return end
+    self.text = self.text .. text
+end
+
+--------------------------------------------------------------------------------
+-- # Group
+--------------
+-- A group of other elements.
+--------------------------------------------------------------------------------
 local Group = {}
 Group.__index = Group
 
 function Group.new(id, position, options)
-    local this = createDefaultOptions(id, pos, options)
+    local this = element.new(id, pos, options)
     setmetatable(this, Group)
     this.elements = options.elements or {}
     for _, e in pairs(this.elements) do
@@ -137,12 +170,42 @@ function Group.new(id, position, options)
     return this
 end
 
+function Group:mousepressed(mx, my, key)
+    if element.isMouseOver(self, mx, my) then
+        for _, e in pairs(self.elements) do
+            if e.mousepressed then
+                e:mousepressed(mx, my, key)
+            end
+        end
+    end
+end
 
+function Group:keytyped(text)
+    for _, e in pairs(self.elements) do
+        if e.keytyped then
+            e:keytyped(text)
+        end
+    end
+end
+
+function Group:keypressed(key, isRepeat)
+    for _, e in pairs(self.elements) do
+        if e.keypressed then
+            e:keypressed(text)
+        end
+    end
+end
+
+--------------------------------------------------------------------------------
+-- # Layout
+--------------
+-- The top-level container.
+--------------------------------------------------------------------------------
 local Layout = {}
 Layout.__index = Layout
 
 function Layout.new(id, position, options)
-    local this = createDefaultOptions(id, pos, options)
+    local this = element.new(id, pos, options)
     setmetatable(this, Layout)
     this.elements = options.elements or {}
     for _, e in pairs(this.elements) do
@@ -156,8 +219,29 @@ function Layout:update(dt)
 end
 
 function Layout:mousepressed(mx, my, key)
-    
-    -- TODO: Implement
+    if element.isMouseOver(self, mx, my) then
+        for _, e in pairs(self.elements) do
+            if e.mousepressed then
+                e:mousepressed(mx, my, key)
+            end
+        end
+    end
+end
+
+function Layout:keytyped(text)
+    for _, e in pairs(self.elements) do
+        if e.keytyped then
+            e:keytyped(text)
+        end
+    end
+end
+
+function Layout:keypressed(key, isRepeat)
+    for _, e in pairs(self.elements) do
+        if e.keypressed then
+            e:keypressed(text)
+        end
+    end
 end
 
 function Layout:draw(ox, oy)

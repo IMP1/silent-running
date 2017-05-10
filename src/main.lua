@@ -44,8 +44,15 @@ function setupLobby()
     lobby = love.filesystem.load("title_layout.lua")()
 end
 
+function love.textinput(text)
+    if lobby then
+        lobby:keytyped(text)
+    end
+end
+
 function love.keypressed(key, isRepeat)
     if lobby then 
+        lobby:keypressed(key, isRepeat)
         if key == "1" then
             role = Server.new()
         elseif key == "2" then
