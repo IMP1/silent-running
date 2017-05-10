@@ -57,7 +57,7 @@ function element:getScreenBounds()
     if self.parent == nil then
         parentBounds = { 0, 0, love.graphics.getWidth(), love.graphics.getHeight() }
     else
-        parentBounds = element.getScreenBounds(self.parent)
+        parentBounds = self.parent:getScreenBounds()
     end
     return {
         parentBounds[1] + self.pos[1] * parentBounds[3] / 100,
@@ -67,8 +67,14 @@ function element:getScreenBounds()
     }
 end
 
+function element:getRelativeBounds()
+    local x, y = unpack(self:getRelativePosition())
+    local w, h = unpack(self:getSize())
+    return { x, y, w, h }
+end
+
 function element:isMouseOver(mx, my)
-    local bounds = element.getScreenBounds(self)
+    local bounds = self:getScreenBounds()
     local x, y, w, h = unpack(bounds)
     return (mx >= x and 
             my >= y and 
@@ -98,6 +104,8 @@ function element:getRelativePosition()
     else
         parentSize = self.parent:getSize()
     end
+    print(tostring(self) .. "parent size")
+    print(unpack(parentSize))
     return {
         self.pos[1] * parentSize[1] / 100,
         self.pos[2] * parentSize[2] / 100
@@ -114,7 +122,7 @@ local Button = {}
 setmetatable(Button, element_mt)
 Button.__index = Button
 function Button:__tostring()
-    return "<Button>"
+    return "<Button:" .. (self.id or "") .. ">"
 end
 
 function Button.new(id, position, options)
@@ -126,8 +134,11 @@ function Button.new(id, position, options)
 end
 
 function Button:draw()
-    local x, y, w, h = unpack(element.getScreenBounds(self))
+    local x, y, w, h = unpack(self:getRelativeBounds())
     local align = self.pos[6]
+    print(tostring(self) .. " properties")
+    print(x, y, w, h, align)
+    love.graphics.rectangle("line", x, y, w, h)
     love.graphics.printf(self.text, x, y, w, align)
 end
 
@@ -140,7 +151,7 @@ local Text = {}
 setmetatable(Text, element_mt)
 Text.__index = Text
 function Text:__tostring()
-    return "<Text>"
+    return "<Text:" .. tostring(self.id) .. ">"
 end
 
 function Text.new(id, position, options)
@@ -154,7 +165,7 @@ function Text:draw()
     if self.style.font then
         -- TODO: set font. reset old font afterwards?
     end
-    local x, y, w, h = unpack(element.getScreenBounds(self))
+    local x, y, w, h = unpack(self:getRelativeBounds())
     local align = self.pos[6]
     love.graphics.printf(self.text, x, y, w, align)
 end
@@ -181,7 +192,7 @@ function TextInput.new(id, position, options)
 end
 
 function TextInput:mousepressed(mx, my, key)
-    self.selected = element.isMouseOver(self, mx, my)
+    self.selected = self:isMouseOver(mx, my)
 end
 
 function TextInput:keypressed(key, isRepeat)
@@ -206,10 +217,11 @@ end
 -- A group of other elements.
 --------------------------------------------------------------------------------
 local Group = {}
+local Group_mt = { __index = Group }
 setmetatable(Group, element_mt)
 Group.__index = Group
 function Group:__tostring()
-    return "<Group>"
+    return "<Group:" .. (self.id or "") .. ">"
 end
 
 function Group.new(id, position, options)
@@ -223,7 +235,7 @@ function Group.new(id, position, options)
 end
 
 function Group:mousepressed(mx, my, key)
-    if element.isMouseOver(self, mx, my) then
+    if self:isMouseOver(mx, my) then
         for _, e in pairs(self.elements) do
             if e.mousepressed then
                 e:mousepressed(mx, my, key)
@@ -250,8 +262,9 @@ end
 
 function Group:draw()
     love.graphics.push()
-    love.graphics.translate(ox or 0, oy or 0)
-    local x, y = unpack(element.getRelativePosition(self))
+    local x, y = unpack(self:getRelativePosition())
+    print(tostring(self) .. " relative position")
+    print(x, y)
     love.graphics.translate(x, y)
 
     for _, element in pairs(self.elements) do
@@ -269,7 +282,7 @@ end
 -- The top-level container.
 --------------------------------------------------------------------------------
 local Layout = {}
-setmetatable(Layout, element_mt)
+setmetatable(Layout, Group_mt)
 Layout.__index = Layout
 function Layout:__tostring()
     return "<Layout>"
@@ -287,47 +300,6 @@ end
 
 function Layout:update(dt)
     -- TODO: Implement
-end
-
-function Layout:mousepressed(mx, my, key)
-    if element.isMouseOver(self, mx, my) then
-        for _, e in pairs(self.elements) do
-            if e.mousepressed then
-                e:mousepressed(mx, my, key)
-            end
-        end
-    end
-end
-
-function Layout:keytyped(text)
-    for _, e in pairs(self.elements) do
-        if e.keytyped then
-            e:keytyped(text)
-        end
-    end
-end
-
-function Layout:keypressed(key, isRepeat)
-    for _, e in pairs(self.elements) do
-        if e.keypressed then
-            e:keypressed(text)
-        end
-    end
-end
-
-function Layout:draw(ox, oy)
-    love.graphics.push()
-    love.graphics.translate(ox or 0, oy or 0)
-    local x, y = unpack(element.getRelativePosition(self))
-    love.graphics.translate(x, y)
-
-    for _, element in pairs(self.elements) do
-        if element.draw then
-            element:draw()
-        end
-    end
-
-    love.graphics.pop()
 end
 
 function Layout:elementWithId(id)
