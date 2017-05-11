@@ -1,10 +1,10 @@
 DEBUG = {
-    showMap        = true,
+    showMap        = false,
     showLog        = false,
-    showPlayers    = true,
-    showPlayerInfo = true,
-    showPings      = true,
-    showTriangles  = true,
+    showPlayers    = false,
+    showPlayerInfo = false,
+    showPings      = false,
+    showTriangles  = false,
     keepPongs      = false,
     showCommands   = true,
 }
@@ -23,8 +23,8 @@ local sock   = require 'lib.sock'
 -------------
 -- Classes --
 -------------
-local Server         = require 'server'
-local Client         = require 'client'
+Server         = require 'server'
+Client         = require 'client'
 local Log            = require 'log'
 
 function love.load(args)
@@ -53,11 +53,11 @@ end
 function love.keypressed(key, isRepeat)
     if lobby then 
         lobby:keypressed(key, isRepeat)
-        if key == "1" then
-            role = Server.new()
-        elseif key == "2" then
-            role = Client.new("localhost")
-        end
+        -- if key == "1" then
+        --     role = Server.new()
+        -- elseif key == "2" then
+        --     role = Client.new("localhost")
+        -- end
     end
     if role then
         role:keypressed(key, isRepeat)
@@ -73,9 +73,16 @@ function love.mousepressed(mx, my, key)
     end
 end
 
-function love.update(dt)
+function love.mousereleased(mx, my, key)
     if lobby then
-        lobby:update(dt)
+        lobby:mousereleased(mx, my, key)
+    end
+end
+
+function love.update(dt)
+    local mx, my = love.mouse.getPosition()
+    if lobby then
+        lobby:update(dt, mx, my)
     end
     if role then
         role:update(dt)
