@@ -83,6 +83,15 @@ local mortar = {
 
 -- https://airstruck.github.io/luigi/doc/classes/Layout.html
 
+default_style = {
+    
+    Button    = {},
+    Group     = {},
+    Layout    = {},
+    Text      = {},
+    TextInput = {},
+}
+
 --------------------------------------------------------------------------------
 -- # Element
 --------------
@@ -93,13 +102,14 @@ local Element = {}
 local Element_mt = { __index = Element }
 Element.__index = Element
 
-function Element.new(id, pos, options)
+function Element.new(elementName, id, pos, options)
     local obj = {}
+    obj._name = elementName
 
     obj.id    = id
     obj.pos   = pos or {0, 0, 100, 100, "top", "left"}
     obj.tags  = options.tags or {}
-    obj.style = options.style or {}
+    obj.style = style or default_style[elementName]
 
     return obj
 end
@@ -156,12 +166,18 @@ function Element:getRelativePosition()
     else
         parentSize = self.parent:getSize()
     end
-    print(tostring(self) .. "parent size")
-    print(unpack(parentSize))
     return {
         self.pos[1] * parentSize[1] / 100,
         self.pos[2] * parentSize[2] / 100
     }
+end
+
+function Element:layout()
+    local top = self
+    while top.parent do
+        top = top.parent
+    end
+    return top
 end
 
 function Element:applyStyle()
@@ -177,7 +193,7 @@ function Element:applyStyle()
     self.parentScopeStyles = oldStyles
 end
 
-function Element:upapplyStyle()
+function Element:unapplyStyle()
     if self.parentScopeStyles.color then
         love.graphics.setColor(self.parentScopeStyles.color)
     end 
@@ -185,6 +201,15 @@ function Element:upapplyStyle()
         love.graphics.setFont(self.parentScopeStyles.font)
     end
     self.parentScopeStyles = nil
+end
+
+function Element:draw()
+    self:applyStyle()
+    if self.style.borderColor or self.style.borderWidth then
+        local x, y = unpack(self:getRelativePosition())
+        x = x + self.style.margin[1]
+    end
+    self:unapplyStyle()
 end
 
 --------------------------------------------------------------------------------
@@ -201,11 +226,15 @@ function Button:__tostring()
 end
 
 function Button.new(id, position, options)
-    local this = Element.new(id, position, options)
+    local this = Element.new("Button", id, position, options, options.style)
     setmetatable(this, Button)
     this.text     = options.text or ""
     this.onclick  = options.onclick
     return this
+end
+
+function Button:update(dt, mx, my)
+    self.hover = self:isMouseOver(mx, my)
 end
 
 function Button:draw()
@@ -213,6 +242,16 @@ function Button:draw()
     local align = self.pos[6]
     love.graphics.rectangle("line", x, y, w, h)
     love.graphics.printf(self.text, x, y, w, align)
+end
+
+function Button:mousepressed(mx, my, key)
+    self.selected = self:isMouseOver(mx, my)
+end
+
+function Button:mousereleased(mx, my, key)
+    if self:isMouseOver(mx, my) and key == 1 then
+        self:onclick()
+    end
 end
 
 --------------------------------------------------------------------------------
@@ -228,7 +267,7 @@ function Text:__tostring()
 end
 
 function Text.new(id, position, options)
-    local this = Element.new(id, position, options)
+    local this = Element.new("Text", id, position, options)
     setmetatable(this, Text)
     this.text = options.text or ""
     return this
@@ -256,7 +295,7 @@ function TextInput:__tostring()
 end
 
 function TextInput.new(id, position, options)
-    local this = Element.new(id, position, options)
+    local this = Element.new("TextInput", id, position, options)
     setmetatable(this, TextInput)
     this.placeholder = options.placeholder or ""
     this.selected    = false
@@ -279,6 +318,14 @@ function TextInput:keypressed(key, isRepeat)
     end
 end
 
+function TextInput:value()
+    if self.text:len() == 0 then
+        return nil
+    else
+        return self.text
+    end
+end
+
 function TextInput:keytyped(text)
     if not self.selected then return end
     self.text = self.text .. text
@@ -293,6 +340,10 @@ function TextInput:draw()
         love.graphics.setColor(192, 192, 192)
     end
     love.graphics.line(x, y + h, x + w, y + h)
+    if not self:value() then
+        love.graphics.setColor(128, 128, 128)
+        love.graphics.printf(self.placeholder, x, y, w, self.pos[6])
+    end
     love.graphics.setColor(unpack(oldColour))
     love.graphics.printf(self.text, x, y, w, self.pos[6])
 end
@@ -311,7 +362,7 @@ function Group:__tostring()
 end
 
 function Group.new(id, position, options)
-    local this = Element.new(id, position, options)
+    local this = Element.new("Group", id, position, options)
     setmetatable(this, Group)
     this.elements = options.elements or {}
     for _, e in pairs(this.elements) do
@@ -330,6 +381,24 @@ function Group:mousepressed(mx, my, key)
     end
 end
 
+function Group:mousereleased(mx, my, key)
+    if self:isMouseOver(mx, my) then
+        for _, e in pairs(self.elements) do
+            if e.mousereleased then
+                e:mousereleased(mx, my, key)
+            end
+        end
+    end
+end
+
+function Group:update(dt, mx, my)
+    for _, e in pairs(self.elements) do
+        if e.update then
+            e:update(dt, mx, my)
+        end
+    end
+end
+
 function Group:keytyped(text)
     for _, e in pairs(self.elements) do
         if e.keytyped then
@@ -344,6 +413,21 @@ function Group:keypressed(key, isRepeat)
             e:keypressed(text)
         end
     end
+end
+
+function Group:elementWithId(id)
+    for _, e in pairs(self.elements) do
+        if e.id == id then 
+            return e 
+        end
+        if e.elementWithId then
+            local element = e:elementWithId(id)
+            if element ~= nil then 
+                return element 
+            end
+        end
+    end
+    return nil
 end
 
 function Group:draw()
@@ -373,32 +457,13 @@ function Layout:__tostring()
 end
 
 function Layout.new(id, position, options)
-    local this = Element.new(id, position, options)
+    local this = Element.new("Layout", id, position, options)
     setmetatable(this, Layout)
     this.elements = options.elements or {}
     for _, e in pairs(this.elements) do
         e.parent = this
     end
     return this
-end
-
-function Layout:update(dt)
-    -- TODO: Implement
-end
-
-function Layout:elementWithId(id)
-    for _, e in pairs(self.elements) do
-        if e.id == id then 
-            return e 
-        end
-        if e.elementWithId then
-            local element = e:elementWithId(id)
-            if element ~= nil then 
-                return element 
-            end
-        end
-    end
-    return nil
 end
 
 function Layout:style(styleRules)
