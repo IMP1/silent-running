@@ -29,6 +29,58 @@ local mortar = {
     ]]
 }
 
+--[[
+    Elements:
+        Button
+        Group
+        Layout
+        Text
+        TextInput
+
+    Common Attributes:
+        id    : string (can be nil)
+        pos   : { 
+            x,              : 0-100 (% of parent's width)
+            y,              : 0-100 (% of parent's height)
+            width,          : 0-100 (% of parent's width)
+            height,         : 0-100 (% of parent's height)
+            verticalAlign,  : "top", "bottom" or "middle"
+            horizontalAlign : "left", "right", or "center"
+        }
+        tags  : list of strings
+        style : list of style rules
+
+    Style Rule:
+        selector = {
+            styleAttribute = value,
+            styleAttribute = value,
+            ...
+        }
+
+    Selector:
+        <text> : matches text elements
+        .green : matches elements with the tag 'green'
+        #title : matches element with id 'title'
+        <*>    : matches all elements
+
+        <text>.green              : matches text elements with the tag 'green'
+        #parent <*>               : matches all elements that are children of 
+                                    an element with the tag #parent
+        #my-form <button>.visible : matches button elements with the tag 
+                                    'visible' that are children of elements 
+                                    with the id 'my-form'.
+
+    Style Attributes:
+        color           : {r, g, b, a}
+        font            : 
+        backgroundColor : {r, g, b, a}
+        borderWidth     : int
+        borderColor     : {r, g, b, a}
+        padding         : {left, top, right, bottom }
+        customDraw      : function(element)
+
+]]
+
 -- https://airstruck.github.io/luigi/doc/classes/Layout.html
 
 --------------------------------------------------------------------------------
@@ -37,11 +89,11 @@ local mortar = {
 -- A generic UI element, with common properties and actions.
 --------------------------------------------------------------------------------
 
-local element = {}
-local element_mt = { __index = element }
-element.__index = element
+local Element = {}
+local Element_mt = { __index = Element }
+Element.__index = Element
 
-function element.new(id, pos, options)
+function Element.new(id, pos, options)
     local obj = {}
 
     obj.id    = id
@@ -52,7 +104,7 @@ function element.new(id, pos, options)
     return obj
 end
 
-function element:getScreenBounds()
+function Element:getScreenBounds()
     local parentBounds
     if self.parent == nil then
         parentBounds = { 0, 0, love.graphics.getWidth(), love.graphics.getHeight() }
@@ -67,13 +119,13 @@ function element:getScreenBounds()
     }
 end
 
-function element:getRelativeBounds()
+function Element:getRelativeBounds()
     local x, y = unpack(self:getRelativePosition())
     local w, h = unpack(self:getSize())
     return { x, y, w, h }
 end
 
-function element:isMouseOver(mx, my)
+function Element:isMouseOver(mx, my)
     local bounds = self:getScreenBounds()
     local x, y, w, h = unpack(bounds)
     return (mx >= x and 
@@ -82,7 +134,7 @@ function element:isMouseOver(mx, my)
             my <= y + h)
 end
 
-function element:getSize()
+function Element:getSize()
     if self.parent == nil then
         return { 
             love.graphics.getWidth(), 
@@ -97,7 +149,7 @@ function element:getSize()
     end
 end
 
-function element:getRelativePosition()
+function Element:getRelativePosition()
     local parentSize
     if self.parent == nil then
         parentSize = { love.graphics.getWidth(), love.graphics.getHeight() }
@@ -112,6 +164,29 @@ function element:getRelativePosition()
     }
 end
 
+function Element:applyStyle()
+    local oldStyles = {}
+    if self.style.color then
+        oldStyles.color = love.graphics.getColor()
+        love.graphics.setColor(self.style.color)
+    end 
+    if self.style.font then
+        oldStyles.font = love.graphics.getFont()
+        love.graphics.setFont(self.style.font)
+    end
+    self.parentScopeStyles = oldStyles
+end
+
+function Element:upapplyStyle()
+    if self.parentScopeStyles.color then
+        love.graphics.setColor(self.parentScopeStyles.color)
+    end 
+    if self.parentScopeStyles.font then
+        love.graphics.setFont(self.parentScopeStyles.font)
+    end
+    self.parentScopeStyles = nil
+end
+
 --------------------------------------------------------------------------------
 -- # Button
 --------------
@@ -119,14 +194,14 @@ end
 -- the button is clicked.
 --------------------------------------------------------------------------------
 local Button = {}
-setmetatable(Button, element_mt)
+setmetatable(Button, Element_mt)
 Button.__index = Button
 function Button:__tostring()
     return "<Button:" .. (self.id or "") .. ">"
 end
 
 function Button.new(id, position, options)
-    local this = element.new(id, position, options)
+    local this = Element.new(id, position, options)
     setmetatable(this, Button)
     this.text     = options.text or ""
     this.onclick  = options.onclick
@@ -146,14 +221,14 @@ end
 -- A simple class for displaying text. 
 --------------------------------------------------------------------------------
 local Text = {}
-setmetatable(Text, element_mt)
+setmetatable(Text, Element_mt)
 Text.__index = Text
 function Text:__tostring()
     return "<Text:" .. tostring(self.id) .. ">"
 end
 
 function Text.new(id, position, options)
-    local this = element.new(id, position, options)
+    local this = Element.new(id, position, options)
     setmetatable(this, Text)
     this.text = options.text or ""
     return this
@@ -174,14 +249,14 @@ end
 -- A class for allowing a user to input text. 
 --------------------------------------------------------------------------------
 local TextInput = {}
-setmetatable(TextInput, element_mt)
+setmetatable(TextInput, Element_mt)
 TextInput.__index = TextInput
 function TextInput:__tostring()
     return "<TextInput>"
 end
 
 function TextInput.new(id, position, options)
-    local this = element.new(id, position, options)
+    local this = Element.new(id, position, options)
     setmetatable(this, TextInput)
     this.placeholder = options.placeholder or ""
     this.selected    = false
@@ -229,14 +304,14 @@ end
 --------------------------------------------------------------------------------
 local Group = {}
 local Group_mt = { __index = Group }
-setmetatable(Group, element_mt)
+setmetatable(Group, Element_mt)
 Group.__index = Group
 function Group:__tostring()
     return "<Group:" .. (self.id or "") .. ">"
 end
 
 function Group.new(id, position, options)
-    local this = element.new(id, position, options)
+    local this = Element.new(id, position, options)
     setmetatable(this, Group)
     this.elements = options.elements or {}
     for _, e in pairs(this.elements) do
@@ -298,7 +373,7 @@ function Layout:__tostring()
 end
 
 function Layout.new(id, position, options)
-    local this = element.new(id, position, options)
+    local this = Element.new(id, position, options)
     setmetatable(this, Layout)
     this.elements = options.elements or {}
     for _, e in pairs(this.elements) do
@@ -362,7 +437,9 @@ mortar.group      = default_constructor_for(Group)
 mortar.layout     = default_constructor_for(Layout)
 
 function mortar.style(object, styleRules)
+    for selector, rules in pairs(styleRules) do
 
+    end
 end
 
 return mortar
