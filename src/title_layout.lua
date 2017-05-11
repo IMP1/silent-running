@@ -20,20 +20,16 @@ local layout = mortar.layout({0, 0, 100, 100}, {
         }),
         mortar.group("options", {0, 30, 100, 60, "top", "center"}, {
             elements = {
-                mortar.button({0, 0, 50, 50}, {
+                mortar.button({55, 30, 30, 10}, {
                     text = "Start a Server",
                     onclick = function() end,
                 }),
-                mortar.group({50, 0, 50, 50}, {
-                    elements = {
-                        mortar.text_input("ipAddress", {0, 25, 100, 50}, {
-                            placeholder = "IP Address",
-                        }),
-                        mortar.button({
-                            text = "Join a Server",
-                            onclick = function() end,
-                        }),
-                    },
+                mortar.text_input("ipAddress", {10, 50, 35, 10}, {
+                    placeholder = "IP Address",
+                }),
+                mortar.button({55, 50, 30, 10}, {
+                    text = "Join a Server",
+                    onclick = function() end,
                 }),
             },
         }),
@@ -41,9 +37,9 @@ local layout = mortar.layout({0, 0, 100, 100}, {
 })
 
 mortar.style(layout, {
-    ["{text}"] = {
+    ["<text>#title"] = {
         font   = "",
-        colour = "",
+        colour = {0, 128, 128},
     },
 
     
