@@ -223,6 +223,14 @@ function Server:draw()
         self.camera:unset()
     end
 
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.rectangle("fill", 0, 0, 192, 48)
+    love.graphics.setColor(255, 255, 255)
+    love.graphics.rectangle("line", 0, 0, 192, 48)
+    love.graphics.print("Hosting Server", 0, 0)
+    love.graphics.print("Address: " .. self.server:getSocketAddress(), 0, 16)
+    love.graphics.print("Connected Players: " .. #self.server.clients, 0, 32)
+
     if DEBUG.showCommands then
         local w = 256
         local h = 24 * 5
