@@ -22,14 +22,17 @@ local layout = mortar.layout({0, 0, 100, 100}, {
             elements = {
                 mortar.button({55, 30, 30, 10}, {
                     text = "Start a Server",
-                    onclick = function() end,
+                    onclick = function(self) role = Server.new() end,
                 }),
                 mortar.text_input("ipAddress", {10, 50, 35, 10}, {
                     placeholder = "IP Address",
                 }),
                 mortar.button({55, 50, 30, 10}, {
                     text = "Join a Server",
-                    onclick = function() end,
+                    onclick = function(self)
+                        local address = self:layout():elementWithId("ipAddress"):value() or "localhost"
+                        role = Client.new(address) 
+                    end,
                 }),
             },
         }),
