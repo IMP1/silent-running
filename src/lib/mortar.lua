@@ -84,8 +84,23 @@ local mortar = {
 -- https://airstruck.github.io/luigi/doc/classes/Layout.html
 
 default_style = {
-    
-    Button    = {},
+    common    = {
+        backgroundColor = nil,
+        borderColor     = nil,
+        textColor       = {224, 224, 224},
+        borderRadius    = {0, 0},
+        margin          = {0, 0, 0, 0},
+        padding         = {4, 4, 4, 4},
+
+    },
+
+    Button    = {
+        backgroundColor = {32, 32, 32},
+        borderColor     = {192, 192, 192},
+        borderRadius    = {8, 8},
+        padding         = {8, 8, 4, 4}
+    },
+
     Group     = {},
     Layout    = {},
     Text      = {},
@@ -109,7 +124,8 @@ function Element.new(elementName, id, pos, options)
     obj.id    = id
     obj.pos   = pos or {0, 0, 100, 100, "top", "left"}
     obj.tags  = options.tags or {}
-    obj.style = style or default_style[elementName]
+    obj.style = options.style or default_style[elementName]
+    setmetatable(obj.style, {__index = default_style.common})
     obj.hover = false
     obj.focus = false
 
@@ -182,41 +198,11 @@ function Element:layout()
     return top
 end
 
-function Element:applyStyle()
-    local oldStyles = {}
-    if self.style.color then
-        oldStyles.color = love.graphics.getColor()
-        love.graphics.setColor(self.style.color)
-    end 
-    if self.style.font then
-        oldStyles.font = love.graphics.getFont()
-        love.graphics.setFont(self.style.font)
-    end
-    self._parentScopeStyles = oldStyles
-end
-
-function Element:unapplyStyle()
-    if not self._parentScopeStyles then return end
-    if self._parentScopeStyles.color then
-        love.graphics.setColor(unpack(self._parentScopeStyles.color))
-    end 
-    if self._parentScopeStyles.font then
-        love.graphics.setFont(self._parentScopeStyles.font)
-    end
-    self._parentScopeStyles = nil
-end
-
 function Element:draw()
-    if self.style.borderColor or self.style.borderWidth then
-        local x, y = unpack(self:getRelativePosition())
-        x = x + self.style.margin[1]
-        y = y + self.style.margin[2]
-        local w, h = unpack(self:getSize())
-        w = w - self.style.margin[1] * 2
-        h = h - self.style.margin[2] * 2
-        love.graphics.rectangle("line", x, y, w, h)
+    if self.style.customDraw then 
+        self.style.customDraw(self)
+        return
     end
-    self:unapplyStyle()
 end
 
 --------------------------------------------------------------------------------
@@ -245,9 +231,32 @@ function Button:update(dt, mx, my)
 end
 
 function Button:draw()
+    if self.style.customDraw then 
+        self.style.customDraw(self)
+        return
+    end
+    -- get positions
     local x, y, w, h = unpack(self:getRelativeBounds())
+    x = x + self.style.margin[1]
+    y = y + self.style.margin[2]
+    w = w - (self.style.margin[1] + self.style.margin[3])
+    h = h - (self.style.margin[2] + self.style.margin[4])
+    local rx, ry = unpack(self.style.borderRadius)
     local align = self.pos[6]
-    love.graphics.rectangle("line", x, y, w, h)
+    -- draw shape
+    if self.style.backgroundColor then
+        mortar.graphics.setColor(unpack(self.style.backgroundColor))
+        love.graphics.rectangle("fill", x, y, w, h, rx, ry)
+    end
+    -- draw border
+    mortar.graphics.setColor(unpack(self.style.borderColor))
+    love.graphics.rectangle("line", x, y, w, h, rx, ry)
+    -- draw content
+    x = x + self.style.padding[1]
+    y = y + self.style.padding[2]
+    w = w - (self.style.margin[1] + self.style.padding[3])
+    h = h - (self.style.margin[2] + self.style.padding[4])
+    mortar.graphics.setColor(unpack(self.style.textColor))
     love.graphics.printf(self.text, x, y, w, align)
 end
 
@@ -367,7 +376,6 @@ end
 
 function TextInput:draw()
     local font = love.graphics.getFont()
-    self:applyStyle()
     local x, y, w, h = unpack(self:getRelativeBounds())
     if self.focus then
         love.graphics.setColor(128, 128, 255)
@@ -393,7 +401,6 @@ function TextInput:draw()
         -- love.graphics.line(x + ox, y, x + ox, y + h)
         love.graphics.line(a, b, a, c)
     end
-    self:unapplyStyle()
 end
 
 --------------------------------------------------------------------------------
@@ -529,11 +536,13 @@ setmetatable(mortar.graphics, {
     __index = function(table, key)
         if key:find("set") and love.graphics[key] then
             local getter = key:gsub("set", "get", 1)
-            local currentValue = love.graphics[getter]()
-            if not mortar.graphics.old[key] then
-                mortar.graphics.old[key] = currentValue
+            local currentValue = { love.graphics[getter]() }
+            if not mortar.graphics.old[getter] then
+                mortar.graphics.old[getter] = currentValue
             end
             return love.graphics[key]
+        elseif key:find("get") and mortar.graphics.old[key] then
+            return mortar.graphics.old[key]
         else
             return rawget(table, key)
         end
@@ -542,7 +551,8 @@ setmetatable(mortar.graphics, {
 
 function mortar.graphics.refresh()
     for key, value in pairs(mortar.graphics.old) do
-        love.graphics[key](value)
+        local setter = key:gsub("get", "set", 1)
+        love.graphics[setter](unpack(value))
     end
 end
 
