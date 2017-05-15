@@ -110,6 +110,8 @@ function Element.new(elementName, id, pos, options)
     obj.pos   = pos or {0, 0, 100, 100, "top", "left"}
     obj.tags  = options.tags or {}
     obj.style = style or default_style[elementName]
+    obj.hover = false
+    obj.focus = false
 
     return obj
 end
@@ -190,24 +192,29 @@ function Element:applyStyle()
         oldStyles.font = love.graphics.getFont()
         love.graphics.setFont(self.style.font)
     end
-    self.parentScopeStyles = oldStyles
+    self._parentScopeStyles = oldStyles
 end
 
 function Element:unapplyStyle()
-    if self.parentScopeStyles.color then
-        love.graphics.setColor(self.parentScopeStyles.color)
+    if not self._parentScopeStyles then return end
+    if self._parentScopeStyles.color then
+        love.graphics.setColor(unpack(self._parentScopeStyles.color))
     end 
-    if self.parentScopeStyles.font then
-        love.graphics.setFont(self.parentScopeStyles.font)
+    if self._parentScopeStyles.font then
+        love.graphics.setFont(self._parentScopeStyles.font)
     end
-    self.parentScopeStyles = nil
+    self._parentScopeStyles = nil
 end
 
 function Element:draw()
-    self:applyStyle()
     if self.style.borderColor or self.style.borderWidth then
         local x, y = unpack(self:getRelativePosition())
         x = x + self.style.margin[1]
+        y = y + self.style.margin[2]
+        local w, h = unpack(self:getSize())
+        w = w - self.style.margin[1] * 2
+        h = h - self.style.margin[2] * 2
+        love.graphics.rectangle("line", x, y, w, h)
     end
     self:unapplyStyle()
 end
@@ -297,55 +304,96 @@ end
 function TextInput.new(id, position, options)
     local this = Element.new("TextInput", id, position, options)
     setmetatable(this, TextInput)
-    this.placeholder = options.placeholder or ""
-    this.selected    = false
-    this.text        = ""
+    this.placeholder   = options.placeholder or ""
+    this.focus         = false
+    this.text          = {}
+    this.index         = #this.text
+    this.flashSpeed    = 0.5
+    this.flashTimer    = 0
+    this.cursorVisible = true
     return this
 end
 
-function TextInput:mousepressed(mx, my, key)
-    self.selected = self:isMouseOver(mx, my)
-end
-
-function TextInput:keypressed(key, isRepeat)
-    if not self.selected then return end
-    if key == "backspace" then
-        -- SEE: https://love2d.org/wiki/love.textinput
-        local offset = utf8.offset(self.text, -1)
-        if offset then
-            self.text = self.text:sub(1, offset - 1)
+function TextInput:update(dt, mx, my)
+    self.hover = self:isMouseOver(mx, my)
+    if self.focus then
+        self.flashTimer = self.flashTimer + dt
+        if self.flashTimer > self.flashSpeed then
+            self.cursorVisible = not self.cursorVisible
+            self.flashTimer = self.flashTimer - self.flashSpeed
         end
     end
 end
 
-function TextInput:value()
-    if self.text:len() == 0 then
-        return nil
-    else
-        return self.text
+function TextInput:mousereleased(mx, my, key)
+    self.focus = self:isMouseOver(mx, my)
+end
+
+function TextInput:keypressed(key, isRepeat)
+    -- SEE: https://love2d.org/wiki/love.textinput
+    if not self.focus then return end
+    if key == "backspace" then
+        if self.index > 0 and #self.text > 0 then
+            table.remove(self.text, self.index)
+            self.index = self.index - 1
+        end
+    end
+    if key == "delete" then
+        if #self.text > 0 and self.text[self.index + 1] then
+            table.remove(self.text, self.index + 1)
+        end
+    end
+    if key == "left" and self.index > 0 then
+        self.index = self.index - 1
+    end
+    if key == "right" and self.index < #self.text then
+        self.index = self.index + 1
     end
 end
 
+function TextInput:value()
+    local text = ""
+    for i, char in ipairs(self.text) do
+        text = text .. char
+    end
+    return text
+end
+
 function TextInput:keytyped(text)
-    if not self.selected then return end
-    self.text = self.text .. text
+    if not self.focus then return end
+    table.insert(self.text, self.index + 1, text)
+    self.index = self.index + 1
 end
 
 function TextInput:draw()
-    local oldColour = { love.graphics.getColor() }
+    local font = love.graphics.getFont()
+    self:applyStyle()
     local x, y, w, h = unpack(self:getRelativeBounds())
-    if self.selected then
+    if self.focus then
         love.graphics.setColor(128, 128, 255)
     else
         love.graphics.setColor(192, 192, 192)
     end
     love.graphics.line(x, y + h, x + w, y + h)
-    if not self:value() then
+    local text = self:value()
+    if text:len() == 0 then
         love.graphics.setColor(128, 128, 128)
         love.graphics.printf(self.placeholder, x, y, w, self.pos[6])
     end
-    love.graphics.setColor(unpack(oldColour))
-    love.graphics.printf(self.text, x, y, w, self.pos[6])
+    love.graphics.setColor(255, 255, 255)
+    love.graphics.printf(text, x, y, w, self.pos[6])
+    if self.focus and self.cursorVisible then
+        local ox = 0
+        for i = 1, self.index do
+            ox = ox + font:getWidth(self.text[i])
+        end
+        local a = math.floor(x + ox) + 0.5
+        local b = math.floor(y) + 0.5
+        local c = math.floor(y + h) + 0.5
+        -- love.graphics.line(x + ox, y, x + ox, y + h)
+        love.graphics.line(a, b, a, c)
+    end
+    self:unapplyStyle()
 end
 
 --------------------------------------------------------------------------------
@@ -410,7 +458,7 @@ end
 function Group:keypressed(key, isRepeat)
     for _, e in pairs(self.elements) do
         if e.keypressed then
-            e:keypressed(text)
+            e:keypressed(key, isRepeat)
         end
     end
 end
@@ -468,6 +516,34 @@ end
 
 function Layout:style(styleRules)
     mortar.style(self, styleRules)
+end
+
+function Layout:draw()
+    mortar.graphics.setLineStyle("rough")
+    Group.draw(self)
+    mortar.graphics.refresh()
+end
+
+mortar.graphics = {old = {}}
+setmetatable(mortar.graphics, {
+    __index = function(table, key)
+        if key:find("set") and love.graphics[key] then
+            local getter = key:gsub("set", "get", 1)
+            local currentValue = love.graphics[getter]()
+            if not mortar.graphics.old[key] then
+                mortar.graphics.old[key] = currentValue
+            end
+            return love.graphics[key]
+        else
+            return rawget(table, key)
+        end
+    end
+})
+
+function mortar.graphics.refresh()
+    for key, value in pairs(mortar.graphics.old) do
+        love.graphics[key](value)
+    end
 end
 
 local function default_constructor_for(ObjectClass)
