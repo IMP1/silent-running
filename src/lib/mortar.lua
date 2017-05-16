@@ -380,8 +380,12 @@ function TextInput.new(id, position, options)
     return this
 end
 
-function TextInput:validate()
-    if not self.pattern or #self.text == 0 then
+function TextInput:validate(force)
+    if not self.pattern then
+        self.valid = true
+        return
+    end
+    if #self.text == 0 and not force then
         self.valid = true
         return
     end
@@ -651,7 +655,7 @@ function Group:elementWithId(id)
     local f = function(element, id)
         return element.id == id
     end
-    return self:elementWith(f)
+    return self:elementWith(f, id)
 end
 
 function Group:draw()
