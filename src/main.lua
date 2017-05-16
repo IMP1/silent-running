@@ -10,22 +10,25 @@ DEBUG = {
 }
 
 ---------------
--- Constants --
----------------
-PORT = 22122
-
----------------
 -- Libraries --
 ---------------
 local bitser = require 'lib.bitser'
 local sock   = require 'lib.sock'
+local tlo    = require 'lib.tlo'
+
+---------------
+-- Constants --
+---------------
+PORT = 22122
+T = tlo.localise
 
 -------------
 -- Classes --
 -------------
 Server         = require 'server'
 Client         = require 'client'
-local Log            = require 'log'
+local Log      = require 'log'
+local Layouts  = require 'layouts'
 
 function love.load(args)
     log = Log.new()
@@ -41,7 +44,7 @@ function love.load(args)
 end
 
 function setupLobby()
-    lobby = love.filesystem.load("title_layout.lua")()
+    lobby = Layouts.title
 end
 
 function love.textinput(text)
