@@ -13,37 +13,42 @@ local mortar = require 'lib.mortar'
 </layout>
 ]]
 
-local layout = mortar.layout({0, 0, 100, 100}, {
+local layouts = {}
+
+layouts.title = mortar.layout({0, 0, 100, 100}, {
     elements = {
         mortar.text("title", {0, 10, 100, 10, "top", "center"}, {
-            text = "Welcome to Silent Running",
+            text = T"Welcome to Silent Running",
         }),
         mortar.group("options", {0, 30, 100, 60, "top", "center"}, {
             elements = {
                 mortar.button({55, 30, 30, 10}, {
-                    text = "Start a Server",
+                    text = T"Start a Server",
                     onclick = function(self) role = Server.new() end,
                 }),
                 mortar.text_input("ipAddress", {10, 50, 35, 10}, {
-                    placeholder = "IP Address",
+                    placeholder = T"IP Address",
                     style = {
                         padding = { 8, 8, 8, 8},
                     },
                     pattern = "%d+%.%d+.%d+.%d+"
                 }),
                 mortar.button({55, 50, 30, 10}, {
-                    text = "Join a Server",
+                    text = T"Join a Server",
                     onclick = function(self)
-                        local address = self:layout():elementWithId("ipAddress"):value() or "localhost"
-                        role = Client.new(address) 
+                        local input = self:layout():elementWithId("ipAddress")
+                        input:validate(true)
+                        if input.valid then
+                            local address = input:value()
+                            role = Client.new(address) 
+                        end
                     end,
                 }),
             },
         }),
     },
 })
-
-mortar.style(layout, {
+mortar.style(layouts.title, {
     ["<text>#title"] = {
         font   = "",
         colour = {0, 128, 128},
@@ -52,4 +57,8 @@ mortar.style(layout, {
     
 })
 
-return layout
+layouts.server = mortar.layout({0, 0, 100, 100}, {
+
+})
+
+return layouts
