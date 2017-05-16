@@ -95,16 +95,29 @@ default_style = {
     },
 
     Button    = {
-        backgroundColor = {32, 32, 32},
-        borderColor     = {192, 192, 192},
-        borderRadius    = {8, 8},
-        padding         = {8, 8, 4, 4}
+        backgroundColor       = {32, 32, 32},
+        backgroundColorFocus  = {32, 32, 32},
+        backgroundColorActive = {64, 64, 64},
+        borderRadius          = {8, 8},
+        borderColor           = {192, 192, 192},
+        borderColorFocus      = {128, 128, 255},
+        borderColorActive     = {192, 192, 192},
+        padding               = {8, 8, 4, 4}
     },
 
     Group     = {},
     Layout    = {},
     Text      = {},
-    TextInput = {},
+    TextInput = {
+        borderColor        = {192, 192, 192},
+        borderColorFocus   = {128, 128, 255},
+        borderColorInvalid = {192, 128, 128},
+        placeholderColor   = {128, 128, 128},
+        textColor          = {255, 255, 255},
+        textColorInvalid   = {255, 255, 255},
+        cursorColor        = {255, 255, 255},
+
+    },
 }
 
 --------------------------------------------------------------------------------
@@ -124,7 +137,12 @@ function Element.new(elementName, id, pos, options)
     obj.id    = id
     obj.pos   = pos or {0, 0, 100, 100, "top", "left"}
     obj.tags  = options.tags or {}
-    obj.style = options.style or default_style[elementName]
+    obj.style = options.style or {}
+    for k, v in pairs (default_style[elementName]) do
+        if obj.style[k] == nil then
+            obj.style[k] = v
+        end
+    end
     setmetatable(obj.style, {__index = default_style.common})
     obj.hover = false
     obj.focus = false
@@ -135,7 +153,12 @@ end
 function Element:getScreenBounds()
     local parentBounds
     if self.parent == nil then
-        parentBounds = { 0, 0, love.graphics.getWidth(), love.graphics.getHeight() }
+        parentBounds = { 
+            0, 
+            0, 
+            love.graphics.getWidth(),
+            love.graphics.getHeight(),
+        }
     else
         parentBounds = self.parent:getScreenBounds()
     end
@@ -221,13 +244,20 @@ end
 function Button.new(id, position, options)
     local this = Element.new("Button", id, position, options, options.style)
     setmetatable(this, Button)
-    this.text     = options.text or ""
-    this.onclick  = options.onclick
+    this.text    = options.text or ""
+    this.onclick = options.onclick
+    this.hover   = false
+    this.focus   = false
+    this.active  = false
     return this
 end
 
 function Button:update(dt, mx, my)
     self.hover = self:isMouseOver(mx, my)
+end
+
+function Button:isActive(mx, my)
+    return self.active and self.hover
 end
 
 function Button:draw()
@@ -244,30 +274,53 @@ function Button:draw()
     local rx, ry = unpack(self.style.borderRadius)
     local align = self.pos[6]
     -- draw shape
-    if self.style.backgroundColor then
+    if self:isActive() and self.style.backgroundColorActive then
+        mortar.graphics.setColor(unpack(self.style.backgroundColorActive))
+        love.graphics.rectangle("fill", x, y, w, h, rx, ry)
+    elseif self.focus and self.style.backgroundColorFocus then
+        mortar.graphics.setColor(unpack(self.style.backgroundColorFocus))
+        love.graphics.rectangle("fill", x, y, w, h, rx, ry)
+    elseif self.style.backgroundColor then
         mortar.graphics.setColor(unpack(self.style.backgroundColor))
         love.graphics.rectangle("fill", x, y, w, h, rx, ry)
     end
     -- draw border
-    mortar.graphics.setColor(unpack(self.style.borderColor))
-    love.graphics.rectangle("line", x, y, w, h, rx, ry)
+    if self.active and self.style.borderColorActive then
+        mortar.graphics.setColor(unpack(self.style.borderColorActive))
+        love.graphics.rectangle("line", x, y, w, h, rx, ry)
+    elseif self.focus and self.style.borderColorFocus then
+        mortar.graphics.setColor(unpack(self.style.borderColorFocus))
+        love.graphics.rectangle("line", x, y, w, h, rx, ry)
+    elseif self.style.borderColor then
+        mortar.graphics.setColor(unpack(self.style.borderColor))
+        love.graphics.rectangle("line", x, y, w, h, rx, ry)
+    end
     -- draw content
     x = x + self.style.padding[1]
     y = y + self.style.padding[2]
-    w = w - (self.style.margin[1] + self.style.padding[3])
-    h = h - (self.style.margin[2] + self.style.padding[4])
+    w = w - (self.style.padding[1] + self.style.padding[3])
+    h = h - (self.style.padding[2] + self.style.padding[4])
     mortar.graphics.setColor(unpack(self.style.textColor))
     love.graphics.printf(self.text, x, y, w, align)
 end
 
+function Button:keypressed(key, isRepeat)
+    if self.focus and key == "space" then
+        self.active = true
+        self:onclick()
+    end
+end
+
 function Button:mousepressed(mx, my, key)
-    self.selected = self:isMouseOver(mx, my)
+    self.active = self:isMouseOver(mx, my)
+    self.focus  = self:isMouseOver(mx, my)
 end
 
 function Button:mousereleased(mx, my, key)
-    if self:isMouseOver(mx, my) and key == 1 then
+    if self:isActive(mx, my) and key == 1 then
         self:onclick()
     end
+    self.active = false
 end
 
 --------------------------------------------------------------------------------
@@ -285,7 +338,8 @@ end
 function Text.new(id, position, options)
     local this = Element.new("Text", id, position, options)
     setmetatable(this, Text)
-    this.text = options.text or ""
+    this.text         = options.text or ""
+    this.cannotTarget = true
     return this
 end
 
@@ -314,13 +368,25 @@ function TextInput.new(id, position, options)
     local this = Element.new("TextInput", id, position, options)
     setmetatable(this, TextInput)
     this.placeholder   = options.placeholder or ""
-    this.focus         = false
-    this.text          = {}
+    this.pattern       = options.pattern or nil
+    this.text          = options.text or {}
     this.index         = #this.text
+    this.focus         = false
     this.flashSpeed    = 0.5
     this.flashTimer    = 0
     this.cursorVisible = true
+    this.valid         = true
+    this:validate()
     return this
+end
+
+function TextInput:validate()
+    if not self.pattern or #self.text == 0 then
+        self.valid = true
+        return
+    end
+    local text = self:value()
+    self.valid = (text:match(self.pattern) == text)
 end
 
 function TextInput:update(dt, mx, my)
@@ -345,11 +411,13 @@ function TextInput:keypressed(key, isRepeat)
         if self.index > 0 and #self.text > 0 then
             table.remove(self.text, self.index)
             self.index = self.index - 1
+            self:validate()
         end
     end
     if key == "delete" then
         if #self.text > 0 and self.text[self.index + 1] then
             table.remove(self.text, self.index + 1)
+            self:validate()
         end
     end
     if key == "left" and self.index > 0 then
@@ -357,6 +425,11 @@ function TextInput:keypressed(key, isRepeat)
     end
     if key == "right" and self.index < #self.text then
         self.index = self.index + 1
+    end
+    if (key == "v" and love.keyboard.isDown("lctrl", "rctrl")) or
+        (key == "insert" and love.keyboard.isDown("lshift", "rshift")) then
+        self:keytyped(love.system.getClipboardText())
+        self:validate()
     end
 end
 
@@ -370,36 +443,83 @@ end
 
 function TextInput:keytyped(text)
     if not self.focus then return end
-    table.insert(self.text, self.index + 1, text)
-    self.index = self.index + 1
+    for c in text:gmatch(".") do
+        table.insert(self.text, self.index + 1, c)
+        self.index = self.index + 1
+    end
+    self:validate()
 end
 
 function TextInput:draw()
-    local font = love.graphics.getFont()
+    if self.style.customDraw then 
+        self.style.customDraw(self)
+        return
+    end
+    -- get positions
     local x, y, w, h = unpack(self:getRelativeBounds())
-    if self.focus then
-        love.graphics.setColor(128, 128, 255)
-    else
-        love.graphics.setColor(192, 192, 192)
+    x = x + self.style.margin[1]
+    y = y + self.style.margin[2]
+    w = w - (self.style.margin[1] + self.style.margin[3])
+    h = h - (self.style.margin[2] + self.style.margin[4])
+    local rx, ry = unpack(self.style.borderRadius)
+    local align = self.pos[6]
+    -- draw shape
+    if self.style.backgroundColor then
+        mortar.graphics.setColor(unpack(self.style.backgroundColor))
+        love.graphics.rectangle("fill", x, y, w, h, rx, ry)
+    end
+    -- draw border
+    if not self.valid and self.style.borderColorInvalid then
+        mortar.graphics.setColor(unpack(self.style.borderColorInvalid))
+        love.graphics.rectangle("line", x, y, w, h, rx, ry)
+    elseif self.focus and self.style.borderColorFocus then
+        mortar.graphics.setColor(unpack(self.style.borderColorFocus))
+        love.graphics.rectangle("line", x, y, w, h, rx, ry)
+    elseif self.style.borderColor then
+        mortar.graphics.setColor(unpack(self.style.borderColor))
+        love.graphics.rectangle("line", x, y, w, h, rx, ry)
+    end
+    -- draw content
+    x = x + self.style.padding[1]
+    y = y + self.style.padding[2]
+    w = w - (self.style.padding[1] + self.style.padding[3])
+    h = h - (self.style.padding[2] + self.style.padding[4])
+    
+    if self.style.font then
+        mortar.graphics.setFont(self.style.font)
+    end
+    
+    if not self.valid and self.style.borderColorInvalid then
+        mortar.graphics.setColor(unpack(self.style.borderColorInvalid))
+    elseif self.focus and self.style.borderColorFocus then
+        mortar.graphics.setColor(unpack(self.style.borderColorFocus))
+    elseif self.style.borderColor then
+        mortar.graphics.setColor(unpack(self.style.borderColor))
     end
     love.graphics.line(x, y + h, x + w, y + h)
+
+    local font = love.graphics.getFont()
     local text = self:value()
     if text:len() == 0 then
-        love.graphics.setColor(128, 128, 128)
+        mortar.graphics.setColor(unpack(self.style.placeholderColor))
         love.graphics.printf(self.placeholder, x, y, w, self.pos[6])
     end
-    love.graphics.setColor(255, 255, 255)
+
+    if not self.valid and self.style.textColorInvalid then
+        mortar.graphics.setColor(unpack(self.style.textColorInvalid))
+    else
+        mortar.graphics.setColor(unpack(self.style.textColor))
+    end
     love.graphics.printf(text, x, y, w, self.pos[6])
+
     if self.focus and self.cursorVisible then
         local ox = 0
         for i = 1, self.index do
             ox = ox + font:getWidth(self.text[i])
         end
-        local a = math.floor(x + ox) + 0.5
-        local b = math.floor(y) + 0.5
-        local c = math.floor(y + h) + 0.5
-        -- love.graphics.line(x + ox, y, x + ox, y + h)
-        love.graphics.line(a, b, a, c)
+        local ch = font:getHeight()
+        mortar.graphics.setColor(unpack(self.style.cursorColor))
+        love.graphics.line(x + ox, y, x + ox, y + ch)
     end
 end
 
@@ -423,6 +543,7 @@ function Group.new(id, position, options)
     for _, e in pairs(this.elements) do
         e.parent = this
     end
+    this.cannotTarget = true
     return this
 end
 
@@ -463,26 +584,74 @@ function Group:keytyped(text)
 end
 
 function Group:keypressed(key, isRepeat)
+    local stopped
     for _, e in pairs(self.elements) do
         if e.keypressed then
-            e:keypressed(key, isRepeat)
+            stopped = e:keypressed(key, isRepeat)
         end
     end
 end
 
-function Group:elementWithId(id)
+function Group:selectNextElement(current, takeNext)
+    if current == nil then takeNext = true end
     for _, e in pairs(self.elements) do
-        if e.id == id then 
-            return e 
+        if e.selectNextElement then
+            local finished = e:selectNextElement(current, takeNext)
+            if finished then return finished end
         end
-        if e.elementWithId then
-            local element = e:elementWithId(id)
-            if element ~= nil then 
-                return element 
+        if takeNext and not e.cannotTarget then 
+            e.focus = true
+            return e
+        end
+        if e == current then
+            e.focus = false
+            takeNext = true
+        end
+    end
+    return nil
+end
+
+function Group:selectPreviousElement(current, previous)
+    for _, e in pairs(self.elements) do
+        if e.selectPreviousElement then
+            previous = e:selectPreviousElement(current, previous)
+        end
+        if e == current then
+            e.focus = false
+            if previous then previous.focus = true end
+            return previous
+        elseif not e.cannotTarget then
+            previous = e
+        end
+    end
+    if current == nil then
+        if previous and not previous.cannotTarget then 
+            previous.focus = true 
+        end
+    end
+    return previous
+end
+
+function Group:elementWith(f, ...)
+    for _, e in pairs(self.elements) do
+        if f(e, ...) then
+            return e
+        end
+        if e.elementWith then
+            local element = e:elementWith(f, ...)
+            if element then
+                return element
             end
         end
     end
     return nil
+end
+
+function Group:elementWithId(id)
+    local f = function(element, id)
+        return element.id == id
+    end
+    return self:elementWith(f)
 end
 
 function Group:draw()
@@ -519,6 +688,18 @@ function Layout.new(id, position, options)
         e.parent = this
     end
     return this
+end
+
+function Layout:keypressed(key, isRepeat)
+    Group.keypressed(self, key, isRepeat)
+    if key == "tab" and not stopped then
+            local selectedElement = self:elementWith(function(e) return e.focus end)
+        if love.keyboard.isDown("lshift", "rshift") then
+            self:selectPreviousElement(selectedElement)
+        else
+            self:selectNextElement(selectedElement)
+        end
+    end
 end
 
 function Layout:style(styleRules)

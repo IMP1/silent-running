@@ -26,6 +26,10 @@ local layout = mortar.layout({0, 0, 100, 100}, {
                 }),
                 mortar.text_input("ipAddress", {10, 50, 35, 10}, {
                     placeholder = "IP Address",
+                    style = {
+                        padding = { 8, 8, 8, 8},
+                    },
+                    pattern = "%d+%.%d+.%d+.%d+"
                 }),
                 mortar.button({55, 50, 30, 10}, {
                     text = "Join a Server",
