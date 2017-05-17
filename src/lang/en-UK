@@ -1,0 +1,3 @@
+return {
+    ["Start a Server"] = "Start a server",
+}

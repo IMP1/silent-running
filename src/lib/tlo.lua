@@ -29,21 +29,86 @@ local tlo = {
     ]]
 }
 
-local currentLanguage = "en-UK"
-local errorOnLocalisationFailure
+tlo.settings = {
+    errorOnLocalisationFailure       = false,
+    errorOnMissingLanguage           = false,
+    returnNilOnLocalisationFailure   = false,
+    addMissingStringsToLanguageFiles = true,
+}
+
+local currentLanguage = nil
+local languageFilesPath = "lang"
+local lookupTable = {}
+
+function addString(newString)
+    local files = love.filesystem.getDirectoryItems(languageFilesPath)
+    for _, file in pairs(files) do
+        local path = languageFilesPath .. "/" .. file
+        local fileString = love.filesystem.read(path)
+        local index = fileString:find("}[^}]*$")
+        local newContent = fileString:sub(1, index - 1) ..
+                           "    [\"" .. newString .. "\"] = \"" .. newString .. "\", -- AUTOMATICALLY ADDED.\n" ..
+                           fileString:sub(index)
+        love.filesystem.write(path, newContent)
+    end
+end
 
 function tlo.setLanguage(languageCode)
-    -- check file for current language exists
-    -- either load lookup table into memory,
-    -- or error, depending on settings.
-    currentLanguage = languageCode
+    local path = languageFilesPath .. "/" .. languageCode
+    local exists = love.filesystem.exists(path)
+    if exists then
+        lookupTable = love.filesystem.load(path)()
+        currentLanguage = languageCode
+    elseif tlo.settings.errorOnMissingLanguage then
+        error("Missing language file '" .. languageCode .. "'.")
+    else
+        lookupTable = lookupTable or {}
+        currentLanguage = nil
+    end
 end
 
 function tlo.localise(string)
-    -- check lookup table has string as key
-    -- either return result, or error, or default to string,
-    -- depending on settings
-    return string
+    print("localising '" .. string .."'.")
+    if not currentLanguage then
+        if tlo.settings.returnNilOnLocalisationFailure then
+            return nil
+        elseif tlo.settings.errorOnLocalisationFailure then
+            error("There is no language set.")
+        else
+            return string
+        end
+    else
+        if lookupTable[string] then
+            return lookupTable[string]
+        else
+            if tlo.settings.addMissingStringsToLanguageFiles then
+                addString(string)
+            end
+            if tlo.settings.errorOnLocalisationFailure then
+                error("Missing localisation for '" .. string .. "' in " .. currentLanguage .. ".")
+            elseif tlo.settings.returnNilOnLocalisationFailure then
+                return nil
+            else
+                return string
+            end
+        end
+    end
+end
+
+function tlo.setCurrentLanguage(lang)
+    currentLanguage = lang
+end
+
+function tlo.getCurrentLanguage()
+    return currentLanguage
+end
+
+function tlo.setLanguagesFolder(path)
+    languageFilesPath = path
+end
+
+function tlo.getLanguagesFolder(path)
+    return languageFilesPath
 end
 
 return tlo

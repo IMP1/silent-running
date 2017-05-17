@@ -28,10 +28,13 @@ T = tlo.localise
 Server         = require 'server'
 Client         = require 'client'
 local Log      = require 'log'
-local Layouts  = require 'layouts'
+local Layouts
 
 function love.load(args)
     log = Log.new()
+    tlo.setLanguage("en-UK")
+    tlo.setLanguagesFolder("lang")
+    Layouts  = love.filesystem.load("layouts.lua")()
     if args[2] == "server" then
         role = Server.new()
     end
