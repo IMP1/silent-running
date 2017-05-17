@@ -83,7 +83,7 @@ local mortar = {
 
 -- https://airstruck.github.io/luigi/doc/classes/Layout.html
 
-default_style = {
+local default_style = {
     common    = {
         backgroundColor = nil,
         borderColor     = nil,
