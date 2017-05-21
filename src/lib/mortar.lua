@@ -95,9 +95,9 @@ local default_style = {
     },
 
     Button    = {
-        backgroundColor       = {32, 32, 32},
         backgroundColorFocus  = {32, 32, 32},
         backgroundColorActive = {64, 64, 64},
+        backgroundColor       = {32, 32, 32},
         borderRadius          = {8, 8},
         borderColor           = {192, 192, 192},
         borderColorFocus      = {128, 128, 255},
@@ -108,6 +108,12 @@ local default_style = {
     Group     = {},
     Layout    = {},
     Text      = {},
+    Checkbox  = {
+        borderColor           = {192, 192, 192},
+        borderColorFocus      = {128, 128, 255},
+        backgroundColor       = {32, 32, 32},
+        backgroundColorFocus  = {32, 32, 32},
+    },
     TextInput = {
         borderColor        = {192, 192, 192},
         borderColorFocus   = {128, 128, 255},
@@ -129,6 +135,9 @@ local default_style = {
 local Element = {}
 local Element_mt = { __index = Element }
 Element.__index = Element
+function Element:__tostring()
+    return "<Element:" .. (self.id or "") .. ">"
+end
 
 function Element.new(elementName, id, pos, options)
     local obj = {}
@@ -244,8 +253,16 @@ end
 function Button.new(id, position, options)
     local this = Element.new("Button", id, position, options, options.style)
     setmetatable(this, Button)
-    this.text    = options.text or ""
-    this.onclick = options.onclick
+    if options.text == nil then
+        this.text = function () return "" end
+    elseif type(options.text) == "string" then
+        this.text = function() return options.text end
+    elseif type(options.text) == "function" then
+        this.text = options.text
+    else
+        error("[Mortar] Invalid text value: '" .. tostring(options.text) .. "' for Button.")
+    end
+    this.onclick = options.onclick or nil
     this.hover   = false
     this.focus   = false
     this.active  = false
@@ -301,7 +318,7 @@ function Button:draw()
     w = w - (self.style.padding[1] + self.style.padding[3])
     h = h - (self.style.padding[2] + self.style.padding[4])
     mortar.graphics.setColor(unpack(self.style.textColor))
-    love.graphics.printf(self.text, x, y, w, align)
+    love.graphics.printf(self.text(), x, y, w, align)
 end
 
 function Button:keypressed(key, isRepeat)
@@ -317,7 +334,7 @@ function Button:mousepressed(mx, my, key)
 end
 
 function Button:mousereleased(mx, my, key)
-    if self:isActive(mx, my) and key == 1 then
+    if self:isActive(mx, my) and key == 1 and self.onclick then
         self:onclick()
     end
     self.active = false
@@ -338,7 +355,15 @@ end
 function Text.new(id, position, options)
     local this = Element.new("Text", id, position, options)
     setmetatable(this, Text)
-    this.text         = options.text or ""
+    if options.text == nil then
+        this.text = function () return "" end
+    elseif type(options.text) == "string" then
+        this.text = function() return options.text end
+    elseif type(options.text) == "function" then
+        this.text = options.text
+    else
+        error("[Mortar] Invalid text value: '" .. tostring(options.text) .. "' for Text.")
+    end
     this.cannotTarget = true
     return this
 end
@@ -349,7 +374,7 @@ function Text:draw()
     end
     local x, y, w, h = unpack(self:getRelativeBounds())
     local align = self.pos[6]
-    love.graphics.printf(self.text, x, y, w, align)
+    love.graphics.printf(self.text(), x, y, w, align)
 end
 
 --------------------------------------------------------------------------------
@@ -361,7 +386,7 @@ local TextInput = {}
 setmetatable(TextInput, Element_mt)
 TextInput.__index = TextInput
 function TextInput:__tostring()
-    return "<TextInput>"
+    return "<TextInput:" .. (self.id or "") .. ">"
 end
 
 function TextInput.new(id, position, options)
@@ -524,6 +549,77 @@ function TextInput:draw()
         local ch = font:getHeight()
         mortar.graphics.setColor(unpack(self.style.cursorColor))
         love.graphics.line(x + ox, y, x + ox, y + ch)
+    end
+end
+
+--------------------------------------------------------------------------------
+-- # Checkbox
+--------------
+-- A class for allowing a user to toggle options on and off.
+--------------------------------------------------------------------------------
+local Checkbox = {}
+setmetatable(Checkbox, Element_mt)
+Checkbox.__index = Checkbox
+function Checkbox:__tostring()
+    return "<Checkbox:" .. (self.id or "") .. ">"
+end
+
+function Checkbox.new(id, position, options)
+    local this = Element.new("Checkbox", id, position, options)
+    setmetatable(this, Checkbox)
+    this.focus    = false
+    this.selected = options.selected or false
+    this.onchange = options.onchange or nil
+    this.width    = options.width    or 16
+    this.height   = options.height   or 16
+    return this
+end
+
+function Checkbox:mousereleased(mx, my, key)
+    print("mousereleased")
+    if self:isMouseOver(mx, my) then
+        self.selected = not self.selected
+        if self.onchange then
+            self:onchange(self.selected)
+        end
+        self.focus = true
+    else
+        print("unselected")
+    end
+end
+
+function Checkbox:draw()
+    if self.style.customDraw then 
+        self.style.customDraw(self)
+        return
+    end
+    -- get positions
+    local x, y, w, h = unpack(self:getRelativeBounds())
+    x = x + self.style.margin[1]
+    y = y + self.style.margin[2]
+    w = self.width
+    h = self.height
+    local rx, ry = unpack(self.style.borderRadius)
+    -- draw shape
+    if self.focus and self.style.backgroundColorFocus then
+        mortar.graphics.setColor(unpack(self.style.backgroundColorFocus))
+        love.graphics.rectangle("fill", x, y, w, h, rx, ry)
+    elseif self.style.backgroundColor then
+        mortar.graphics.setColor(unpack(self.style.backgroundColor))
+        love.graphics.rectangle("fill", x, y, w, h, rx, ry)
+    end
+    -- draw border
+    if self.focus and self.style.borderColorFocus then
+        mortar.graphics.setColor(unpack(self.style.borderColorFocus))
+        love.graphics.rectangle("line", x, y, w, h, rx, ry)
+    elseif self.style.borderColor then
+        mortar.graphics.setColor(unpack(self.style.borderColor))
+        love.graphics.rectangle("line", x, y, w, h, rx, ry)
+    end
+    -- draw content
+    if self.selected then
+        mortar.graphics.setColor(unpack(self.style.textColor))
+        love.graphics.printf("X", x, y, w, "center")
     end
 end
 
@@ -755,14 +851,17 @@ local function default_constructor_for(ObjectClass)
         elseif #params == 1 then
             return ObjectClass.new(nil, nil, params[1])
         end
-        print("INVALID PARAMS!")
+        print("INVALID PARAMS! " .. type(params))
+        print(tostring(ObjectClass))
         if type(params) == "table" then
+            print("table: size = " .. tostring(#params))
             for k, v in pairs(params) do
                 print(k, v)
             end
         else
-            print(params)
+            print("Params: " .. tostring(params))
         end
+        return ObjectClass.new(nil, nil, {})
     end
 end
 
@@ -771,6 +870,7 @@ mortar.button     = default_constructor_for(Button)
 mortar.text_input = default_constructor_for(TextInput)
 mortar.group      = default_constructor_for(Group)
 mortar.layout     = default_constructor_for(Layout)
+mortar.checkbox   = default_constructor_for(Checkbox)
 
 function mortar.style(object, styleRules)
     for selector, rules in pairs(styleRules) do

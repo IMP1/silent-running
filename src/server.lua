@@ -13,6 +13,7 @@ local Ping           = require 'ping'
 local Noise          = require 'noise'
 local Torpedo        = require 'torpedo'
 local Camera         = require 'camera'
+local Layouts        = require 'layouts'
 
 --------------------------------------------------------------------------------
 -- # Server
@@ -40,6 +41,8 @@ function Server:start()
     self.activePings = {}
     self.level = LevelGenerator.generate(640, 640, 1649)
     self.camera = Camera.new()
+    self.info = Layouts.server.info
+    self.commands = Layouts.server.commands
     
     self.server:on("connect", function(data, client)
         log:add("New connection.")
@@ -160,7 +163,13 @@ function Server:keypressed(key, isRepeat)
 end
 
 function Server:mousepressed(mx, my, key)
+    self.info:mousepressed(mx, my, key)
+    self.commands:mousepressed(mx, my, key)
+end
 
+function Server:mousereleased(mx, my, key)
+    self.info:mousereleased(mx, my, key)
+    self.commands:mousereleased(mx, my, key)
 end
 
 function Server:update(dt)
@@ -223,33 +232,30 @@ function Server:draw()
         self.camera:unset()
     end
 
-    love.graphics.setColor(0, 0, 0)
-    love.graphics.rectangle("fill", 0, 0, 192, 48)
-    love.graphics.setColor(255, 255, 255)
-    love.graphics.rectangle("line", 0, 0, 192, 48)
-    love.graphics.print("Hosting Server", 0, 0)
-    love.graphics.print("Address: " .. self.server:getSocketAddress(), 0, 16)
-    love.graphics.print("Connected Players: " .. #self.server.clients, 0, 32)
+    self.info:draw()
 
     if DEBUG.showCommands then
-        local w = 256
-        local h = 24 * 5
-        local x = 0
-        local y = love.graphics.getHeight() - h
-        love.graphics.setColor(0, 0, 0)
-        love.graphics.rectangle("fill", x, y, w, h)
-        love.graphics.setColor(255, 255, 255)
-        love.graphics.rectangle("line", x, y, w, h)
-        love.graphics.print("M  : [" .. (DEBUG.showMap       and "X" or " ") .. "] toggle map objects", 
-                            x + 4, y + 24 * 0 + 4)
-        love.graphics.print(".  : [" .. (DEBUG.showPings     and "X" or " ") .. "] toggle pings",       
-                            x + 4, y + 24 * 1 + 4)
-        love.graphics.print("R  : [" .. (DEBUG.showTriangles and "X" or " ") .. "] toggle triangles",   
-                            x + 4, y + 24 * 2 + 4)
-        love.graphics.print("TAB: [" .. (DEBUG.showLog       and "X" or " ") .. "] toggle log",         
-                            x + 4, y + 24 * 3 + 4)
-        love.graphics.print("`  : [" .. (DEBUG.showCommands  and "X" or " ") .. "] toggle commands",    
-                            x + 4, y + 24 * 4 + 4)
+
+        self.commands:draw()
+
+        -- local w = 256
+        -- local h = 24 * 5
+        -- local x = 0
+        -- local y = love.graphics.getHeight() - h
+        -- love.graphics.setColor(0, 0, 0)
+        -- love.graphics.rectangle("fill", x, y, w, h)
+        -- love.graphics.setColor(255, 255, 255)
+        -- love.graphics.rectangle("line", x, y, w, h)
+        -- love.graphics.print("M  : [" .. (DEBUG.showMap       and "X" or " ") .. "] toggle map objects", 
+        --                     x + 4, y + 24 * 0 + 4)
+        -- love.graphics.print(".  : [" .. (DEBUG.showPings     and "X" or " ") .. "] toggle pings",       
+        --                     x + 4, y + 24 * 1 + 4)
+        -- love.graphics.print("R  : [" .. (DEBUG.showTriangles and "X" or " ") .. "] toggle triangles",   
+        --                     x + 4, y + 24 * 2 + 4)
+        -- love.graphics.print("TAB: [" .. (DEBUG.showLog       and "X" or " ") .. "] toggle log",         
+        --                     x + 4, y + 24 * 3 + 4)
+        -- love.graphics.print("`  : [" .. (DEBUG.showCommands  and "X" or " ") .. "] toggle commands",    
+        --                     x + 4, y + 24 * 4 + 4)
     else
         local w = 256
         local h = 24 * 1

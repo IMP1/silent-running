@@ -15,6 +15,8 @@ DEBUG = {
 local bitser = require 'lib.bitser'
 local sock   = require 'lib.sock'
 local tlo    = require 'lib.tlo'
+tlo.setLanguage("en-UK")
+tlo.setLanguagesFolder("lang")
 
 ---------------
 -- Constants --
@@ -27,14 +29,11 @@ T = tlo.localise
 -------------
 Server         = require 'server'
 Client         = require 'client'
+local Layouts  = require 'layouts'
 local Log      = require 'log'
-local Layouts
 
 function love.load(args)
     log = Log.new()
-    tlo.setLanguage("en-UK")
-    tlo.setLanguagesFolder("lang")
-    Layouts  = love.filesystem.load("layouts.lua")()
     if args[2] == "server" then
         role = Server.new()
     end
@@ -48,6 +47,11 @@ end
 
 function setupLobby()
     lobby = Layouts.title
+end
+
+function startServer()
+    role  = Server.new()
+    lobby = nil
 end
 
 function love.textinput(text)
@@ -64,8 +68,7 @@ function love.keypressed(key, isRepeat)
         -- elseif key == "2" then
         --     role = Client.new("localhost")
         -- end
-    end
-    if role then
+    elseif role then
         role:keypressed(key, isRepeat)
     end
 end
@@ -73,8 +76,7 @@ end
 function love.mousepressed(mx, my, key)
     if lobby then
         lobby:mousepressed(mx, my, key)
-    end
-    if role then
+    elseif role then
         role:mousepressed(mx, my, key)
     end
 end
@@ -82,6 +84,8 @@ end
 function love.mousereleased(mx, my, key)
     if lobby then
         lobby:mousereleased(mx, my, key)
+    elseif role then
+        role:mousereleased(mx, my, key)
     end
 end
 
@@ -89,8 +93,7 @@ function love.update(dt)
     local mx, my = love.mouse.getPosition()
     if lobby then
         lobby:update(dt, mx, my)
-    end
-    if role then
+    elseif role then
         role:update(dt)
     end
     log:update()

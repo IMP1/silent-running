@@ -1,5 +1,3 @@
-
-
 local tlo = {
     _VERSION     = 'v0.0.1',
     _DESCRIPTION = 'A Lua localisation library for LÖVE games',
@@ -31,9 +29,17 @@ local tlo = {
 
 tlo.settings = {
     errorOnLocalisationFailure       = false,
+    errorOnUnsetLanguage             = true,
     errorOnMissingLanguage           = false,
     returnNilOnLocalisationFailure   = false,
     addMissingStringsToLanguageFiles = true,
+}
+
+local errorMessages = {
+    unsetLanguage = [[
+There is no language set. 
+Use tlo.setLanguage() to set which language to use.
+Alternatively, set tlo.settings.errorOnUnsetLanguage to false to hide this error.]],
 }
 
 local currentLanguage = nil
@@ -53,27 +59,12 @@ function addString(newString)
     end
 end
 
-function tlo.setLanguage(languageCode)
-    local path = languageFilesPath .. "/" .. languageCode
-    local exists = love.filesystem.exists(path)
-    if exists then
-        lookupTable = love.filesystem.load(path)()
-        currentLanguage = languageCode
-    elseif tlo.settings.errorOnMissingLanguage then
-        error("Missing language file '" .. languageCode .. "'.")
-    else
-        lookupTable = lookupTable or {}
-        currentLanguage = nil
-    end
-end
-
 function tlo.localise(string)
-    print("localising '" .. string .."'.")
     if not currentLanguage then
         if tlo.settings.returnNilOnLocalisationFailure then
             return nil
-        elseif tlo.settings.errorOnLocalisationFailure then
-            error("There is no language set.")
+        elseif tlo.settings.errorOnLocalisationFailure or tlo.settings.errorOnUnsetLanguage then
+            error(errorMessages.unsetLanguage)
         else
             return string
         end
@@ -95,11 +86,27 @@ function tlo.localise(string)
     end
 end
 
-function tlo.setCurrentLanguage(lang)
-    currentLanguage = lang
+function tlo.deferredLocalise(string)
+    return function()
+        return tlo.localise(string)
+    end
 end
 
-function tlo.getCurrentLanguage()
+function tlo.setLanguage(languageCode)
+    local path = languageFilesPath .. "/" .. languageCode
+    local exists = love.filesystem.exists(path)
+    if exists then
+        lookupTable = love.filesystem.load(path)()
+        currentLanguage = languageCode
+    elseif tlo.settings.errorOnMissingLanguage then
+        error("Missing language file '" .. languageCode .. "'.")
+    else
+        lookupTable = lookupTable or {}
+        currentLanguage = nil
+    end
+end
+
+function tlo.getLanguage()
     return currentLanguage
 end
 
