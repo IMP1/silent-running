@@ -1,5 +1,7 @@
 local mortar = require 'lib.mortar'
 
+mortar.setIconFont("gfx/fontawesome-webfont.ttf")
+
 --[[
 <layout>
     <label class="title"></label>
@@ -67,11 +69,19 @@ layouts.server.info = mortar.layout({0, 0, 100, 100}, {
         mortar.text({0, 4, 100, 100}, {
             text = T"IP Adresss"
         }),
+        mortar.icon({16, 4, 100, 100}, {
+            icon = "",
+            size = 20,
+        }),
         mortar.text("ipAddress", {20, 4, 100, 100}, {
             text = function() return role.server:getSocketAddress() end
         }),
         mortar.text({0, 8, 100, 100}, {
             text = T"Connected Players"
+        }),
+        mortar.icon({16, 8, 100, 100}, {
+            icon = "",
+            size = 20
         }),
         mortar.text("playerCount", {20, 8, 100, 100}, {
             text = function() return tostring(#role.server.clients) end
@@ -79,9 +89,9 @@ layouts.server.info = mortar.layout({0, 0, 100, 100}, {
     },
 })
 
-layouts.server.commands = mortar.layout({0, 0, 100, 100}, {
+layouts.server.commands = mortar.layout({2, 70, 100, 30}, {
     elements = {
-        mortar.checkbox({0, 0, 100, 100}, {
+        mortar.checkbox({0, 4, 100, 4}, {
             width  = 16,
             height = 16,
             text = T"Show map",
@@ -90,7 +100,7 @@ layouts.server.commands = mortar.layout({0, 0, 100, 100}, {
             end,
             selected = DEBUG.showMap
         }),
-        mortar.checkbox({0, 0, 100, 100}, {
+        mortar.checkbox({0, 8, 100, 4}, {
             width  = 16,
             height = 16,
             text = T"Show map objects",
@@ -99,7 +109,7 @@ layouts.server.commands = mortar.layout({0, 0, 100, 100}, {
             end,
             selected = DEBUG.showMapObjects
         }),
-        mortar.checkbox({0, 0, 100, 100}, {
+        mortar.checkbox({0, 12, 100, 4}, {
             width  = 16,
             height = 16,
             text = T"Show game objects",
@@ -108,7 +118,7 @@ layouts.server.commands = mortar.layout({0, 0, 100, 100}, {
             end,
             selected = DEBUG.showGameObjects
         }),
-        mortar.checkbox({0, 0, 100, 100}, {
+        mortar.checkbox({0, 16, 100, 4}, {
             width  = 16,
             height = 16,
             text = T"Show player info",
@@ -117,7 +127,7 @@ layouts.server.commands = mortar.layout({0, 0, 100, 100}, {
             end,
             selected = DEBUG.showPlayerInfo
         }),
-        mortar.checkbox({0, 0, 100, 100}, {
+        mortar.checkbox({0, 20, 100, 4}, {
             width  = 16,
             height = 16,
             text = T"Show log",
@@ -126,7 +136,7 @@ layouts.server.commands = mortar.layout({0, 0, 100, 100}, {
             end,
             selected = DEBUG.showLog
         }),
-        mortar.checkbox({0, 0, 100, 100}, {
+        mortar.checkbox({0, 24, 100, 4}, {
             width  = 16,
             height = 16,
             text = T"Show commands",
@@ -137,12 +147,13 @@ layouts.server.commands = mortar.layout({0, 0, 100, 100}, {
             end,
             selected = true
         }),
-    }
+    },
+    backgroundColor = {0, 0, 0}
 })
 
-layouts.server.commandsHidden = mortar.layout({0, 0, 100, 100}, {
+layouts.server.commandsHidden = mortar.layout({2, 70, 100, 30}, {
     elements = {
-        mortar.checkbox({0, 0, 100, 100}, {
+        mortar.checkbox({0, 24, 100, 4}, {
             width  = 16,
             height = 16,
             text = T"Show commands",

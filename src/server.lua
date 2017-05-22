@@ -152,8 +152,7 @@ function Server:keypressed(key, isRepeat)
     self.info:keypressed(key, isRepeat)
     self.commands:keypressed(key, isRepeat)
     if DEBUG and key == "`" then
-            DEBUG.showCommands = not DEBUG.showCommands
-        end
+        DEBUG.showCommands = not DEBUG.showCommands
     end
 end
 

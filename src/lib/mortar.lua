@@ -84,7 +84,7 @@ local mortar = {
 --[[
     TODO:
 
-      * Add Icons (http://fontawesome.io/cheatsheet/)
+      * Add Icons: http://fontawesome.io/cheatsheet/
 
 ]]
 
@@ -133,7 +133,8 @@ local default_style = {
 }
 
 local settings = {
-    iconFont = nil,
+    iconFont     = nil,
+    iconFontPath = nil
 }
 
 --------------------------------------------------------------------------------
@@ -382,19 +383,28 @@ function Checkbox.new(id, position, options)
     return this
 end
 
+function Checkbox:keypressed(key, isRepeat)
+    if self.focus and key == "space" then
+        self:toggle()
+    end
+end
+
 function Checkbox:mousereleased(mx, my, key)
-    print("mousereleased")
     if self:isMouseOver(mx, my) then
-        local stop = false
-        if self.onchange then
-            stop = self:onchange(self.selected)
-        end
-        if not stop then
-            self.selected = not self.selected
-        end
+        self:toggle()
         self.focus = true
     else
-        print("unselected")
+        self.focus = false
+    end
+end
+
+function Checkbox:toggle()
+    local stop = false
+    if self.onchange then
+        stop = self:onchange(self.selected)
+    end
+    if not stop then
+        self.selected = not self.selected
     end
 end
 
@@ -431,7 +441,7 @@ function Checkbox:draw()
     if self.selected then
         love.graphics.printf("X", x, y, w, "center")
     end
-    love.graphics.print(self.text(), x + w, y)
+    love.graphics.print(self.text(), x + w + 4, y)
 end
 
 --------------------------------------------------------------------------------
@@ -567,8 +577,23 @@ end
 
 function Group:draw()
     love.graphics.push()
-    local x, y = unpack(self:getRelativePosition())
+    local x, y, w, h = unpack(self:getRelativeBounds())
     love.graphics.translate(x, y)
+    x = x + self.style.margin[1]
+    y = y + self.style.margin[2]
+    w = self.width
+    h = self.height
+    local rx, ry = unpack(self.style.borderRadius)
+    -- draw shape
+    if self.style.backgroundColor then
+        mortar.graphics.setColor(unpack(self.style.backgroundColor))
+        love.graphics.rectangle("fill", x, y, w, h, rx, ry)
+    end
+    -- draw border
+    if self.style.borderColor then
+        mortar.graphics.setColor(unpack(self.style.borderColor))
+        love.graphics.rectangle("line", x, y, w, h, rx, ry)
+    end
 
     for _, element in pairs(self.elements) do
         if element.draw then
@@ -594,12 +619,24 @@ end
 function Icon.new(id, position, options)
     local this = Element.new("Icon", id, position, options)
     setmetatable(this, Icon)
-    this.unicode = options.unicode
+    this.icon = options.icon
+    if options.size then
+        this.font = love.graphics.newFont(settings.iconFontPath, options.size)
+    end
     return this
 end
 
 function Icon:draw()
-    local oldFont
+    mortar.styleStack.push()
+    if self.font then
+        mortar.styleStack.setFont(self.font)
+    else
+        mortar.styleStack.setFont(settings.iconFont)
+    end
+    local x, y, w, h = unpack(self:getRelativeBounds())
+    local align = self.pos[6]
+    love.graphics.printf(self.icon, x, y, w, align)
+    mortar.styleStack.pop()
 end
 
 --------------------------------------------------------------------------------
@@ -637,7 +674,7 @@ function Layout:keypressed(key, isRepeat)
 end
 
 function Layout:style(styleRules)
-    mortar.style(self, styleRules)
+    mortar.styleStack(self, styleRules)
 end
 
 function Layout:draw()
@@ -675,12 +712,14 @@ function Text.new(id, position, options)
 end
 
 function Text:draw()
+    mortar.styleStack.push()
     if self.style.font then
-        -- TODO: set font. reset old font afterwards?
+        mortar.styleStack.setFont(self.style.font)
     end
     local x, y, w, h = unpack(self:getRelativeBounds())
     local align = self.pos[6]
     love.graphics.printf(self.text(), x, y, w, align)
+    mortar.styleStack.pop()
 end
 
 --------------------------------------------------------------------------------
@@ -885,17 +924,17 @@ function mortar.graphics.refresh()
     end
 end
 
-mortar.style = {stack={}}
-setmetatable(mortar.style, {
+mortar.styleStack = {stack={}}
+setmetatable(mortar.styleStack, {
     __index = function(table, key)
         if key:find("set") and love.graphics[key] then
             local getter = key:gsub("set", "get", 1)
             local currentValue = { love.graphics[getter]() }
-            local toplevel = mortar.style.stack[#mortar.style.stack]
+            local toplevel = mortar.styleStack.stack[#mortar.styleStack.stack]
             toplevel[getter] = currentValue
             return love.graphics[key]
         elseif key:find("get") and love.graphics[key] then
-            local toplevel = mortar.style.stack[#mortar.style.stack]
+            local toplevel = mortar.styleStack.stack[#mortar.styleStack.stack]
             return toplevel[key]
         else
             return rawget(table, key)
@@ -903,12 +942,12 @@ setmetatable(mortar.style, {
     end
 })
 
-function mortar.style.push()
-    table.insert(mortar.style.stack, {})
+function mortar.styleStack.push()
+    table.insert(mortar.styleStack.stack, {})
 end
 
-function mortar.style.pop()
-    local topLevel = table.remove(mortar.style.stack)
+function mortar.styleStack.pop()
+    local topLevel = table.remove(mortar.styleStack.stack)
     for key, value in pairs(topLevel) do
         local setter = key:gsub("get", "set", 1)
         love.graphics[setter](unpack(value))
@@ -957,8 +996,9 @@ function mortar.style(object, styleRules)
     end
 end
 
-function mortar.setIconFont(iconFont)
-    settings.iconFont = iconFont
+function mortar.setIconFont(iconFontPath)
+    settings.iconFontPath = iconFontPath
+    settings.iconFont = love.graphics.newFont(iconFontPath)
 end
 
 return mortar
