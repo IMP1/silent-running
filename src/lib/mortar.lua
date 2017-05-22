@@ -81,6 +81,13 @@ local mortar = {
 
 ]]
 
+--[[
+    TODO:
+
+      * Add Icons (http://fontawesome.io/cheatsheet/)
+
+]]
+
 -- https://airstruck.github.io/luigi/doc/classes/Layout.html
 
 local default_style = {
@@ -93,7 +100,6 @@ local default_style = {
         padding         = {4, 4, 4, 4},
 
     },
-
     Button    = {
         backgroundColorFocus  = {32, 32, 32},
         backgroundColorActive = {64, 64, 64},
@@ -104,16 +110,16 @@ local default_style = {
         borderColorActive     = {192, 192, 192},
         padding               = {8, 8, 4, 4}
     },
-
-    Group     = {},
-    Layout    = {},
-    Text      = {},
     Checkbox  = {
         borderColor           = {192, 192, 192},
         borderColorFocus      = {128, 128, 255},
         backgroundColor       = {32, 32, 32},
         backgroundColorFocus  = {32, 32, 32},
     },
+    Group     = {},
+    Icon      = {},
+    Layout    = {},
+    Text      = {},
     TextInput = {
         borderColor        = {192, 192, 192},
         borderColorFocus   = {128, 128, 255},
@@ -124,6 +130,10 @@ local default_style = {
         cursorColor        = {255, 255, 255},
 
     },
+}
+
+local settings = {
+    iconFont = nil,
 }
 
 --------------------------------------------------------------------------------
@@ -338,218 +348,6 @@ function Button:mousereleased(mx, my, key)
         self:onclick()
     end
     self.active = false
-end
-
---------------------------------------------------------------------------------
--- # Text
---------------
--- A simple class for displaying text. 
---------------------------------------------------------------------------------
-local Text = {}
-setmetatable(Text, Element_mt)
-Text.__index = Text
-function Text:__tostring()
-    return "<Text:" .. tostring(self.id) .. ">"
-end
-
-function Text.new(id, position, options)
-    local this = Element.new("Text", id, position, options)
-    setmetatable(this, Text)
-    if options.text == nil then
-        this.text = function () return "" end
-    elseif type(options.text) == "string" then
-        this.text = function() return options.text end
-    elseif type(options.text) == "function" then
-        this.text = options.text
-    else
-        error("[Mortar] Invalid text value: '" .. tostring(options.text) .. "' for Text.")
-    end
-    this.cannotTarget = true
-    return this
-end
-
-function Text:draw()
-    if self.style.font then
-        -- TODO: set font. reset old font afterwards?
-    end
-    local x, y, w, h = unpack(self:getRelativeBounds())
-    local align = self.pos[6]
-    love.graphics.printf(self.text(), x, y, w, align)
-end
-
---------------------------------------------------------------------------------
--- # TextInput
---------------
--- A class for allowing a user to input text. 
---------------------------------------------------------------------------------
-local TextInput = {}
-setmetatable(TextInput, Element_mt)
-TextInput.__index = TextInput
-function TextInput:__tostring()
-    return "<TextInput:" .. (self.id or "") .. ">"
-end
-
-function TextInput.new(id, position, options)
-    local this = Element.new("TextInput", id, position, options)
-    setmetatable(this, TextInput)
-    this.placeholder   = options.placeholder or ""
-    this.pattern       = options.pattern or nil
-    this.text          = options.text or {}
-    this.index         = #this.text
-    this.focus         = false
-    this.flashSpeed    = 0.5
-    this.flashTimer    = 0
-    this.cursorVisible = true
-    this.valid         = true
-    this:validate()
-    return this
-end
-
-function TextInput:validate(force)
-    if not self.pattern then
-        self.valid = true
-        return
-    end
-    if #self.text == 0 and not force then
-        self.valid = true
-        return
-    end
-    local text = self:value()
-    self.valid = (text:match(self.pattern) == text)
-end
-
-function TextInput:update(dt, mx, my)
-    self.hover = self:isMouseOver(mx, my)
-    if self.focus then
-        self.flashTimer = self.flashTimer + dt
-        if self.flashTimer > self.flashSpeed then
-            self.cursorVisible = not self.cursorVisible
-            self.flashTimer = self.flashTimer - self.flashSpeed
-        end
-    end
-end
-
-function TextInput:mousereleased(mx, my, key)
-    self.focus = self:isMouseOver(mx, my)
-end
-
-function TextInput:keypressed(key, isRepeat)
-    -- SEE: https://love2d.org/wiki/love.textinput
-    if not self.focus then return end
-    if key == "backspace" then
-        if self.index > 0 and #self.text > 0 then
-            table.remove(self.text, self.index)
-            self.index = self.index - 1
-            self:validate()
-        end
-    end
-    if key == "delete" then
-        if #self.text > 0 and self.text[self.index + 1] then
-            table.remove(self.text, self.index + 1)
-            self:validate()
-        end
-    end
-    if key == "left" and self.index > 0 then
-        self.index = self.index - 1
-    end
-    if key == "right" and self.index < #self.text then
-        self.index = self.index + 1
-    end
-    if (key == "v" and love.keyboard.isDown("lctrl", "rctrl")) or
-        (key == "insert" and love.keyboard.isDown("lshift", "rshift")) then
-        self:keytyped(love.system.getClipboardText())
-        self:validate()
-    end
-end
-
-function TextInput:value()
-    local text = ""
-    for i, char in ipairs(self.text) do
-        text = text .. char
-    end
-    return text
-end
-
-function TextInput:keytyped(text)
-    if not self.focus then return end
-    for c in text:gmatch(".") do
-        table.insert(self.text, self.index + 1, c)
-        self.index = self.index + 1
-    end
-    self:validate()
-end
-
-function TextInput:draw()
-    if self.style.customDraw then 
-        self.style.customDraw(self)
-        return
-    end
-    -- get positions
-    local x, y, w, h = unpack(self:getRelativeBounds())
-    x = x + self.style.margin[1]
-    y = y + self.style.margin[2]
-    w = w - (self.style.margin[1] + self.style.margin[3])
-    h = h - (self.style.margin[2] + self.style.margin[4])
-    local rx, ry = unpack(self.style.borderRadius)
-    local align = self.pos[6]
-    -- draw shape
-    if self.style.backgroundColor then
-        mortar.graphics.setColor(unpack(self.style.backgroundColor))
-        love.graphics.rectangle("fill", x, y, w, h, rx, ry)
-    end
-    -- draw border
-    if not self.valid and self.style.borderColorInvalid then
-        mortar.graphics.setColor(unpack(self.style.borderColorInvalid))
-        love.graphics.rectangle("line", x, y, w, h, rx, ry)
-    elseif self.focus and self.style.borderColorFocus then
-        mortar.graphics.setColor(unpack(self.style.borderColorFocus))
-        love.graphics.rectangle("line", x, y, w, h, rx, ry)
-    elseif self.style.borderColor then
-        mortar.graphics.setColor(unpack(self.style.borderColor))
-        love.graphics.rectangle("line", x, y, w, h, rx, ry)
-    end
-    -- draw content
-    x = x + self.style.padding[1]
-    y = y + self.style.padding[2]
-    w = w - (self.style.padding[1] + self.style.padding[3])
-    h = h - (self.style.padding[2] + self.style.padding[4])
-    
-    if self.style.font then
-        mortar.graphics.setFont(self.style.font)
-    end
-    
-    if not self.valid and self.style.borderColorInvalid then
-        mortar.graphics.setColor(unpack(self.style.borderColorInvalid))
-    elseif self.focus and self.style.borderColorFocus then
-        mortar.graphics.setColor(unpack(self.style.borderColorFocus))
-    elseif self.style.borderColor then
-        mortar.graphics.setColor(unpack(self.style.borderColor))
-    end
-    love.graphics.line(x, y + h, x + w, y + h)
-
-    local font = love.graphics.getFont()
-    local text = self:value()
-    if text:len() == 0 then
-        mortar.graphics.setColor(unpack(self.style.placeholderColor))
-        love.graphics.printf(self.placeholder, x, y, w, self.pos[6])
-    end
-
-    if not self.valid and self.style.textColorInvalid then
-        mortar.graphics.setColor(unpack(self.style.textColorInvalid))
-    else
-        mortar.graphics.setColor(unpack(self.style.textColor))
-    end
-    love.graphics.printf(text, x, y, w, self.pos[6])
-
-    if self.focus and self.cursorVisible then
-        local ox = 0
-        for i = 1, self.index do
-            ox = ox + font:getWidth(self.text[i])
-        end
-        local ch = font:getHeight()
-        mortar.graphics.setColor(unpack(self.style.cursorColor))
-        love.graphics.line(x + ox, y, x + ox, y + ch)
-    end
 end
 
 --------------------------------------------------------------------------------
@@ -782,6 +580,29 @@ function Group:draw()
 end
 
 --------------------------------------------------------------------------------
+-- # Icon
+--------------
+-- A graphical symbol.
+--------------------------------------------------------------------------------
+local Icon = {}
+setmetatable(Icon, Element_mt)
+Icon.__index = Icon
+function Icon:__tostring()
+    return "<Icon>"
+end
+
+function Icon.new(id, position, options)
+    local this = Element.new("Icon", id, position, options)
+    setmetatable(this, Icon)
+    this.unicode = options.unicode
+    return this
+end
+
+function Icon:draw()
+    local oldFont
+end
+
+--------------------------------------------------------------------------------
 -- # Layout
 --------------
 -- The top-level container.
@@ -825,6 +646,220 @@ function Layout:draw()
     mortar.graphics.refresh()
 end
 
+--------------------------------------------------------------------------------
+-- # Text
+--------------
+-- A simple class for displaying text. 
+--------------------------------------------------------------------------------
+local Text = {}
+setmetatable(Text, Element_mt)
+Text.__index = Text
+function Text:__tostring()
+    return "<Text:" .. tostring(self.id) .. ">"
+end
+
+function Text.new(id, position, options)
+    local this = Element.new("Text", id, position, options)
+    setmetatable(this, Text)
+    if options.text == nil then
+        this.text = function () return "" end
+    elseif type(options.text) == "string" then
+        this.text = function() return options.text end
+    elseif type(options.text) == "function" then
+        this.text = options.text
+    else
+        error("[Mortar] Invalid text value: '" .. tostring(options.text) .. "' for Text.")
+    end
+    this.cannotTarget = true
+    return this
+end
+
+function Text:draw()
+    if self.style.font then
+        -- TODO: set font. reset old font afterwards?
+    end
+    local x, y, w, h = unpack(self:getRelativeBounds())
+    local align = self.pos[6]
+    love.graphics.printf(self.text(), x, y, w, align)
+end
+
+--------------------------------------------------------------------------------
+-- # TextInput
+--------------
+-- A class for allowing a user to input text. 
+--------------------------------------------------------------------------------
+local TextInput = {}
+setmetatable(TextInput, Element_mt)
+TextInput.__index = TextInput
+function TextInput:__tostring()
+    return "<TextInput:" .. (self.id or "") .. ">"
+end
+
+function TextInput.new(id, position, options)
+    local this = Element.new("TextInput", id, position, options)
+    setmetatable(this, TextInput)
+    this.placeholder   = options.placeholder or ""
+    this.pattern       = options.pattern or nil
+    this.text          = options.text or {}
+    this.index         = #this.text
+    this.focus         = false
+    this.flashSpeed    = 0.5
+    this.flashTimer    = 0
+    this.cursorVisible = true
+    this.valid         = true
+    this:validate()
+    return this
+end
+
+function TextInput:validate(force)
+    if not self.pattern then
+        self.valid = true
+        return
+    end
+    if #self.text == 0 and not force then
+        self.valid = true
+        return
+    end
+    local text = self:value()
+    self.valid = (text:match(self.pattern) == text)
+end
+
+function TextInput:update(dt, mx, my)
+    self.hover = self:isMouseOver(mx, my)
+    if self.focus then
+        self.flashTimer = self.flashTimer + dt
+        if self.flashTimer > self.flashSpeed then
+            self.cursorVisible = not self.cursorVisible
+            self.flashTimer = self.flashTimer - self.flashSpeed
+        end
+    end
+end
+
+function TextInput:mousereleased(mx, my, key)
+    self.focus = self:isMouseOver(mx, my)
+end
+
+function TextInput:keypressed(key, isRepeat)
+    -- SEE: https://love2d.org/wiki/love.textinput
+    if not self.focus then return end
+    if key == "backspace" then
+        if self.index > 0 and #self.text > 0 then
+            table.remove(self.text, self.index)
+            self.index = self.index - 1
+            self:validate()
+        end
+    end
+    if key == "delete" then
+        if #self.text > 0 and self.text[self.index + 1] then
+            table.remove(self.text, self.index + 1)
+            self:validate()
+        end
+    end
+    if key == "left" and self.index > 0 then
+        self.index = self.index - 1
+    end
+    if key == "right" and self.index < #self.text then
+        self.index = self.index + 1
+    end
+    if (key == "v" and love.keyboard.isDown("lctrl", "rctrl")) or
+        (key == "insert" and love.keyboard.isDown("lshift", "rshift")) then
+        self:keytyped(love.system.getClipboardText())
+        self:validate()
+    end
+end
+
+function TextInput:value()
+    local text = ""
+    for i, char in ipairs(self.text) do
+        text = text .. char
+    end
+    return text
+end
+
+function TextInput:keytyped(text)
+    if not self.focus then return end
+    for c in text:gmatch(".") do
+        table.insert(self.text, self.index + 1, c)
+        self.index = self.index + 1
+    end
+    self:validate()
+end
+
+function TextInput:draw()
+    if self.style.customDraw then 
+        self.style.customDraw(self)
+        return
+    end
+    -- get positions
+    local x, y, w, h = unpack(self:getRelativeBounds())
+    x = x + self.style.margin[1]
+    y = y + self.style.margin[2]
+    w = w - (self.style.margin[1] + self.style.margin[3])
+    h = h - (self.style.margin[2] + self.style.margin[4])
+    local rx, ry = unpack(self.style.borderRadius)
+    local align = self.pos[6]
+    -- draw shape
+    if self.style.backgroundColor then
+        mortar.graphics.setColor(unpack(self.style.backgroundColor))
+        love.graphics.rectangle("fill", x, y, w, h, rx, ry)
+    end
+    -- draw border
+    if not self.valid and self.style.borderColorInvalid then
+        mortar.graphics.setColor(unpack(self.style.borderColorInvalid))
+        love.graphics.rectangle("line", x, y, w, h, rx, ry)
+    elseif self.focus and self.style.borderColorFocus then
+        mortar.graphics.setColor(unpack(self.style.borderColorFocus))
+        love.graphics.rectangle("line", x, y, w, h, rx, ry)
+    elseif self.style.borderColor then
+        mortar.graphics.setColor(unpack(self.style.borderColor))
+        love.graphics.rectangle("line", x, y, w, h, rx, ry)
+    end
+    -- draw content
+    x = x + self.style.padding[1]
+    y = y + self.style.padding[2]
+    w = w - (self.style.padding[1] + self.style.padding[3])
+    h = h - (self.style.padding[2] + self.style.padding[4])
+    
+    if self.style.font then
+        mortar.graphics.setFont(self.style.font)
+    end
+    
+    if not self.valid and self.style.borderColorInvalid then
+        mortar.graphics.setColor(unpack(self.style.borderColorInvalid))
+    elseif self.focus and self.style.borderColorFocus then
+        mortar.graphics.setColor(unpack(self.style.borderColorFocus))
+    elseif self.style.borderColor then
+        mortar.graphics.setColor(unpack(self.style.borderColor))
+    end
+    love.graphics.line(x, y + h, x + w, y + h)
+
+    local font = love.graphics.getFont()
+    local text = self:value()
+    if text:len() == 0 then
+        mortar.graphics.setColor(unpack(self.style.placeholderColor))
+        love.graphics.printf(self.placeholder, x, y, w, self.pos[6])
+    end
+
+    if not self.valid and self.style.textColorInvalid then
+        mortar.graphics.setColor(unpack(self.style.textColorInvalid))
+    else
+        mortar.graphics.setColor(unpack(self.style.textColor))
+    end
+    love.graphics.printf(text, x, y, w, self.pos[6])
+
+    if self.focus and self.cursorVisible then
+        local ox = 0
+        for i = 1, self.index do
+            ox = ox + font:getWidth(self.text[i])
+        end
+        local ch = font:getHeight()
+        mortar.graphics.setColor(unpack(self.style.cursorColor))
+        love.graphics.line(x + ox, y, x + ox, y + ch)
+    end
+end
+
+-- 
+
 mortar.graphics = {old = {}}
 setmetatable(mortar.graphics, {
     __index = function(table, key)
@@ -845,6 +880,36 @@ setmetatable(mortar.graphics, {
 
 function mortar.graphics.refresh()
     for key, value in pairs(mortar.graphics.old) do
+        local setter = key:gsub("get", "set", 1)
+        love.graphics[setter](unpack(value))
+    end
+end
+
+mortar.style = {stack={}}
+setmetatable(mortar.style, {
+    __index = function(table, key)
+        if key:find("set") and love.graphics[key] then
+            local getter = key:gsub("set", "get", 1)
+            local currentValue = { love.graphics[getter]() }
+            local toplevel = mortar.style.stack[#mortar.style.stack]
+            toplevel[getter] = currentValue
+            return love.graphics[key]
+        elseif key:find("get") and love.graphics[key] then
+            local toplevel = mortar.style.stack[#mortar.style.stack]
+            return toplevel[key]
+        else
+            return rawget(table, key)
+        end
+    end
+})
+
+function mortar.style.push()
+    table.insert(mortar.style.stack, {})
+end
+
+function mortar.style.pop()
+    local topLevel = table.remove(mortar.style.stack)
+    for key, value in pairs(topLevel) do
         local setter = key:gsub("get", "set", 1)
         love.graphics[setter](unpack(value))
     end
@@ -878,17 +943,22 @@ local function default_constructor_for(ObjectClass)
     end
 end
 
-mortar.text       = default_constructor_for(Text)
 mortar.button     = default_constructor_for(Button)
-mortar.text_input = default_constructor_for(TextInput)
-mortar.group      = default_constructor_for(Group)
-mortar.layout     = default_constructor_for(Layout)
 mortar.checkbox   = default_constructor_for(Checkbox)
+mortar.group      = default_constructor_for(Group)
+mortar.icon       = default_constructor_for(Icon)
+mortar.layout     = default_constructor_for(Layout)
+mortar.text       = default_constructor_for(Text)
+mortar.text_input = default_constructor_for(TextInput)
 
 function mortar.style(object, styleRules)
     for selector, rules in pairs(styleRules) do
 
     end
+end
+
+function mortar.setIconFont(iconFont)
+    settings.iconFont = iconFont
 end
 
 return mortar
