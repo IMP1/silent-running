@@ -84,8 +84,75 @@ layouts.server.commands = mortar.layout({0, 0, 100, 100}, {
         mortar.checkbox({0, 0, 100, 100}, {
             width  = 16,
             height = 16,
-        })
+            text = T"Show map",
+            onchange = function() 
+                DEBUG.showMap = not DEBUG.showMap 
+            end,
+            selected = DEBUG.showMap
+        }),
+        mortar.checkbox({0, 0, 100, 100}, {
+            width  = 16,
+            height = 16,
+            text = T"Show map objects",
+            onchange = function() 
+                DEBUG.showMapObjects = not DEBUG.showMapObjects 
+            end,
+            selected = DEBUG.showMapObjects
+        }),
+        mortar.checkbox({0, 0, 100, 100}, {
+            width  = 16,
+            height = 16,
+            text = T"Show game objects",
+            onchange = function() 
+                DEBUG.showGameObjects = not DEBUG.showGameObjects 
+            end,
+            selected = DEBUG.showGameObjects
+        }),
+        mortar.checkbox({0, 0, 100, 100}, {
+            width  = 16,
+            height = 16,
+            text = T"Show player info",
+            onchange = function() 
+                DEBUG.showPlayerInfo = not DEBUG.showPlayerInfo 
+            end,
+            selected = DEBUG.showPlayerInfo
+        }),
+        mortar.checkbox({0, 0, 100, 100}, {
+            width  = 16,
+            height = 16,
+            text = T"Show log",
+            onchange = function() 
+                DEBUG.showLog = not DEBUG.showLog 
+            end,
+            selected = DEBUG.showLog
+        }),
+        mortar.checkbox({0, 0, 100, 100}, {
+            width  = 16,
+            height = 16,
+            text = T"Show commands",
+            onchange = function() 
+                DEBUG.showCommands = false
+                role:hideCommands()
+                return true -- cancel the normal checkbox behaviour.
+            end,
+            selected = true
+        }),
     }
+})
+
+layouts.server.commandsHidden = mortar.layout({0, 0, 100, 100}, {
+    elements = {
+        mortar.checkbox({0, 0, 100, 100}, {
+            width  = 16,
+            height = 16,
+            text = T"Show commands",
+            onchange = function() 
+                role:showCommands()
+                return true -- cancel the normal checkbox behaviour.
+            end,
+            selected = false
+        }),
+    },
 })
 
 return layouts

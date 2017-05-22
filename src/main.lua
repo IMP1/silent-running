@@ -1,12 +1,13 @@
 DEBUG = {
-    showMap        = false,
-    showLog        = false,
-    showPlayers    = false,
-    showPlayerInfo = false,
-    showPings      = false,
-    showTriangles  = false,
-    keepPongs      = false,
-    showCommands   = true,
+    -- server
+    showMap         = false,
+    showMapObjects  = false,
+    showGameObjects = false,
+    showPlayerInfo  = false,
+    showLog         = false,
+    showCommands    = true,
+    -- client
+    keepPongs       = false,
 }
 
 ---------------

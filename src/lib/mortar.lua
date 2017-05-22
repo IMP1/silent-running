@@ -567,6 +567,15 @@ end
 function Checkbox.new(id, position, options)
     local this = Element.new("Checkbox", id, position, options)
     setmetatable(this, Checkbox)
+    if options.text == nil then
+        this.text = function () return "" end
+    elseif type(options.text) == "string" then
+        this.text = function() return options.text end
+    elseif type(options.text) == "function" then
+        this.text = options.text
+    else
+        error("[Mortar] Invalid text value: '" .. tostring(options.text) .. "' for Checkbox.")
+    end
     this.focus    = false
     this.selected = options.selected or false
     this.onchange = options.onchange or nil
@@ -578,9 +587,12 @@ end
 function Checkbox:mousereleased(mx, my, key)
     print("mousereleased")
     if self:isMouseOver(mx, my) then
-        self.selected = not self.selected
+        local stop = false
         if self.onchange then
-            self:onchange(self.selected)
+            stop = self:onchange(self.selected)
+        end
+        if not stop then
+            self.selected = not self.selected
         end
         self.focus = true
     else
@@ -617,10 +629,11 @@ function Checkbox:draw()
         love.graphics.rectangle("line", x, y, w, h, rx, ry)
     end
     -- draw content
+    mortar.graphics.setColor(unpack(self.style.textColor))
     if self.selected then
-        mortar.graphics.setColor(unpack(self.style.textColor))
         love.graphics.printf("X", x, y, w, "center")
     end
+    love.graphics.print(self.text(), x + w, y)
 end
 
 --------------------------------------------------------------------------------
