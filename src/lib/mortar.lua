@@ -81,14 +81,7 @@ local mortar = {
 
 ]]
 
---[[
-    TODO:
-
-      * Add Icons: http://fontawesome.io/cheatsheet/
-
-]]
-
--- https://airstruck.github.io/luigi/doc/classes/Layout.html
+-- Font Aweome Icons: http://fontawesome.io/cheatsheet/
 
 local default_style = {
     common    = {
@@ -98,7 +91,6 @@ local default_style = {
         borderRadius    = {0, 0},
         margin          = {0, 0, 0, 0},
         padding         = {4, 4, 4, 4},
-
     },
     Button    = {
         backgroundColorFocus  = {32, 32, 32},
@@ -142,7 +134,6 @@ local settings = {
 --------------
 -- A generic UI element, with common properties and actions.
 --------------------------------------------------------------------------------
-
 local Element = {}
 local Element_mt = { __index = Element }
 Element.__index = Element
@@ -182,11 +173,52 @@ function Element:getScreenBounds()
     else
         parentBounds = self.parent:getScreenBounds()
     end
+    local x, y, w, h = unpack(self.pos)
+    if type(x) == "string" then x = parentBounds[3] * tonumber(x) / 100 end
+    if type(y) == "string" then y = parentBounds[4] * tonumber(y) / 100 end
+    if type(w) == "string" then w = parentBounds[3] * tonumber(w) / 100 end
+    if type(h) == "string" then h = parentBounds[4] * tonumber(h) / 100 end
+    if x < 0 then x = x + parentBounds[3] end
+    if y < 0 then y = y + parentBounds[4] end
     return {
-        parentBounds[1] + self.pos[1] * parentBounds[3] / 100,
-        parentBounds[2] + self.pos[2] * parentBounds[4] / 100,
-        parentBounds[3] * self.pos[3] / 100,
-        parentBounds[4] * self.pos[4] / 100
+        parentBounds[1] + x,
+        parentBounds[2] + y,
+        w,
+        h
+    }
+end
+
+function Element:getRelativePosition()
+    local parentSize
+    if self.parent == nil then
+        parentSize = { love.graphics.getWidth(), love.graphics.getHeight() }
+    else
+        parentSize = self.parent:getSize()
+    end
+    local x, y = unpack(self.pos)
+    if type(x) == "string" then x = x * parentSize[1] / 100 end
+    if type(y) == "string" then y = y * parentSize[2] / 100 end
+    if x < 0 then x = x + parentSize[1] end
+    if y < 0 then y = y + parentSize[2] end
+    return {
+        x,
+        y
+    }
+end
+
+function Element:getSize()
+    local parentSize
+    if self.parent == nil then
+        parentSize = { love.graphics.getWidth(), love.graphics.getHeight() }
+    else
+        parentSize = self.parent:getSize()
+    end
+    local _, _, w, h = unpack(self.pos)
+    if type(w) == "string" then w = tonumber(w) * parentSize[1] / 100 end
+    if type(h) == "string" then h = tonumber(h) * parentSize[2] / 100 end
+    return {
+        w,
+        h,
     }
 end
 
@@ -203,34 +235,6 @@ function Element:isMouseOver(mx, my)
             my >= y and 
             mx <= x + w and 
             my <= y + h)
-end
-
-function Element:getSize()
-    if self.parent == nil then
-        return { 
-            love.graphics.getWidth(), 
-            love.graphics.getHeight() 
-        }
-    else
-        local parentSize = self.parent:getSize()
-        return {
-            parentSize[1] * self.pos[3] / 100,
-            parentSize[2] * self.pos[4] / 100,
-        }
-    end
-end
-
-function Element:getRelativePosition()
-    local parentSize
-    if self.parent == nil then
-        parentSize = { love.graphics.getWidth(), love.graphics.getHeight() }
-    else
-        parentSize = self.parent:getSize()
-    end
-    return {
-        self.pos[1] * parentSize[1] / 100,
-        self.pos[2] * parentSize[2] / 100
-    }
 end
 
 function Element:layout()
@@ -284,8 +288,27 @@ function Button:update(dt, mx, my)
     self.hover = self:isMouseOver(mx, my)
 end
 
-function Button:isActive(mx, my)
+function Button:isActive()
     return self.active and self.hover
+end
+
+function Button:keypressed(key, isRepeat)
+    if self.focus and key == "space" then
+        self.active = true
+        self:onclick()
+    end
+end
+
+function Button:mousepressed(mx, my, key)
+    self.active = self:isMouseOver(mx, my)
+    self.focus  = self:isMouseOver(mx, my)
+end
+
+function Button:mousereleased(mx, my, key)
+    if self:isActive() and key == 1 and self.onclick then
+        self:onclick()
+    end
+    self.active = false
 end
 
 function Button:draw()
@@ -293,6 +316,7 @@ function Button:draw()
         self.style.customDraw(self)
         return
     end
+    mortar.graphics.push()
     -- get positions
     local x, y, w, h = unpack(self:getRelativeBounds())
     x = x + self.style.margin[1]
@@ -330,25 +354,7 @@ function Button:draw()
     h = h - (self.style.padding[2] + self.style.padding[4])
     mortar.graphics.setColor(unpack(self.style.textColor))
     love.graphics.printf(self.text(), x, y, w, align)
-end
-
-function Button:keypressed(key, isRepeat)
-    if self.focus and key == "space" then
-        self.active = true
-        self:onclick()
-    end
-end
-
-function Button:mousepressed(mx, my, key)
-    self.active = self:isMouseOver(mx, my)
-    self.focus  = self:isMouseOver(mx, my)
-end
-
-function Button:mousereleased(mx, my, key)
-    if self:isActive(mx, my) and key == 1 and self.onclick then
-        self:onclick()
-    end
-    self.active = false
+    mortar.graphics.pop()
 end
 
 --------------------------------------------------------------------------------
@@ -389,6 +395,11 @@ function Checkbox:keypressed(key, isRepeat)
     end
 end
 
+function Checkbox:mousepressed(mx, my, key)
+    self.active = self:isMouseOver(mx, my)
+    self.focus  = self:isMouseOver(mx, my)
+end
+
 function Checkbox:mousereleased(mx, my, key)
     if self:isMouseOver(mx, my) then
         self:toggle()
@@ -413,6 +424,7 @@ function Checkbox:draw()
         self.style.customDraw(self)
         return
     end
+    mortar.graphics.push()
     -- get positions
     local x, y, w, h = unpack(self:getRelativeBounds())
     x = x + self.style.margin[1]
@@ -442,6 +454,7 @@ function Checkbox:draw()
         love.graphics.printf("X", x, y, w, "center")
     end
     love.graphics.print(self.text(), x + w + 4, y)
+    mortar.graphics.pop()
 end
 
 --------------------------------------------------------------------------------
@@ -576,13 +589,12 @@ function Group:elementWithId(id)
 end
 
 function Group:draw()
-    love.graphics.push()
+    mortar.graphics.push()
     local x, y, w, h = unpack(self:getRelativeBounds())
-    love.graphics.translate(x, y)
     x = x + self.style.margin[1]
     y = y + self.style.margin[2]
-    w = self.width
-    h = self.height
+    w = w - self.style.margin[1] - self.style.margin[3]
+    h = h - self.style.margin[2] - self.style.margin[4]
     local rx, ry = unpack(self.style.borderRadius)
     -- draw shape
     if self.style.backgroundColor then
@@ -595,13 +607,39 @@ function Group:draw()
         love.graphics.rectangle("line", x, y, w, h, rx, ry)
     end
 
+    x = x + self.style.padding[1]
+    y = y + self.style.padding[2]
+    w = w - (self.style.padding[1] + self.style.padding[3])
+    h = h - (self.style.padding[2] + self.style.padding[4])
+
+    love.graphics.push()
+    love.graphics.translate(x, y)
     for _, element in pairs(self.elements) do
         if element.draw then
             element:draw()
         end
     end
-
     love.graphics.pop()
+    mortar.graphics.pop()
+end
+
+--------------------------------------------------------------------------------
+-- # Hidden
+--------------
+-- A hidden value.
+--------------------------------------------------------------------------------
+local Hidden = {}
+setmetatable(Hidden, Element_mt)
+Hidden.__index = Hidden
+function Hidden:__tostring()
+    return "<Hidden:" .. (self.id or "") .. ">"
+end
+
+function Hidden.new(id, position, options)
+    local this = Element.new("Hidden", id, position, options)
+    setmetatable(this, Hidden)
+    self.value = options.value or nil
+    return this
 end
 
 --------------------------------------------------------------------------------
@@ -613,7 +651,7 @@ local Icon = {}
 setmetatable(Icon, Element_mt)
 Icon.__index = Icon
 function Icon:__tostring()
-    return "<Icon>"
+    return "<Icon" .. (self.id or "") .. ">"
 end
 
 function Icon.new(id, position, options)
@@ -627,16 +665,16 @@ function Icon.new(id, position, options)
 end
 
 function Icon:draw()
-    mortar.styleStack.push()
+    mortar.graphics.push()
     if self.font then
-        mortar.styleStack.setFont(self.font)
+        mortar.graphics.setFont(self.font)
     else
-        mortar.styleStack.setFont(settings.iconFont)
+        mortar.graphics.setFont(settings.iconFont)
     end
     local x, y, w, h = unpack(self:getRelativeBounds())
     local align = self.pos[6]
     love.graphics.printf(self.icon, x, y, w, align)
-    mortar.styleStack.pop()
+    mortar.graphics.pop()
 end
 
 --------------------------------------------------------------------------------
@@ -648,7 +686,7 @@ local Layout = {}
 setmetatable(Layout, Group_mt)
 Layout.__index = Layout
 function Layout:__tostring()
-    return "<Layout>"
+    return "<Layout:" .. (self.id or "") .. ">"
 end
 
 function Layout.new(id, position, options)
@@ -658,13 +696,14 @@ function Layout.new(id, position, options)
     for _, e in pairs(this.elements) do
         e.parent = this
     end
+    this.cannotTarget = true
     return this
 end
 
 function Layout:keypressed(key, isRepeat)
-    Group.keypressed(self, key, isRepeat)
+    local stopped = Group.keypressed(self, key, isRepeat)
     if key == "tab" and not stopped then
-            local selectedElement = self:elementWith(function(e) return e.focus end)
+        local selectedElement = self:elementWith(function(e) return e.focus end)
         if love.keyboard.isDown("lshift", "rshift") then
             self:selectPreviousElement(selectedElement)
         else
@@ -674,13 +713,14 @@ function Layout:keypressed(key, isRepeat)
 end
 
 function Layout:style(styleRules)
-    mortar.styleStack(self, styleRules)
+    mortar.graphics(self, styleRules)
 end
 
 function Layout:draw()
+    mortar.graphics.push()
     mortar.graphics.setLineStyle("rough")
     Group.draw(self)
-    mortar.graphics.refresh()
+    mortar.graphics.pop()
 end
 
 --------------------------------------------------------------------------------
@@ -712,14 +752,14 @@ function Text.new(id, position, options)
 end
 
 function Text:draw()
-    mortar.styleStack.push()
+    mortar.graphics.push()
     if self.style.font then
-        mortar.styleStack.setFont(self.style.font)
+        mortar.graphics.setFont(self.style.font)
     end
     local x, y, w, h = unpack(self:getRelativeBounds())
     local align = self.pos[6]
     love.graphics.printf(self.text(), x, y, w, align)
-    mortar.styleStack.pop()
+    mortar.graphics.pop()
 end
 
 --------------------------------------------------------------------------------
@@ -829,6 +869,7 @@ function TextInput:draw()
         self.style.customDraw(self)
         return
     end
+    mortar.graphics.push()
     -- get positions
     local x, y, w, h = unpack(self:getRelativeBounds())
     x = x + self.style.margin[1]
@@ -895,59 +936,49 @@ function TextInput:draw()
         mortar.graphics.setColor(unpack(self.style.cursorColor))
         love.graphics.line(x + ox, y, x + ox, y + ch)
     end
+    mortar.graphics.pop()
 end
 
--- 
+-------
 
-mortar.graphics = {old = {}}
+
+mortar.graphics = {stack={}}
 setmetatable(mortar.graphics, {
     __index = function(table, key)
         if key:find("set") and love.graphics[key] then
+
             local getter = key:gsub("set", "get", 1)
             local currentValue = { love.graphics[getter]() }
-            if not mortar.graphics.old[getter] then
-                mortar.graphics.old[getter] = currentValue
-            end
-            return love.graphics[key]
-        elseif key:find("get") and mortar.graphics.old[key] then
-            return mortar.graphics.old[key]
-        else
-            return rawget(table, key)
-        end
-    end
-})
-
-function mortar.graphics.refresh()
-    for key, value in pairs(mortar.graphics.old) do
-        local setter = key:gsub("get", "set", 1)
-        love.graphics[setter](unpack(value))
-    end
-end
-
-mortar.styleStack = {stack={}}
-setmetatable(mortar.styleStack, {
-    __index = function(table, key)
-        if key:find("set") and love.graphics[key] then
-            local getter = key:gsub("set", "get", 1)
-            local currentValue = { love.graphics[getter]() }
-            local toplevel = mortar.styleStack.stack[#mortar.styleStack.stack]
+            local toplevel = mortar.graphics.stack[#mortar.graphics.stack]
             toplevel[getter] = currentValue
             return love.graphics[key]
+
         elseif key:find("get") and love.graphics[key] then
-            local toplevel = mortar.styleStack.stack[#mortar.styleStack.stack]
+
+            local i = #mortar.graphics.stack
+            local toplevel = mortar.graphics.stack[i]
+            while topLevel[key] == nil and i > 0 do
+                i = i - 1
+                toplevel = mortar.graphics.stack[i]
+            end
             return toplevel[key]
+
+        elseif key:find("pop") and love.graphics[key:gsub("pop", "get", 1)] then
+
+            -- TODO: pop just a single element
+
         else
             return rawget(table, key)
         end
     end
 })
 
-function mortar.styleStack.push()
-    table.insert(mortar.styleStack.stack, {})
+function mortar.graphics.push()
+    table.insert(mortar.graphics.stack, {})
 end
 
-function mortar.styleStack.pop()
-    local topLevel = table.remove(mortar.styleStack.stack)
+function mortar.graphics.pop()
+    local topLevel = table.remove(mortar.graphics.stack)
     for key, value in pairs(topLevel) do
         local setter = key:gsub("get", "set", 1)
         love.graphics[setter](unpack(value))
@@ -985,6 +1016,7 @@ end
 mortar.button     = default_constructor_for(Button)
 mortar.checkbox   = default_constructor_for(Checkbox)
 mortar.group      = default_constructor_for(Group)
+mortar.hidden     = default_constructor_for(Hidden)
 mortar.icon       = default_constructor_for(Icon)
 mortar.layout     = default_constructor_for(Layout)
 mortar.text       = default_constructor_for(Text)

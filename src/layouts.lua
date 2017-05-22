@@ -17,25 +17,25 @@ mortar.setIconFont("gfx/fontawesome-webfont.ttf")
 
 local layouts = {}
 
-layouts.title = mortar.layout({0, 0, 100, 100}, {
+layouts.title = mortar.layout({"0", "0", "100", "100"}, {
     elements = {
-        mortar.text("title", {0, 10, 100, 10, "top", "center"}, {
+        mortar.text("title", {"0", "10", "100", "10", "top", "center"}, {
             text = T"Welcome to Silent Running",
         }),
-        mortar.group("options", {0, 30, 100, 60, "top", "center"}, {
+        mortar.group("options", {"0", "30", "100", "60", "top", "center"}, {
             elements = {
-                mortar.button({55, 30, 30, 10}, {
+                mortar.button({"55", "30", "30", "10"}, {
                     text = T"Start a Server",
                     onclick = function(self) startServer() end,
                 }),
-                mortar.text_input("ipAddress", {10, 50, 35, 10}, {
+                mortar.text_input("ipAddress", {"10", "50", "35", "10"}, {
                     placeholder = T"IP Address",
                     style = {
                         padding = { 8, 8, 8, 8},
                     },
                     pattern = "%d+%.%d+.%d+.%d+"
                 }),
-                mortar.button({55, 50, 30, 10}, {
+                mortar.button({"55", "50", "30", "10"}, {
                     text = T"Join a Server",
                     onclick = function(self)
                         local input = self:layout():elementWithId("ipAddress")
@@ -61,82 +61,126 @@ mortar.style(layouts.title, {
 })
 
 layouts.server = {}
-layouts.server.info = mortar.layout({0, 0, 100, 100}, {
+layouts.server.info = mortar.layout({"0", "0", "100", "100"}, {
     elements = {
-        mortar.text({0, 0, 100, 100}, {
+        mortar.text({"4", "0", "100", "100"}, {
             text = T"Hosting Server"
         }),
-        mortar.text({0, 4, 100, 100}, {
-            text = T"IP Adresss"
-        }),
-        mortar.icon({16, 4, 100, 100}, {
+        mortar.icon({"0", "4", "100", "100"}, {
             icon = "",
             size = 20,
         }),
-        mortar.text("ipAddress", {20, 4, 100, 100}, {
-            text = function() return role.server:getSocketAddress() end
+        mortar.text({"4", "4", "100", "100"}, {
+            text = T"IP Adresss"
         }),
-        mortar.text({0, 8, 100, 100}, {
-            text = T"Connected Players"
+        mortar.text("ipAddress", {"20", "4", "100", "100"}, {
+            text = function() return role.server:getSocketAddress():match(".+:"):sub(1, -2) end
         }),
-        mortar.icon({16, 8, 100, 100}, {
+        mortar.text({"4", "8", "100", "100"}, {
+            text = T"Port"
+        }),
+        mortar.text("port", {"20", "8", "100", "100"}, {
+            text = function() return role.server:getSocketAddress():match(":.+"):sub(2) end
+        }),
+        mortar.icon({"0", "12", "100", "100"}, {
             icon = "",
             size = 20
         }),
-        mortar.text("playerCount", {20, 8, 100, 100}, {
+        mortar.text({"4", "12", "100", "100"}, {
+            text = T"Connected Players"
+        }),
+        mortar.text("playerCount", {"20", "12", "100", "100"}, {
             text = function() return tostring(#role.server.clients) end
         }),
     },
 })
 
-layouts.server.commands = mortar.layout({2, 70, 100, 30}, {
+local iconFont = love.graphics.newFont("gfx/fontawesome-webfont.ttf", 20)
+local function drawCheckbox(self)
+    mortar.graphics.push()
+    mortar.graphics.setFont(iconFont)
+    local x, y, w, h = unpack(self:getRelativeBounds())
+    x = x + self.style.margin[1]
+    y = y + self.style.margin[2]
+    mortar.graphics.push()
+    if self.focus then
+        mortar.graphics.setColor(self.style.borderColorFocus)
+    else
+        mortar.graphics.setColor(self.style.borderColor)
+    end
+    love.graphics.print("", x, y)
+    mortar.graphics.pop()
+    mortar.graphics.setColor(self.style.textColor)
+    if self.selected then
+        love.graphics.print("", x + 1, y - 3)
+    end
+    mortar.graphics.pop()
+    love.graphics.print(self.text(), x + 24, y)
+end
+
+layouts.server.commands = mortar.layout({2, -122, 152, 120}, {
     elements = {
-        mortar.checkbox({0, 4, 100, 4}, {
+        mortar.checkbox({"0", 0, "100", 16}, {
             width  = 16,
             height = 16,
             text = T"Show map",
             onchange = function() 
                 DEBUG.showMap = not DEBUG.showMap 
             end,
-            selected = DEBUG.showMap
+            selected = DEBUG.showMap,
+            style = {
+                customDraw = drawCheckbox
+            }
         }),
-        mortar.checkbox({0, 8, 100, 4}, {
+        mortar.checkbox({"0", 20, "100", 16}, {
             width  = 16,
             height = 16,
             text = T"Show map objects",
             onchange = function() 
                 DEBUG.showMapObjects = not DEBUG.showMapObjects 
             end,
-            selected = DEBUG.showMapObjects
+            selected = DEBUG.showMapObjects,
+            style = {
+                customDraw = drawCheckbox
+            }
         }),
-        mortar.checkbox({0, 12, 100, 4}, {
+        mortar.checkbox({"0", 40, "100", 16}, {
             width  = 16,
             height = 16,
             text = T"Show game objects",
             onchange = function() 
                 DEBUG.showGameObjects = not DEBUG.showGameObjects 
             end,
-            selected = DEBUG.showGameObjects
+            selected = DEBUG.showGameObjects,
+            style = {
+                customDraw = drawCheckbox
+            }
         }),
-        mortar.checkbox({0, 16, 100, 4}, {
+        mortar.checkbox({"0", 60, "100", 16}, {
             width  = 16,
             height = 16,
             text = T"Show player info",
             onchange = function() 
                 DEBUG.showPlayerInfo = not DEBUG.showPlayerInfo 
             end,
-            selected = DEBUG.showPlayerInfo
+            selected = DEBUG.showPlayerInfo,
+            style = {
+                customDraw = drawCheckbox
+            }
         }),
-        mortar.checkbox({0, 20, 100, 4}, {
+        mortar.checkbox({"0", 80, "100", 16}, {
             width  = 16,
             height = 16,
             text = T"Show log",
             onchange = function() 
                 DEBUG.showLog = not DEBUG.showLog 
             end,
-            selected = DEBUG.showLog
+            selected = DEBUG.showLog,
+            style = {
+                customDraw = drawCheckbox
+            }
         }),
-        mortar.checkbox({0, 24, 100, 4}, {
+        mortar.checkbox({"0", 100, "100", 16}, {
             width  = 16,
             height = 16,
             text = T"Show commands",
@@ -145,15 +189,22 @@ layouts.server.commands = mortar.layout({2, 70, 100, 30}, {
                 role:hideCommands()
                 return true -- cancel the normal checkbox behaviour.
             end,
-            selected = true
+            selected = true,
+            style = {
+                customDraw = drawCheckbox
+            }
         }),
     },
-    backgroundColor = {0, 0, 0}
+    style = {
+        padding = { 2, 2, 2, 2 },
+        backgroundColor = {0, 0, 0},
+        borderColor = {255, 255, 255},
+    }  
 })
 
-layouts.server.commandsHidden = mortar.layout({2, 70, 100, 30}, {
+layouts.server.commandsHidden = mortar.layout({2, -22, 136, 20}, {
     elements = {
-        mortar.checkbox({0, 24, 100, 4}, {
+        mortar.checkbox({"0", 0, "100", 16}, {
             width  = 16,
             height = 16,
             text = T"Show commands",
@@ -161,9 +212,17 @@ layouts.server.commandsHidden = mortar.layout({2, 70, 100, 30}, {
                 role:showCommands()
                 return true -- cancel the normal checkbox behaviour.
             end,
-            selected = false
+            selected = false,
+            style = {
+                customDraw = drawCheckbox
+            }
         }),
     },
+    style = {
+        padding = { 2, 2, 2, 2 },
+        backgroundColor = {0, 0, 0},
+        borderColor = {255, 255, 255},
+    }  
 })
 
 return layouts
