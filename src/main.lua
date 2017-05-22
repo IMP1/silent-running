@@ -77,7 +77,7 @@ end
 function love.mousepressed(mx, my, key)
     if lobby then
         lobby:mousepressed(mx, my, key)
-    elseif role then
+    elseif role and role.mousepressed then
         role:mousepressed(mx, my, key)
     end
 end
@@ -85,7 +85,7 @@ end
 function love.mousereleased(mx, my, key)
     if lobby then
         lobby:mousereleased(mx, my, key)
-    elseif role then
+    elseif role and role.mousereleased then
         role:mousereleased(mx, my, key)
     end
 end

@@ -41,6 +41,7 @@ layouts.title = mortar.layout({"0", "0", "100", "100"}, {
                         local input = self:layout():elementWithId("ipAddress")
                         input:validate(true)
                         if input.valid then
+                            -- TODO: try to connect before going to client role
                             local address = input:value()
                             role = Client.new(address) 
                             lobby = nil

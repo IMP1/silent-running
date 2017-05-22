@@ -171,7 +171,6 @@ function Client:draw()
     end
     if self.camera then
         self.camera:set()
-        -- TODO: test camera works
     end
 
     if self.sounds then
