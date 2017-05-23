@@ -35,13 +35,6 @@ tlo.settings = {
     addMissingStringsToLanguageFiles = true,
 }
 
-local errorMessages = {
-    unsetLanguage = [[
-There is no language set. 
-Use tlo.setLanguage() to set which language to use.
-Alternatively, set tlo.settings.errorOnUnsetLanguage to false to hide this error.]],
-}
-
 local currentLanguage = nil
 local languageFilesPath = "lang"
 local lookupTable = {}
@@ -64,7 +57,7 @@ function tlo.localise(string)
         if tlo.settings.returnNilOnLocalisationFailure then
             return nil
         elseif tlo.settings.errorOnLocalisationFailure or tlo.settings.errorOnUnsetLanguage then
-            error(errorMessages.unsetLanguage)
+            error("There is no language set. Use tlo.setLanguage() to set which language to use.")
         else
             return string
         end

@@ -1,5 +1,3 @@
-local utf8 = require("utf8")
-
 local mortar = {
     _VERSION     = 'v0.0.1',
     _DESCRIPTION = 'A Lua UI library for LÖVE games',
