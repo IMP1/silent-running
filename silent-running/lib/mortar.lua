@@ -129,6 +129,11 @@ local settings = {
     iconFontPath = nil
 }
 
+function mortar.setIconFont(iconFontPath)
+    settings.iconFontPath = iconFontPath
+    settings.iconFont = love.graphics.newFont(iconFontPath)
+end
+
 --------------------------------------------------------------------------------
 -- # Element
 --------------
@@ -986,9 +991,18 @@ function TextInput:draw()
     mortar.graphics.pop()
 end
 
--------
+--------------------------------------------------------------------------------
+-- # Mortar.Graphics (Internal)
+--------------
+-- This holds a stack of graphical parameters (font, colour, backgroundColour, 
+-- line style, etc.). This stack can be pushed to and popped from to isolate
+-- individual elements' draw methods without manually keeping track of the old
+-- state of these values. The current state is still represented by using
+-- love.graphics.get* methods.
 
+-- TODO: test this with an actual stack test.
 
+--------------------------------------------------------------------------------
 mortar.graphics = {stack={}}
 setmetatable(mortar.graphics, {
     __index = function(table, key)
@@ -997,7 +1011,9 @@ setmetatable(mortar.graphics, {
             local getter = key:gsub("set", "get", 1)
             local currentValue = { love.graphics[getter]() }
             local toplevel = mortar.graphics.stack[#mortar.graphics.stack]
-            toplevel[getter] = currentValue
+            if not topLevel[getter] then
+                toplevel[getter] = currentValue
+            end
             return love.graphics[key]
 
         elseif key:find("get") and love.graphics[key] then
@@ -1020,10 +1036,14 @@ setmetatable(mortar.graphics, {
     end
 })
 
+-- Pushing creates a new 'scope' on top of the stack.
 function mortar.graphics.push()
     table.insert(mortar.graphics.stack, {})
 end
 
+-- Popping removed the top 'scope' from the stack, and uses its values (which
+-- are the previous values for that property) to set the love.graphics values
+-- to again.
 function mortar.graphics.pop()
     local topLevel = table.remove(mortar.graphics.stack)
     for key, value in pairs(topLevel) do
@@ -1032,6 +1052,7 @@ function mortar.graphics.pop()
     end
 end
 
+-- Internal function as elements have common constructors.
 local function default_constructor_for(ObjectClass)
     return function(...)
         params = {...}
@@ -1060,6 +1081,7 @@ local function default_constructor_for(ObjectClass)
     end
 end
 
+-- Public methods for creation of elements.
 mortar.button     = default_constructor_for(Button)
 mortar.checkbox   = default_constructor_for(Checkbox)
 mortar.group      = default_constructor_for(Group)
@@ -1069,17 +1091,18 @@ mortar.layout     = default_constructor_for(Layout)
 mortar.text       = default_constructor_for(Text)
 mortar.text_input = default_constructor_for(TextInput)
 
+--------------------------------------------------------------------------------
+-- # Mortar.Style
+--------------
+-- 
+--------------------------------------------------------------------------------
+
 function mortar.style(object, styleRules)
     for selector, rules in pairs(styleRules) do
         for _, element in pairs(object:find(selector)) do
             element:style(styleRules)
         end
     end
-end
-
-function mortar.setIconFont(iconFontPath)
-    settings.iconFontPath = iconFontPath
-    settings.iconFont = love.graphics.newFont(iconFontPath)
 end
 
 return mortar
