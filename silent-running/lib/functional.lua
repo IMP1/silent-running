@@ -1,6 +1,6 @@
-local functionalTable = {}
+local util = {}
 
-function functionalTable.map(array, f)
+function util.map(array, f)
     local result = {}
     for i, v in ipairs(array) do
         result[i] = f(v)
@@ -8,7 +8,7 @@ function functionalTable.map(array, f)
     return result
 end
 
-function functionalTable.reduce(array, f, initial)
+function util.reduce(array, f, initial)
     local result = initial
     for i, v in ipairs(array) do
         result = f(result, v)
@@ -16,7 +16,7 @@ function functionalTable.reduce(array, f, initial)
     return result
 end
 
-function functionalTable.filter(array, f)
+function util.filter(array, f)
     local result = {}
     for _, v in ipairs(array) do
         if f(v) then
@@ -26,7 +26,7 @@ function functionalTable.filter(array, f)
     return result
 end
 
-function functionalTable.zip(arary1, array2)
+function util.zip(arary1, array2)
     local result = {}
     for i = 1, math.max(#arary1, #array2) do
         result[i] = { arary1[i], array2[i] }
@@ -34,7 +34,27 @@ function functionalTable.zip(arary1, array2)
     return result
 end
 
-function functionalTable.append(array, ...)
+function util.any(array, f)
+    if f == nil then
+        return #array > 0
+    end
+    for _, v in pairs(array) do
+        if f(v) then return true end
+    end
+    return false
+end
+
+function util.none(array, f)
+    if f == nil then
+        return #array == 0
+    end
+    for _, v in pairs(array) do
+        if f(v) then return false end
+    end
+    return true
+end
+
+function util.append(array, ...)
     local result = {}
     for i, v in ipairs(array) do
         table.insert(result, v)
@@ -45,4 +65,4 @@ function functionalTable.append(array, ...)
     return result
 end
 
-return functionalTable
+return util
