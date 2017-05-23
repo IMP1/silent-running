@@ -287,7 +287,7 @@ function Element:matches(selector)
     -- element
     local element = selector:match("<(%w-)>")
     element = element or selector:match("*")
-    if element and element ~= "*" and element:lower() ~= self._name:lower() then
+    if element and element ~= "*" and element ~= self._name then
         return false
     end    
     --- id
@@ -318,7 +318,7 @@ function Button:__tostring()
 end
 
 function Button.new(id, position, options)
-    local this = Element.new("Button", id, position, options, options.style)
+    local this = Element.new("button", id, position, options, options.style)
     setmetatable(this, Button)
     if options.text == nil then
         this.text = function () return "" end
@@ -421,7 +421,7 @@ function Checkbox:__tostring()
 end
 
 function Checkbox.new(id, position, options)
-    local this = Element.new("Checkbox", id, position, options)
+    local this = Element.new("checkbox", id, position, options)
     setmetatable(this, Checkbox)
     if options.text == nil then
         this.text = function () return "" end
@@ -522,7 +522,7 @@ function Group:__tostring()
 end
 
 function Group.new(id, position, options)
-    local this = Element.new("Group", id, position, options)
+    local this = Element.new("group", id, position, options)
     setmetatable(this, Group)
     this.elements = options.elements or {}
     for _, e in pairs(this.elements) do
@@ -687,7 +687,7 @@ function Hidden:__tostring()
 end
 
 function Hidden.new(id, position, options)
-    local this = Element.new("Hidden", id, position, options)
+    local this = Element.new("hidden", id, position, options)
     setmetatable(this, Hidden)
     self.value = options.value or nil
     return this
@@ -706,7 +706,7 @@ function Icon:__tostring()
 end
 
 function Icon.new(id, position, options)
-    local this = Element.new("Icon", id, position, options)
+    local this = Element.new("icon", id, position, options)
     setmetatable(this, Icon)
     this.icon = options.icon
     if options.size then
@@ -741,7 +741,7 @@ function Layout:__tostring()
 end
 
 function Layout.new(id, position, options)
-    local this = Element.new("Layout", id, position, options)
+    local this = Element.new("layout", id, position, options)
     setmetatable(this, Layout)
     this.elements = options.elements or {}
     for _, e in pairs(this.elements) do
@@ -783,7 +783,7 @@ function Text:__tostring()
 end
 
 function Text.new(id, position, options)
-    local this = Element.new("Text", id, position, options)
+    local this = Element.new("text", id, position, options)
     setmetatable(this, Text)
     if options.text == nil then
         this.text = function () return "" end
@@ -822,7 +822,7 @@ function TextInput:__tostring()
 end
 
 function TextInput.new(id, position, options)
-    local this = Element.new("TextInput", id, position, options)
+    local this = Element.new("text_input", id, position, options)
     setmetatable(this, TextInput)
     this.placeholder   = options.placeholder or ""
     this.pattern       = options.pattern or nil
