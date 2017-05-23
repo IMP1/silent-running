@@ -28,9 +28,9 @@ local tlo = {
 }
 
 tlo.settings = {
-    errorOnLocalisationFailure       = false,
-    errorOnUnsetLanguage             = false,
-    errorOnMissingLanguage           = false,
+    errorOnLocalisationFailure       = true,
+    errorOnUnsetLanguage             = true,
+    errorOnMissingLanguage           = true,
     returnNilOnLocalisationFailure   = false,
     addMissingStringsToLanguageFiles = true,
 }
