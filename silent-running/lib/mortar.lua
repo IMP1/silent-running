@@ -259,10 +259,10 @@ function Element:find(selectors)
         return nil
     end
     local i = selectors:find("%s")
-    local s = selectors:sub(1, i-1)
-    -- print("Selector = '" .. s .. "'.")
-    -- print(tostring(self))
-    -- print(tostring(self:matches(s)))
+    local s = selectors:sub(1, (i or 0) - 1)
+    print("Selector = '" .. s .. "'.")
+    print(tostring(self))
+    print(tostring(self:matches(s)))
     if not self:matches(s) then
         return nil
     end
@@ -279,8 +279,8 @@ function Element:find(selectors)
     -- TODO: have it so it's like CSS, where unless specified
     --       that it's a *direct* child, it can be indirect.
 
-    local nextSelectors = selectors:sub(i)
-    -- print("Next selectors = '" .. nextSelectors .. "'.")
+    local nextSelectors = selectors:sub(i+1)
+    print("Next selectors = '" .. nextSelectors .. "'.")
     local matches = {}
     for _, child in pairs(self.elements) do
         local results = child:find(nextSelectors)
@@ -1107,6 +1107,7 @@ mortar.text_input = default_constructor_for(TextInput)
 function mortar.style(object, styleRules)
     for selector, rules in pairs(styleRules) do
         local elements = object:find(selector)
+        print(unpack(elements))
         if elements then
             for _, element in pairs(elements) do
                 element:setStyle(rules)
