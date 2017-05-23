@@ -265,6 +265,12 @@ function Element:find(selectors)
     if not self.children then
         return { self }
     end
+
+    -- TODO: if the special selector for all descendants,
+    --       just add it as the next selector? It will have
+    --       to be the last in the list this way (not a 
+    --       problem that I can see, though).
+
     local nextSelectors = selectors:sub(i)
     print("Next selectors = '" .. nextSelectors .. "'.")
     local matches = {}
@@ -279,13 +285,23 @@ end
 
 function Element:matches(selector)
     -- element
-    
+    local element = selector:match("<(%w-)>")
+    element = element or selector:match("*")
+    if element and element ~= "*" and element:lower() ~= self._name:lower() then
+        return false
+    end    
     --- id
-
+    local id = selector:match("#(%w+)")
+    if id and id ~= self.id then
+        return false
+    end
     -- tags
-
-    local element = selector:gmatch("<.->")
-    local tags = selector:gmatch("<.->")
+    for tag in selector:gmatch(".(%w+)") do
+        if tag and array.none(self.tags, function(t) return t == tag end) then
+            return false
+        end
+    end
+    return true
 end
 
 --------------------------------------------------------------------------------
