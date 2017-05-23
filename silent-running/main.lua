@@ -13,6 +13,7 @@ DEBUG = {
 ---------------
 -- Libraries --
 ---------------
+array        = require 'lib.functional'
 local bitser = require 'lib.bitser'
 local sock   = require 'lib.sock'
 local tlo    = require 'lib.tlo'

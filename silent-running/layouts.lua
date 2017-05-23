@@ -94,6 +94,11 @@ layouts.server.info = mortar.layout({"0", "0", "100", "100"}, {
             text = function() return tostring(#role.server.clients) end
         }),
     },
+    style = {
+        padding = { 2, 2, 2, 2 },
+        backgroundColor = {0, 0, 0},
+        borderColor = {255, 255, 255},
+    }  
 })
 
 local iconFont = love.graphics.newFont("gfx/fontawesome-webfont.ttf", 20)

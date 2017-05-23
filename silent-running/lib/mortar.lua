@@ -61,10 +61,10 @@ local mortar = {
         <text> : matches text elements
         .green : matches elements with the tag 'green'
         #title : matches element with id 'title'
-        <*>    : matches all elements
+        *      : matches all elements
 
         <text>.green              : matches text elements with the tag 'green'
-        #parent <*>               : matches all elements that are children of 
+        #parent *                 : matches all elements that are children of 
                                     an element with the tag #parent
         #my-form <button>.visible : matches button elements with the tag 
                                     'visible' that are children of elements 
@@ -161,6 +161,12 @@ function Element.new(elementName, id, pos, options)
     return obj
 end
 
+function Element:style(styleRules)
+    for key, value in pairs(styleRules) do
+        self.style[key] = value
+    end
+end
+
 function Element:getScreenBounds()
     local parentBounds
     if self.parent == nil then
@@ -245,11 +251,41 @@ function Element:layout()
     return top
 end
 
-function Element:draw()
-    if self.style.customDraw then 
-        self.style.customDraw(self)
-        return
+function Element:find(selectors)
+    if selectors == nil or selectors == "" then
+        return nil
     end
+    local i = selectors:find("%s")
+    local s = selectors:sub(1, i)
+    print("Selector = '" .. s .. "'.")
+    if not self:matches(s) then
+        return nil
+    end
+    -- We match!
+    if not self.children then
+        return { self }
+    end
+    local nextSelectors = selectors:sub(i)
+    print("Next selectors = '" .. nextSelectors .. "'.")
+    local matches = {}
+    for _, child in pairs(self.children) do
+        local results = child:find(nextSelectors)
+        if results then
+            matches = array.append(matches, unpack(results))
+        end
+    end
+    return matches
+end
+
+function Element:matches(selector)
+    -- element
+    
+    --- id
+
+    -- tags
+
+    local element = selector:gmatch("<.->")
+    local tags = selector:gmatch("<.->")
 end
 
 --------------------------------------------------------------------------------
@@ -295,7 +331,6 @@ end
 function Button:keypressed(key, isRepeat)
     if self.focus and key == "space" then
         self.active = true
-        self:onclick()
     end
 end
 
@@ -712,10 +747,6 @@ function Layout:keypressed(key, isRepeat)
     end
 end
 
-function Layout:style(styleRules)
-    mortar.graphics(self, styleRules)
-end
-
 function Layout:draw()
     mortar.graphics.push()
     mortar.graphics.setLineStyle("rough")
@@ -1024,7 +1055,9 @@ mortar.text_input = default_constructor_for(TextInput)
 
 function mortar.style(object, styleRules)
     for selector, rules in pairs(styleRules) do
-
+        for _, element in pairs(object:find(selector)) do
+            element:style(styleRules)
+        end
     end
 end
 
