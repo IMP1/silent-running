@@ -29,7 +29,7 @@ local tlo = {
 
 tlo.settings = {
     errorOnLocalisationFailure       = false,
-    errorOnUnsetLanguage             = true,
+    errorOnUnsetLanguage             = false,
     errorOnMissingLanguage           = false,
     returnNilOnLocalisationFailure   = false,
     addMissingStringsToLanguageFiles = true,

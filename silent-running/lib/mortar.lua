@@ -90,7 +90,7 @@ local default_style = {
         margin          = {0, 0, 0, 0},
         padding         = {4, 4, 4, 4},
     },
-    Button    = {
+    button    = {
         backgroundColorFocus  = {32, 32, 32},
         backgroundColorActive = {64, 64, 64},
         backgroundColor       = {32, 32, 32},
@@ -100,17 +100,17 @@ local default_style = {
         borderColorActive     = {192, 192, 192},
         padding               = {8, 8, 4, 4}
     },
-    Checkbox  = {
+    checkbox  = {
         borderColor           = {192, 192, 192},
         borderColorFocus      = {128, 128, 255},
         backgroundColor       = {32, 32, 32},
         backgroundColorFocus  = {32, 32, 32},
     },
-    Group     = {},
-    Icon      = {},
-    Layout    = {},
-    Text      = {},
-    TextInput = {
+    group     = {},
+    icon      = {},
+    layout    = {},
+    text      = {},
+    text_input = {
         borderColor        = {192, 192, 192},
         borderColorFocus   = {128, 128, 255},
         borderColorInvalid = {192, 128, 128},
@@ -152,7 +152,7 @@ function Element.new(elementName, id, pos, options)
     obj.pos   = pos or {0, 0, 100, 100, "top", "left"}
     obj.tags  = options.tags or {}
     obj.style = options.style or {}
-    for k, v in pairs (default_style[elementName]) do
+    for k, v in pairs(default_style[elementName]) do
         if obj.style[k] == nil then
             obj.style[k] = v
         end
@@ -164,7 +164,7 @@ function Element.new(elementName, id, pos, options)
     return obj
 end
 
-function Element:style(styleRules)
+function Element:setStyle(styleRules)
     for key, value in pairs(styleRules) do
         self.style[key] = value
     end
@@ -259,13 +259,15 @@ function Element:find(selectors)
         return nil
     end
     local i = selectors:find("%s")
-    local s = selectors:sub(1, i)
-    print("Selector = '" .. s .. "'.")
+    local s = selectors:sub(1, i-1)
+    -- print("Selector = '" .. s .. "'.")
+    -- print(tostring(self))
+    -- print(tostring(self:matches(s)))
     if not self:matches(s) then
         return nil
     end
     -- We match!
-    if not self.children then
+    if not self.elements then
         return { self }
     end
 
@@ -274,10 +276,13 @@ function Element:find(selectors)
     --       to be the last in the list this way (not a 
     --       problem that I can see, though).
 
+    -- TODO: have it so it's like CSS, where unless specified
+    --       that it's a *direct* child, it can be indirect.
+
     local nextSelectors = selectors:sub(i)
-    print("Next selectors = '" .. nextSelectors .. "'.")
+    -- print("Next selectors = '" .. nextSelectors .. "'.")
     local matches = {}
-    for _, child in pairs(self.children) do
+    for _, child in pairs(self.elements) do
         local results = child:find(nextSelectors)
         if results then
             matches = array.append(matches, unpack(results))
@@ -289,17 +294,18 @@ end
 function Element:matches(selector)
     -- element
     local element = selector:match("<(%w-)>")
+    -- print(element)
     element = element or selector:match("*")
     if element and element ~= "*" and element ~= self._name then
         return false
-    end    
+    end
     --- id
     local id = selector:match("#(%w+)")
     if id and id ~= self.id then
         return false
     end
     -- tags
-    for tag in selector:gmatch(".(%w+)") do
+    for tag in selector:gmatch("%.(%w+)") do
         if tag and array.none(self.tags, function(t) return t == tag end) then
             return false
         end
@@ -806,6 +812,9 @@ function Text:draw()
     if self.style.font then
         mortar.graphics.setFont(self.style.font)
     end
+    if self.style.textColor then
+        mortar.graphics.setColor(unpack(self.style.textColor))
+    end
     local x, y, w, h = unpack(self:getRelativeBounds())
     local align = self.pos[6]
     love.graphics.printf(self.text(), x, y, w, align)
@@ -1008,21 +1017,21 @@ setmetatable(mortar.graphics, {
 
             local getter = key:gsub("set", "get", 1)
             local currentValue = { love.graphics[getter]() }
-            local toplevel = mortar.graphics.stack[#mortar.graphics.stack]
+            local topLevel = mortar.graphics.stack[#mortar.graphics.stack]
             if not topLevel[getter] then
-                toplevel[getter] = currentValue
+                topLevel[getter] = currentValue
             end
             return love.graphics[key]
 
         elseif key:find("get") and love.graphics[key] then
 
             local i = #mortar.graphics.stack
-            local toplevel = mortar.graphics.stack[i]
+            local topLevel = mortar.graphics.stack[i]
             while topLevel[key] == nil and i > 0 do
                 i = i - 1
-                toplevel = mortar.graphics.stack[i]
+                topLevel = mortar.graphics.stack[i]
             end
-            return toplevel[key]
+            return topLevel[key]
 
         elseif key:find("pop") and love.graphics[key:gsub("pop", "get", 1)] then
 
@@ -1097,8 +1106,11 @@ mortar.text_input = default_constructor_for(TextInput)
 
 function mortar.style(object, styleRules)
     for selector, rules in pairs(styleRules) do
-        for _, element in pairs(object:find(selector)) do
-            element:style(styleRules)
+        local elements = object:find(selector)
+        if elements then
+            for _, element in pairs(elements) do
+                element:setStyle(rules)
+            end
         end
     end
 end
