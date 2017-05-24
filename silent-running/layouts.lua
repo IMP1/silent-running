@@ -53,11 +53,9 @@ layouts.title = mortar.layout({"0", "0", "100", "100"}, {
     },
 })
 mortar.style(layouts.title, {
-    ["<layout> <text>#title"] = {
+    ["text#title"] = {
         textColor = {0, 128, 128},
     },
-
-    
 })
 
 layouts.server = {}

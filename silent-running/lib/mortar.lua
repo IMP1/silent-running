@@ -256,60 +256,89 @@ end
 
 function Element:find(selectors)
     if selectors == nil or selectors == "" then
-        return nil
+        return {}
     end
-    local i = selectors:find("%s")
-    local s = selectors:sub(1, (i or 0) - 1)
-    print("Selector = '" .. s .. "'.")
-    print(tostring(self))
-    print(tostring(self:matches(s)))
-    if not self:matches(s) then
-        return nil
+
+    local directDescendant = false
+    local i = selectors:find("%s") or #selectors + 1
+    local j = selectors:find("%S", i) or #selectors + 1
+    local s = selectors:sub(1, i - 1)
+    local nextSelectors = selectors:sub(j)
+    local final = #nextSelectors == 0
+
+    if s == ">" and final then
+        return {}
+    elseif s == ">" then
+        directDescendant = true
+        selectors = nextSelectors
+        i = selectors:find("%s") or #selectors + 1
+        j = selectors:find("%S", i) or #selectors + 1
+        s = selectors:sub(1, i - 1)
+        nextSelectors = selectors:sub(j)
+        final = #nextSelectors == 0
     end
-    -- We match!
-    if not self.elements then
+    -- print("----")
+    -- print(self, "'" .. selectors .. "'")
+
+    local match = self:matches(s)
+    -- print(match)
+
+    if match and final and not self.elements then
         return { self }
     end
 
-    -- TODO: if the special selector for all descendants,
-    --       just add it as the next selector? It will have
-    --       to be the last in the list this way (not a 
-    --       problem that I can see, though).
-
-    -- TODO: have it so it's like CSS, where unless specified
-    --       that it's a *direct* child, it can be indirect.
-
-    local nextSelectors = selectors:sub(i+1)
-    print("Next selectors = '" .. nextSelectors .. "'.")
-    local matches = {}
-    for _, child in pairs(self.elements) do
-        local results = child:find(nextSelectors)
-        if results then
-            matches = array.append(matches, unpack(results))
+    if not match and self.elements and not directDescendant then
+        -- print("checking children...")
+        local matches = {}
+        for _, child in pairs(self.elements) do
+            local results = child:find(selectors)
+            if #results > 0 then
+                matches = array.append(matches, unpack(results))
+            end
         end
+        return matches
     end
-    return matches
+
+    if match and self.elements and not final then
+        -- print("continuing on...")
+        local matches = {}
+        for _, child in pairs(self.elements) do
+            local results = child:find(nextSelectors)
+            if #results > 0 then
+                matches = array.append(matches, unpack(results))
+            end
+        end
+        return matches
+    end
+
+    return {}
 end
 
 function Element:matches(selector)
+    -- print("Matching " .. tostring(self) .. " to '" .. tostring(selector) .. "' selector.")
+    if not selector:find("%S") then
+        return false
+    end
     -- element
-    local element = selector:match("<(%w-)>")
-    -- print(element)
-    element = element or selector:match("*")
+    local element = selector:match("^(%w+)")
+    element = element or selector:match("%*")
     if element and element ~= "*" and element ~= self._name then
         return false
     end
+    -- print("Matching " .. tostring(self) .. " to <" .. tostring(element) .. "> element.")
     --- id
     local id = selector:match("#(%w+)")
     if id and id ~= self.id then
         return false
     end
+    -- print("Matching " .. tostring(self) .. " to #" .. tostring(id) .. " id.")
     -- tags
     for tag in selector:gmatch("%.(%w+)") do
         if tag and array.none(self.tags, function(t) return t == tag end) then
             return false
         end
     end
+    -- print("Matched!")
     return true
 end
 
@@ -1107,7 +1136,6 @@ mortar.text_input = default_constructor_for(TextInput)
 function mortar.style(object, styleRules)
     for selector, rules in pairs(styleRules) do
         local elements = object:find(selector)
-        print(unpack(elements))
         if elements then
             for _, element in pairs(elements) do
                 element:setStyle(rules)
