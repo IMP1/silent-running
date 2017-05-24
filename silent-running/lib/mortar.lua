@@ -385,6 +385,7 @@ end
 function Button:keypressed(key, isRepeat)
     if self.focus and key == "space" then
         self.active = true
+        self:onclick()
     end
 end
 
