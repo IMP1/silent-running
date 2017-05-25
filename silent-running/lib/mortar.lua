@@ -127,6 +127,10 @@ local settings = {
     iconFontPath = nil
 }
 
+local helper = {
+    lastFocussedElement = nil
+}
+
 function mortar.setIconFont(iconFontPath)
     settings.iconFontPath = iconFontPath
     settings.iconFont = love.graphics.newFont(iconFontPath)
@@ -387,11 +391,16 @@ function Button:keypressed(key, isRepeat)
         self.active = true
         self:onclick()
     end
+    if not self.focus and self.focusKeys and key == self.focusKeys.key then
+        self.focus = true
+        helper.lastFocussedElement = self
+    end
 end
 
 function Button:mousepressed(mx, my, key)
     self.active = self:isMouseOver(mx, my)
     self.focus  = self:isMouseOver(mx, my)
+    if self.focus then helper.lastFocussedElement = self end
 end
 
 function Button:mousereleased(mx, my, key)
@@ -494,8 +503,7 @@ function Checkbox:mousereleased(mx, my, key)
     if self:isMouseOver(mx, my) then
         self:toggle()
         self.focus = true
-    else
-        self.focus = false
+        helper.lastFocussedElement = self
     end
 end
 
@@ -656,6 +664,22 @@ function Group:selectPreviousElement(current, previous)
     return previous
 end
 
+function Group:elementsWith(f, ...)
+    local results = {}
+    for _, e in pairs(self.elements) do
+        if f(e, ...) then
+            array.append(results, e)
+        end
+        if e.elementsWith then
+            local subresults = e:elementsWith(f, ...)
+            if #subresults > 0 then
+                array.append(results, unpack(subresults))
+            end
+        end
+    end
+    return results
+end
+
 function Group:elementWith(f, ...)
     for _, e in pairs(self.elements) do
         if f(e, ...) then
@@ -676,6 +700,18 @@ function Group:elementWithId(id)
         return element.id == id
     end
     return self:elementWith(f, id)
+end
+
+function Group:addElement(element)
+    table.insert(self.elements, element)
+end
+
+function Group:removeElements(selector)
+    local elements = self:find(selector)
+    self.elements = array.filter(self.elements, 
+        function(e) 
+            return array.none(elements, e) 
+        end)
 end
 
 function Group:draw()
@@ -790,6 +826,21 @@ function Layout.new(id, position, options)
     return this
 end
 
+function Layout:mousereleased(mx, my, key)
+    Group.mousereleased(self, mx, my, key)
+    if helper.lastFocussedElement then
+        local elementsToUnfocus = self:elementsWith(function(e, focussedElement) 
+            return e.focus = true and e ~= focussedElement 
+        end, helper.lastFocussedElement)
+        for _, e in pairs(elementsToUnfocus) do
+            e.focus = false
+        end
+        helper.lastFocussedElement.focus = true
+        helper.lastFocussedElement = nil
+    end
+end
+
+
 function Layout:keypressed(key, isRepeat)
     local stopped = Group.keypressed(self, key, isRepeat)
     if key == "tab" and not stopped then
@@ -807,6 +858,43 @@ function Layout:draw()
     mortar.graphics.setLineStyle("rough")
     Group.draw(self)
     mortar.graphics.pop()
+end
+
+--------------------------------------------------------------------------------
+-- # Spinner
+--------------
+-- A class for showing to the user that a process happenning.
+--------------------------------------------------------------------------------
+
+-- Lua Coroutines: https://www.lua.org/pil/9.1.html
+-- Async Coroutines?: http://leafo.net/posts/itchio-and-coroutines.html
+-- Non-blocking `select` on a lua socket? And then periodically check for completion and fire a callback? Not sure if this is possible...
+
+local Spinner = {}
+setmetatable(Spinner, Element_mt)
+Spinner.__index = Spinner
+function Spinner:__tostring()
+    return "<Spinner:" .. (self.id or "") .. ">"
+end
+
+function Spinner.new(id, position, options)
+    local this = Element.new("spinner", id, position, options)
+    setmetatable(this, Spinner)
+    this.process   = options.process   or function() end
+    this.onsuccess = options.onsuccess or function() end
+    this.onfailure = options.onfailure or function() end
+    this.finished  = false
+    this.coroutine = coroutine.create(this.process)
+    local status, errorMessage = coroutine.resume(this.coroutine)
+    return this
+end
+
+function Spinner:update(dt)
+
+end
+
+function Spinner:draw()
+
 end
 
 --------------------------------------------------------------------------------
@@ -905,6 +993,7 @@ end
 
 function TextInput:mousereleased(mx, my, key)
     self.focus = self:isMouseOver(mx, my)
+    if self.focus then helper.lastFocussedElement = self end
 end
 
 function TextInput:keypressed(key, isRepeat)

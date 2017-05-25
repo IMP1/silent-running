@@ -27,6 +27,7 @@ layouts.title = mortar.layout({"0", "0", "100", "100"}, {
                 mortar.button({"55", "30", "30", "10"}, {
                     text = T"Start a Server",
                     onclick = function(self) startServer() end,
+                    focusKey = { "S", }
                 }),
                 mortar.text_input("ipAddress", {"10", "50", "35", "10"}, {
                     placeholder = T"IP Address",
