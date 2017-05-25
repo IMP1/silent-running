@@ -1,24 +1,24 @@
-local util = {}
+array = {}
 
-function util.map(array, f)
+function array.map(list, f)
     local result = {}
-    for i, v in ipairs(array) do
+    for i, v in ipairs(list) do
         result[i] = f(v)
     end
     return result
 end
 
-function util.reduce(array, f, initial)
+function array.reduce(list, f, initial)
     local result = initial
-    for i, v in ipairs(array) do
+    for i, v in ipairs(list) do
         result = f(result, v)
     end
     return result
 end
 
-function util.filter(array, f)
+function array.filter(list, f)
     local result = {}
-    for _, v in ipairs(array) do
+    for _, v in ipairs(list) do
         if f(v) then
             table.insert(result, v)
         end
@@ -26,44 +26,44 @@ function util.filter(array, f)
     return result
 end
 
-function util.zip(arary1, array2)
+function array.zip(list1, list2)
     local result = {}
-    for i = 1, math.max(#arary1, #array2) do
-        result[i] = { arary1[i], array2[i] }
+    for i = 1, math.max(#list1, #list2) do
+        result[i] = { list1[i], list2[i] }
     end
     return result
 end
 
-function util.any(array, f)
+function array.any(list, f)
     if f == nil then
-        return #array > 0
+        return #list > 0
     end
-    for _, v in pairs(array) do
+    for _, v in pairs(list) do
         if f(v) then return true end
     end
     return false
 end
 
-function util.none(array, f)
+function array.none(list, f)
     if f == nil then
-        return #array == 0
+        return #list == 0
     end
-    for _, v in pairs(array) do
+    for _, v in pairs(list) do
         if f(v) then return false end
     end
     return true
 end
 
-function util.append(array, ...)
-    local result = util.copy(array)
+function array.append(list, ...)
+    local result = array.copy(list)
     for i, v in ipairs({...}) do
         table.insert(result, v)
     end
     return result
 end
 
-function util.copy(array)
-    return { unpack(array) }
+function array.copy(list)
+    return { unpack(list) }
 end
 
-return util
+return array

@@ -13,7 +13,8 @@ DEBUG = {
 ---------------
 -- Libraries --
 ---------------
-array        = require 'helpers.functional'
+require 'helpers.functional'
+require 'helpers.coroutine'
 
 local bitser = require 'lib.bitser'
 local sock   = require 'lib.sock'
