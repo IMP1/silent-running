@@ -55,14 +55,15 @@ function util.none(array, f)
 end
 
 function util.append(array, ...)
-    local result = {}
-    for i, v in ipairs(array) do
-        table.insert(result, v)
-    end
+    local result = util.copy(array)
     for i, v in ipairs({...}) do
         table.insert(result, v)
     end
     return result
+end
+
+function util.copy(array)
+    return { unpack(array) }
 end
 
 return util
