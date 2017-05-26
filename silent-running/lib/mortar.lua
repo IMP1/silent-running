@@ -830,7 +830,7 @@ function Layout:mousereleased(mx, my, key)
     Group.mousereleased(self, mx, my, key)
     if helper.lastFocussedElement then
         local elementsToUnfocus = self:elementsWith(function(e, focussedElement) 
-            return e.focus = true and e ~= focussedElement 
+            return e.focus and e ~= focussedElement 
         end, helper.lastFocussedElement)
         for _, e in pairs(elementsToUnfocus) do
             e.focus = false
@@ -995,7 +995,7 @@ function TextInput.new(id, position, options)
     this.text           = options.text or {}
     this.index          = #this.text
     this.validation     = options.validation or {}
-    if array.any(this.validation, function(v)) return v.element end then
+    if array.any(this.validation, function(v) return v.element end) then
         this.elements = array.filtermap(this.validation, function(v) return v.element end)
     end
     this.focus          = false

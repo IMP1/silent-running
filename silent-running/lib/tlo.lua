@@ -28,7 +28,7 @@ local tlo = {
 }
 
 tlo.settings = {
-    errorOnLocalisationFailure       = true,
+    errorOnMissingLocalisation       = false,
     errorOnUnsetLanguage             = true,
     errorOnMissingLanguage           = true,
     returnNilOnLocalisationFailure   = false,
@@ -56,7 +56,7 @@ function tlo.localise(string)
     if not currentLanguage then
         if tlo.settings.returnNilOnLocalisationFailure then
             return nil
-        elseif tlo.settings.errorOnLocalisationFailure or tlo.settings.errorOnUnsetLanguage then
+        elseif tlo.settings.errorOnMissingLocalisation or tlo.settings.errorOnUnsetLanguage then
             error("There is no language set. Use tlo.setLanguage() to set which language to use.")
         else
             return string
@@ -68,7 +68,7 @@ function tlo.localise(string)
             if tlo.settings.addMissingStringsToLanguageFiles then
                 addString(string)
             end
-            if tlo.settings.errorOnLocalisationFailure then
+            if tlo.settings.errorOnMissingLocalisation then
                 error("Missing localisation for '" .. string .. "' in " .. currentLanguage .. ".")
             elseif tlo.settings.returnNilOnLocalisationFailure then
                 return nil
