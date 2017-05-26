@@ -34,7 +34,22 @@ layouts.title = mortar.layout({"0", "0", "100", "100"}, {
                     style = {
                         padding = { 8, 8, 8, 8},
                     },
-                    pattern = "%d+%.%d+.%d+.%d+"
+                    validation = {
+                        {
+                            pattern = ".+",
+                            element = mortar.text({
+                                text = T"IP Address cannot be empty.",
+                            })
+                        },
+                        {
+                            custom = function(self, value)
+                                return not value:find("[%w]")
+                            end,
+                            element = mortar.text({
+                                text = T"IP Address cannot contain any characters other than numbers and full stops.",
+                            })
+                        },
+                    },
                 }),
                 mortar.button({"55", "50", "30", "10"}, {
                     text = T"Join a Server",
@@ -44,8 +59,7 @@ layouts.title = mortar.layout({"0", "0", "100", "100"}, {
                         if input.valid then
                             -- TODO: try to connect before going to client role
                             local address = input:value()
-                            role = Client.new(address) 
-                            lobby = nil
+                            joinServer(address)
                         end
                     end,
                 }),
@@ -57,6 +71,9 @@ mortar.style(layouts.title, {
     ["text#title"] = {
         textColor = {0, 128, 128},
     },
+    ["button"] = {
+        backgroundColor = {0, 32, 32},
+    }
 })
 
 layouts.server = {}

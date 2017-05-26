@@ -990,21 +990,25 @@ end
 function TextInput.new(id, position, options)
     local this = Element.new("text_input", id, position, options)
     setmetatable(this, TextInput)
-    this.placeholder   = options.placeholder or ""
-    this.pattern       = options.pattern or nil
-    this.text          = options.text or {}
-    this.index         = #this.text
-    this.focus         = false
-    this.flashSpeed    = 0.5
-    this.flashTimer    = 0
-    this.cursorVisible = true
-    this.valid         = true
+    this.placeholder    = options.placeholder or ""
+    this.pattern        = options.pattern or nil
+    this.text           = options.text or {}
+    this.index          = #this.text
+    this.validation     = options.validation or {}
+    if array.any(this.validation, function(v)) return v.element end then
+        this.elements = array.filtermap(this.validation, function(v) return v.element end)
+    end
+    this.focus          = false
+    this.flashSpeed     = 0.5
+    this.flashTimer     = 0
+    this.cursorVisible  = true
+    this.valid          = true
     this:validate()
     return this
 end
 
 function TextInput:validate(force)
-    if not self.pattern then
+    if not self.validation then
         self.valid = true
         return
     end
@@ -1013,7 +1017,22 @@ function TextInput:validate(force)
         return
     end
     local text = self:value()
-    self.valid = (text:match(self.pattern) == text)
+    for _, test in ipairs(self.validation) do
+        if test.custom then
+            if not test.custom(self, text) then
+                self.valid = false
+                -- TODO: show validation message element
+                return
+            end
+        elseif test.pattern then
+            if text:match(self.pattern) ~= text then
+                self.valid = false
+                -- TODO: show validation message element
+                return
+            end
+        end
+    end
+    self.valid = true
 end
 
 function TextInput:update(dt, mx, my)

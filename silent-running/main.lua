@@ -54,7 +54,15 @@ function setupLobby()
 end
 
 function startServer()
-    role  = Server.new()
+    local server = Server.new()
+    role = server
+    lobby = nil
+end
+
+function joinServer(address)
+    local client = Client.new(address)
+    -- TODO: check for error and don't set role/lobby if error.
+    role = client
     lobby = nil
 end
 
