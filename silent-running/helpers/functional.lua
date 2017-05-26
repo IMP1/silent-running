@@ -26,6 +26,16 @@ function array.filter(list, f)
     return result
 end
 
+function array.filtermap(list, f)
+    local result = {}
+    for _, v in ipairs(list) do
+        local x = f(v)
+        if x then
+            table.insert(result, x)
+        end
+    end
+end
+
 function array.zip(list1, list2)
     local result = {}
     for i = 1, math.max(#list1, #list2) do
