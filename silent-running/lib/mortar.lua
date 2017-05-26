@@ -883,6 +883,15 @@ function Spinner.new(id, position, options)
     this.process   = options.process   or function() end
     this.onsuccess = options.onsuccess or function() end
     this.onfailure = options.onfailure or function() end
+    this.spin = {
+        speed    = options.speed or 2 * math.pi,
+        position = 0,
+        pips     = {},
+    }
+    local pipCount = options.pips or 8
+    for i = 1, pipCount do
+        table.insert(self.spin.pips, 0)
+    end
     this.finished  = false
     this.coroutine = coroutine.create(this.process)
     local status, errorMessage = coroutine.resume(this.coroutine)
@@ -890,11 +899,34 @@ function Spinner.new(id, position, options)
 end
 
 function Spinner:update(dt)
-
+    self.spin.position = self.spin.position + self.spin.speed * dt
+    if self.spin.position >= 2 * math.pi then
+        self.spin.position = self.spin.position - 2 * math.pi
+    end
+    for i, pip in pairs(self.spin.pips) do
+        local r = 2 * math.pi * i / #self.spin.pips
+        local distance    = self.spin.position - r
+        local opacity     = math.max(0, 255 * distance)
+    end
 end
 
 function Spinner:draw()
-
+    if self.style.customDraw then 
+        self.style.customDraw(self)
+        return
+    end
+    mortar.graphics.push()
+    local ox, oy, w, h = unpack(self:getRelativeBounds())
+    ox = ox + w / 2
+    oy = oy + h / 2
+    for i, opacity in pairs(self.spin.pips) do
+        local r = 2 * math.pi * i / #self.spin.pips
+        local x = ox + (w / 2) * math.cos(r)
+        local y = oy + (h / 2) + math.sin(r)
+        mortar.graphics.setColor(255, 255, 255, opacity)
+        love.graphics.circle("fill", x, y, 4 + opacity / 128)
+    end
+    mortar.graphics.pop()
 end
 
 --------------------------------------------------------------------------------
@@ -926,6 +958,10 @@ function Text.new(id, position, options)
 end
 
 function Text:draw()
+    if self.style.customDraw then 
+        self.style.customDraw(self)
+        return
+    end
     mortar.graphics.push()
     if self.style.font then
         mortar.graphics.setFont(self.style.font)
