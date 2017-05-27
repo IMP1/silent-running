@@ -23,18 +23,18 @@ local Screen         = require 'screen'
 local Client = {}
 Client.__index = Client
 
-function Client.new()
+function Client.new(address)
     local this = {}
     setmetatable(this, Client)
+    this.client = sock.newClient(address, PORT)
     this:start()
     return this
 end
 
-function Client:start(address)
+function Client:start()
     ----------------------
     -- Client Variables --
     ----------------------
-    self.client = sock.newClient(address, PORT)
     self.client:setSerialization(bitser.dumps, bitser.loads)
     self.player = nil
     self.map = nil
@@ -47,6 +47,7 @@ function Client:start(address)
     ----------------------
     self.client:on("connect", function(data)
         log:add("Connected to server.")
+        connectionAchieved()
     end)
 
     self.client:on("init", function(playerPosition)
@@ -93,6 +94,7 @@ function Client:start(address)
 end
 
 function Client:keypressed(key, isRepeat)
+    if not self.player then return end
     if key == "space" then
         self.player.isSilentRunning = not self.player.isSilentRunning
     end
@@ -116,6 +118,7 @@ function Client:keypressed(key, isRepeat)
 end
 
 function Client:mousepressed(mx, my, key)
+    if not self.player then return end
     local wx, wy = self.camera:toWorldPosition(mx, my)
     if key == 2 then
         local x = self.player.pos.x
@@ -229,6 +232,8 @@ function Client:draw()
         love.graphics.print("G  : toggle keep pongs",  0, love.graphics.getHeight() - 24 * 6)
         love.graphics.print("`  : toggle commands",    0, love.graphics.getHeight() - 24 * 7)
     end
+
+    love.graphics.print(self.client:getState(), 0, 0)
 end
 
 return Client

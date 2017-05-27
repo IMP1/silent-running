@@ -3,6 +3,7 @@ DEBUG = {
     showMap         = false,
     showMapObjects  = false,
     showGameObjects = false,
+    showServerInfo  = true,
     showPlayerInfo  = false,
     showLog         = false,
     showCommands    = true,
@@ -19,8 +20,8 @@ require 'helpers.coroutine'
 local bitser = require 'lib.bitser'
 local sock   = require 'lib.sock'
 local tlo    = require 'lib.tlo'
-tlo.setLanguage("en-UK")
 tlo.setLanguagesFolder("lang")
+tlo.setLanguage("en-UK")
 
 ---------------
 -- Constants --
@@ -59,11 +60,17 @@ function startServer()
     lobby = nil
 end
 
-function joinServer(address)
-    local client = Client.new(address)
-    -- TODO: check for error and don't set role/lobby if error.
+function attemptConnection(address)
+    lobby:elementWithId("connectionSpinner").visible = true
+    client = Client.new("localhost")
+    connecting = true
+end
+
+function connectionAchieved()
     role = client
-    lobby = nil
+    connecting = nil
+    client     = nil
+    lobby      = nil
 end
 
 function love.textinput(text)
@@ -75,11 +82,6 @@ end
 function love.keypressed(key, isRepeat)
     if lobby then 
         lobby:keypressed(key, isRepeat)
-        -- if key == "1" then
-        --     role = Server.new()
-        -- elseif key == "2" then
-        --     role = Client.new("localhost")
-        -- end
     elseif role then
         role:keypressed(key, isRepeat)
     end
@@ -103,9 +105,14 @@ end
 
 function love.update(dt)
     local mx, my = love.mouse.getPosition()
+    if connecting then
+        client.client:update()
+    end
     if lobby then
         lobby:update(dt, mx, my)
+        lobby:update(dt, mx, my)
     elseif role then
+        print("updating role")
         role:update(dt)
     end
     log:update()

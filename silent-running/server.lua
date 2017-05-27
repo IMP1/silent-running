@@ -194,7 +194,7 @@ function Server:draw()
     -- TODO: test camera
 
     if self.level and DEBUG.showMap then
-        self.level:draw()
+        self.level:drawMap()
     end
 
     if self.level and DEBUG.showMapObjects then
@@ -225,7 +225,10 @@ function Server:draw()
 
     love.graphics.setColor(255, 255, 255)
 
-    self.info:draw()
+    if DEBUG.showServerInfo then
+        self.info:draw()
+    end
+    
     self.commands:draw()
 end
 
