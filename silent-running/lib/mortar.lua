@@ -900,9 +900,6 @@ end
 function Spinner.new(id, position, options)
     local this = Element.new("spinner", id, position, options)
     setmetatable(this, Spinner)
-    this.process   = options.process   or function() end
-    this.onsuccess = options.onsuccess or function() end
-    this.onfailure = options.onfailure or function() end
     this.spin = {
         speed    = options.speed or 2 * math.pi,
         position = 0,
@@ -912,9 +909,6 @@ function Spinner.new(id, position, options)
     for i = 1, pipCount do
         table.insert(this.spin.pips, 0)
     end
-    this.finished  = false
-    this.coroutine = coroutine.create(this.process)
-    local status, errorMessage = coroutine.resume(this.coroutine)
     return this
 end
 
