@@ -28,11 +28,14 @@ local tlo = {
 }
 
 tlo.settings = {
-    errorOnMissingLocalisation       = false,
-    errorOnUnsetLanguage             = true,
-    errorOnMissingLanguage           = true,
-    returnNilOnLocalisationFailure   = false,
-    addMissingStringsToLanguageFiles = true,
+    -- "add", "blank", "error", "ignore", "nil"
+    onMissingLocalisation = "add",
+    addMissingLocalisations = true,
+    -- "blank", "error", "ignore", "nil"
+    onUnsetLanguage       = "error",
+    -- "add", "error", "ignore"
+    onMissingLanguageFile = "error",
+    addMissingLanguageFiles = true,
 }
 
 local currentLanguage = nil
@@ -54,26 +57,30 @@ end
 
 function tlo.localise(string)
     if not currentLanguage then
-        if tlo.settings.returnNilOnLocalisationFailure then
-            return nil
-        elseif tlo.settings.errorOnMissingLocalisation or tlo.settings.errorOnUnsetLanguage then
+        if tlo.settings.onUnsetLanguage == "blank" then
+            return ""
+        elseif tlo.settings.onUnsetLanguage == "error" then
             error("There is no language set. Use tlo.setLanguage() to set which language to use.")
-        else
+        elseif tlo.settings.onUnsetLanguage == "ignore" then
             return string
+        elseif tlo.settings.onUnsetLanguage == "nil" then
+            return nil
         end
     else
         if lookupTable[string] then
             return lookupTable[string]
         else
-            if tlo.settings.addMissingStringsToLanguageFiles then
+            if tlo.settings.addMissingLocalisations then
                 addString(string)
             end
-            if tlo.settings.errorOnMissingLocalisation then
+            if tlo.settings.onMissingLocalisation == "blank" then
+                return ""
+            elseif tlo.settings.onMissingLocalisation == "error" then
                 error("Missing localisation for '" .. string .. "' in " .. currentLanguage .. ".")
-            elseif tlo.settings.returnNilOnLocalisationFailure then
-                return nil
-            else
+            elseif tlo.settings.onMissingLocalisation == "ignore" then
                 return string
+            elseif tlo.settings.onMissingLocalisation == "nil" then
+                return nil
             end
         end
     end
@@ -88,15 +95,22 @@ end
 function tlo.setLanguage(languageCode)
     local path = languageFilesPath .. "/" .. languageCode
     local exists = love.filesystem.exists(path)
+    print(love.filesystem.getSaveDirectory())
     if exists then
         lookupTable = love.filesystem.load(path)()
-        currentLanguage = languageCode
-    elseif tlo.settings.errorOnMissingLanguage then
-        error("Missing language file '" .. languageCode .. "'.")
     else
-        lookupTable = lookupTable or {}
-        currentLanguage = nil
+        if tlo.settings.addMissingLanguageFiles then
+            local f = love.filesystem.newFile(path)
+            f:open('r')
+            f:close()
+        end
+        if tlo.settings.onMissingLanguageFile == "error" then
+            error("Missing language file '" .. languageCode .. "'.")
+        elseif tlo.settings.onMissingLanguageFile == "ignore" then
+            lookupTable = lookupTable or {}
+        end
     end
+    currentLanguage = languageCode
 end
 
 function tlo.getLanguage()
