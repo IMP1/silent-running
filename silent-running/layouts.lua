@@ -32,7 +32,7 @@ layouts.title = mortar.layout({"0", "0", "100", "100"}, {
                 mortar.text_input("ipAddress", {"10", "50", "35", "10"}, {
                     placeholder = T"IP Address",
                     style = {
-                        padding = { 8, 8, 8, 8},
+                        padding = { 8, 8, 8, 8 },
                     },
                     validation = {
                         {
@@ -43,7 +43,9 @@ layouts.title = mortar.layout({"0", "0", "100", "100"}, {
                         },
                         {
                             custom = function(self, value)
-                                return not value:find("[%w]")
+                                return true
+                                -- if value:find("localhost:%d+") then return true end
+                                -- return not value:find("[%a-zA-Z]")
                             end,
                             element = mortar.text({
                                 text = T"IP Address cannot contain any characters other than numbers and full stops.",
@@ -51,7 +53,7 @@ layouts.title = mortar.layout({"0", "0", "100", "100"}, {
                         },
                     },
                 }),
-                mortar.button({"55", "50", "30", "10"}, {
+                mortar.button("connect", {"55", "50", "30", "10"}, {
                     text = T"Join a Server",
                     onclick = function(self)
                         local input = self:layout():elementWithId("ipAddress")
@@ -59,10 +61,13 @@ layouts.title = mortar.layout({"0", "0", "100", "100"}, {
                         if input.valid then
                             -- TODO: try to connect before going to client role
                             local address = input:value()
-                            joinServer(address)
+                            attemptConnection(address)
                         end
                     end,
                 }),
+                mortar.spinner("connectionSpinner", {"90", "50", 32, 32}, {
+                    visible = false,
+                })
             },
         }),
     },
@@ -77,35 +82,35 @@ mortar.style(layouts.title, {
 })
 
 layouts.server = {}
-layouts.server.info = mortar.layout({2, 2, "100", "100"}, {
+layouts.server.info = mortar.layout({2, 2, "40", "20"}, {
     elements = {
-        mortar.text({"4", "0", "100", "100"}, {
+        mortar.text({4, 4, "100", "100"}, {
             text = T"Hosting Server"
         }),
-        mortar.icon({"0", "4", "100", "100"}, {
+        mortar.icon({4, "20", "100", "100"}, {
             icon = "",
             size = 20,
         }),
-        mortar.text({"4", "4", "100", "100"}, {
+        mortar.text({32, "20", "100", "100"}, {
             text = T"IP Adresss"
         }),
-        mortar.text("ipAddress", {"20", "4", "100", "100"}, {
+        mortar.text("ipAddress", {"60", "20", "100", "100"}, {
             text = function() return role.server:getSocketAddress():match(".+:"):sub(1, -2) end
         }),
-        mortar.text({"4", "8", "100", "100"}, {
+        mortar.text({32, "40", "100", "100"}, {
             text = T"Port"
         }),
-        mortar.text("port", {"20", "8", "100", "100"}, {
+        mortar.text("port", {"60", "40", "100", "100"}, {
             text = function() return role.server:getSocketAddress():match(":.+"):sub(2) end
         }),
-        mortar.icon({"0", "12", "100", "100"}, {
+        mortar.icon({4, "60", "100", "100"}, {
             icon = "",
             size = 20
         }),
-        mortar.text({"4", "12", "100", "100"}, {
+        mortar.text({32, "60", "100", "100"}, {
             text = T"Connected Players"
         }),
-        mortar.text("playerCount", {"20", "12", "100", "100"}, {
+        mortar.text("playerCount", {"60", "60", "100", "100"}, {
             text = function() return tostring(#role.server.clients) end
         }),
     },
@@ -139,9 +144,21 @@ local function drawCheckbox(self)
     love.graphics.print(self.text(), x + 24, y)
 end
 
-layouts.server.commands = mortar.layout({2, -122, 152, 120}, {
+layouts.server.commands = mortar.layout({2, -142, 152, 140}, {
     elements = {
-        mortar.checkbox({"0", 0, "100", 16}, {
+        mortar.checkbox({"0", "0", "100", 16}, {
+            width  = 16,
+            height = 16,
+            text = T"Show server info",
+            onchange = function() 
+                DEBUG.showServerInfo = not DEBUG.showServerInfo
+            end,
+            selected = DEBUG.showServerInfo,
+            style = {
+                customDraw = drawCheckbox
+            }
+        }),
+        mortar.checkbox({"0", "14", "100", 16}, {
             width  = 16,
             height = 16,
             text = T"Show map",
@@ -153,7 +170,7 @@ layouts.server.commands = mortar.layout({2, -122, 152, 120}, {
                 customDraw = drawCheckbox
             }
         }),
-        mortar.checkbox({"0", 20, "100", 16}, {
+        mortar.checkbox({"0", "28", "100", 16}, {
             width  = 16,
             height = 16,
             text = T"Show map objects",
@@ -165,7 +182,7 @@ layouts.server.commands = mortar.layout({2, -122, 152, 120}, {
                 customDraw = drawCheckbox
             }
         }),
-        mortar.checkbox({"0", 40, "100", 16}, {
+        mortar.checkbox({"0", "42", "100", 16}, {
             width  = 16,
             height = 16,
             text = T"Show game objects",
@@ -177,7 +194,7 @@ layouts.server.commands = mortar.layout({2, -122, 152, 120}, {
                 customDraw = drawCheckbox
             }
         }),
-        mortar.checkbox({"0", 60, "100", 16}, {
+        mortar.checkbox({"0", "56", "100", 16}, {
             width  = 16,
             height = 16,
             text = T"Show player info",
@@ -189,7 +206,7 @@ layouts.server.commands = mortar.layout({2, -122, 152, 120}, {
                 customDraw = drawCheckbox
             }
         }),
-        mortar.checkbox({"0", 80, "100", 16}, {
+        mortar.checkbox({"0", "70", "100", 16}, {
             width  = 16,
             height = 16,
             text = T"Show log",
@@ -201,7 +218,7 @@ layouts.server.commands = mortar.layout({2, -122, 152, 120}, {
                 customDraw = drawCheckbox
             }
         }),
-        mortar.checkbox({"0", 100, "100", 16}, {
+        mortar.checkbox({"0", "84", "100", 16}, {
             width  = 16,
             height = 16,
             text = T"Show commands",
