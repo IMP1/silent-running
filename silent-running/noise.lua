@@ -61,7 +61,8 @@ function Noise:draw()
     love.graphics.stencil(myStencilFunction, "replace", 1)
     love.graphics.setStencilTest("greater", 0)
 
-    love.graphics.setColor(255, 255, 255, self.opacity)
+    local r, g, b = love.graphics.getColor()
+    love.graphics.setColor(r, g, b, self.opacity)
     love.graphics.draw(self.image, self.pos.x - self.maxRadius, self.pos.y - self.maxRadius)
 
     love.graphics.setStencilTest()

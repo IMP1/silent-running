@@ -67,13 +67,13 @@ function Level:getImageData(x, y, size)
 end
 
 function Level:draw()
+    love.graphics.setColor(255, 255, 255)
     self:drawMap()
     self:drawMapObjects()
     self:drawGameObjects()
 end
 
 function Level:drawMap()
-    love.graphics.setColor(128, 255, 255, 128)
     for _, rock in pairs(self.rocks) do
         love.graphics.polygon('fill', unpack(rock.polygon))
     end
@@ -84,9 +84,20 @@ function Level:drawMapObjects()
 end
 
 function Level:drawGameObjects()
-    love.graphics.setColor(128, 255, 255, 128)
-    for _, p in pairs(role.players) do
-        p:draw()
+    if role.players then
+        for _, p in pairs(role.players) do
+            p:draw()
+        end
+    end
+    if role.activePings then
+        for _, p in pairs(role.activePings) do
+            p:draw()
+        end
+    end
+    if role.missiles then
+        for _, m in pairs(role.missiles) do
+            m:draw()
+        end
     end
 end
 

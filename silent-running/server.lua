@@ -168,9 +168,12 @@ end
 
 function Server:update(dt)
     local mx, my = love.mouse.getPosition()
+
     self.server:update()
+
     self.info:update(dt, mx, my)
     self.commands:update(dt, mx, my)
+
     for i = #self.activePings, 1, -1 do
         self.activePings[i]:update(dt)
         if self.activePings[i].finished then
@@ -183,6 +186,12 @@ function Server:update(dt)
             table.remove(self.missiles, i)
         end
     end
+
+    local dx, dy = 0, 0
+    if love.keyboard.isDown("left") then
+        dx = dx - 128 * dt
+    end
+    self.camera:move(dx, dy)
 end
 
 function Server:draw()
@@ -194,29 +203,18 @@ function Server:draw()
     -- TODO: test camera
 
     if self.level and DEBUG.showMap then
+        love.graphics.setColor(128, 255, 255, 128)
         self.level:drawMap()
     end
 
     if self.level and DEBUG.showMapObjects then
-        -- TODO: draw map objects
+        love.graphics.setColor(128, 255, 255, 128)
+        self.level:drawMapObjects()
     end
 
-    if DEBUG.showGameObjects then
-        if self.players then
-        for _, p in pairs(self.players) do
-                p:draw()
-            end
-        end
-        if self.activePings then
-            for _, p in pairs(self.activePings) do
-                p:draw()
-            end
-        end
-        if self.missiles then
-            for _, m in pairs(self.missiles) do
-                m:draw()
-            end
-        end
+    if self.level and DEBUG.showGameObjects then
+        love.graphics.setColor(255, 255, 255)
+        self.level:drawGameObjects()
     end
 
     if self.camera then
@@ -228,7 +226,7 @@ function Server:draw()
     if DEBUG.showServerInfo then
         self.info:draw()
     end
-    
+
     self.commands:draw()
 end
 

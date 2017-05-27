@@ -176,6 +176,7 @@ function Client:draw()
         self.camera:set()
     end
 
+    love.graphics.setColor(64, 128, 128)
     if self.sounds then
         for _, p in pairs(self.sounds) do
             p:draw()
