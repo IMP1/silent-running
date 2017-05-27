@@ -106,10 +106,11 @@ local default_style = {
         backgroundColor       = {32, 32, 32},
         backgroundColorFocus  = {32, 32, 32},
     },
-    group     = {},
-    icon      = {},
-    layout    = {},
-    text      = {},
+    -- group     = {},
+    -- icon      = {},
+    -- layout    = {},
+    -- spinner   = {},
+    -- text      = {},
     text_input = {
         borderColor        = {192, 192, 192},
         borderColorFocus   = {128, 128, 255},
@@ -156,14 +157,18 @@ function Element.new(elementName, id, pos, options)
     obj.pos   = pos or {0, 0, 100, 100, "top", "left"}
     obj.tags  = options.tags or {}
     obj.style = options.style or {}
-    for k, v in pairs(default_style[elementName]) do
-        if obj.style[k] == nil then
-            obj.style[k] = v
+    if default_style[elementName] then
+        for k, v in pairs(default_style[elementName]) do
+            if obj.style[k] == nil then
+                obj.style[k] = v
+            end
         end
     end
     setmetatable(obj.style, {__index = default_style.common})
     obj.hover = false
     obj.focus = false
+    obj.visible = options.visible
+    if obj.visible == nil then obj.visible = true end
 
     return obj
 end
@@ -415,6 +420,9 @@ function Button:draw()
         self.style.customDraw(self)
         return
     end
+    if not self.visible then
+        return
+    end
     mortar.graphics.push()
     -- get positions
     local x, y, w, h = unpack(self:getRelativeBounds())
@@ -520,6 +528,9 @@ end
 function Checkbox:draw()
     if self.style.customDraw then 
         self.style.customDraw(self)
+        return
+    end
+    if not self.visible then
         return
     end
     mortar.graphics.push()
@@ -715,6 +726,9 @@ function Group:removeElements(selector)
 end
 
 function Group:draw()
+    if not self.visible then
+        return
+    end
     mortar.graphics.push()
     local x, y, w, h = unpack(self:getRelativeBounds())
     x = x + self.style.margin[1]
@@ -791,6 +805,9 @@ function Icon.new(id, position, options)
 end
 
 function Icon:draw()
+    if not self.visible then
+        return
+    end
     mortar.graphics.push()
     if self.font then
         mortar.graphics.setFont(self.font)
@@ -854,6 +871,9 @@ function Layout:keypressed(key, isRepeat)
 end
 
 function Layout:draw()
+    if not self.visible then
+        return
+    end
     mortar.graphics.push()
     mortar.graphics.setLineStyle("rough")
     Group.draw(self)
@@ -890,7 +910,7 @@ function Spinner.new(id, position, options)
     }
     local pipCount = options.pips or 8
     for i = 1, pipCount do
-        table.insert(self.spin.pips, 0)
+        table.insert(this.spin.pips, 0)
     end
     this.finished  = false
     this.coroutine = coroutine.create(this.process)
@@ -900,13 +920,14 @@ end
 
 function Spinner:update(dt)
     self.spin.position = self.spin.position + self.spin.speed * dt
-    if self.spin.position >= 2 * math.pi then
-        self.spin.position = self.spin.position - 2 * math.pi
-    end
     for i, pip in pairs(self.spin.pips) do
-        local r = 2 * math.pi * i / #self.spin.pips
-        local distance    = self.spin.position - r
-        local opacity     = math.max(0, 255 * distance)
+        local distance    = self.spin.position - (i-1)
+        if distance < 0 then distance = distance + #self.spin.pips end
+        local opacity     = math.max(0, math.min(255, 255 * distance / #self.spin.pips))
+        self.spin.pips[i] = opacity
+    end
+    if self.spin.position >= #self.spin.pips then
+        self.spin.position = self.spin.position - #self.spin.pips
     end
 end
 
@@ -915,16 +936,21 @@ function Spinner:draw()
         self.style.customDraw(self)
         return
     end
+    if not self.visible then
+        return
+    end
     mortar.graphics.push()
     local ox, oy, w, h = unpack(self:getRelativeBounds())
     ox = ox + w / 2
     oy = oy + h / 2
     for i, opacity in pairs(self.spin.pips) do
         local r = 2 * math.pi * i / #self.spin.pips
-        local x = ox + (w / 2) * math.cos(r)
-        local y = oy + (h / 2) + math.sin(r)
-        mortar.graphics.setColor(255, 255, 255, opacity)
-        love.graphics.circle("fill", x, y, 4 + opacity / 128)
+        local x = ox + w/2 * math.cos(r)
+        local y = oy + h/2 * math.sin(r)
+        mortar.graphics.setColor(255, 255, 255, 255 - opacity)
+        local n = 4
+        local size = n - opacity / 128
+        love.graphics.circle("fill", x, y, size)
     end
     mortar.graphics.pop()
 end
@@ -960,6 +986,9 @@ end
 function Text:draw()
     if self.style.customDraw then 
         self.style.customDraw(self)
+        return
+    end
+    if not self.visible then
         return
     end
     mortar.graphics.push()
@@ -1017,15 +1046,15 @@ function TextInput:validate(force)
         return
     end
     local text = self:value()
-    for _, test in ipairs(self.validation) do
-        if test.custom then
-            if not test.custom(self, text) then
+    for _, check in ipairs(self.validation) do
+        if check.custom then
+            if not check.custom(self, text) then
                 self.valid = false
                 -- TODO: show validation message element
                 return
             end
-        elseif test.pattern then
-            if text:match(self.pattern) ~= text then
+        elseif check.pattern then
+            if text:match(check.pattern) ~= text then
                 self.valid = false
                 -- TODO: show validation message element
                 return
@@ -1100,6 +1129,9 @@ end
 function TextInput:draw()
     if self.style.customDraw then 
         self.style.customDraw(self)
+        return
+    end
+    if not self.visible then
         return
     end
     mortar.graphics.push()
@@ -1269,6 +1301,7 @@ mortar.group      = default_constructor_for(Group)
 mortar.hidden     = default_constructor_for(Hidden)
 mortar.icon       = default_constructor_for(Icon)
 mortar.layout     = default_constructor_for(Layout)
+mortar.spinner    = default_constructor_for(Spinner)
 mortar.text       = default_constructor_for(Text)
 mortar.text_input = default_constructor_for(TextInput)
 
