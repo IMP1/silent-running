@@ -73,6 +73,12 @@ function connectionAchieved()
     lobby      = nil
 end
 
+function cancelConnection()
+    lobby:elementWithId("connectionSpinner").visible = false
+    connecting = false
+    client     = nil
+end
+
 function love.textinput(text)
     if lobby then
         lobby:keytyped(text)
@@ -126,6 +132,10 @@ function love.draw()
 
     if DEBUG then
         drawDebug()
+    end
+
+    if connecting then
+        love.graphics.print(client.client:getState(), 0, 0)
     end
 end
 

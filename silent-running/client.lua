@@ -36,6 +36,7 @@ function Client:start()
     -- Client Variables --
     ----------------------
     self.client:setSerialization(bitser.dumps, bitser.loads)
+    
     self.player = nil
     self.map = nil
     self.camera = Camera.new()
@@ -48,6 +49,11 @@ function Client:start()
     self.client:on("connect", function(data)
         log:add("Connected to server.")
         connectionAchieved()
+    end)
+
+    self.client:on("disconnect", function(data)
+        log:add("Disconnected from server.")
+        cancelConnection()
     end)
 
     self.client:on("init", function(playerPosition)
@@ -91,6 +97,7 @@ function Client:start()
     end)
 
     self.client:connect()
+    self.client:setTimeout(nil, nil, 6000)
 end
 
 function Client:keypressed(key, isRepeat)
