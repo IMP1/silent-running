@@ -112,7 +112,6 @@ function love.update(dt)
         lobby:update(dt, mx, my)
         lobby:update(dt, mx, my)
     elseif role then
-        print("updating role")
         role:update(dt)
     end
     log:update()
