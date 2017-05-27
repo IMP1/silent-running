@@ -591,21 +591,17 @@ function Group.new(id, position, options)
 end
 
 function Group:mousepressed(mx, my, key)
-    if self:isMouseOver(mx, my) then
-        for _, e in pairs(self.elements) do
-            if e.mousepressed then
-                e:mousepressed(mx, my, key)
-            end
+    for _, e in pairs(self.elements) do
+        if e.mousepressed then
+            e:mousepressed(mx, my, key)
         end
     end
 end
 
 function Group:mousereleased(mx, my, key)
-    if self:isMouseOver(mx, my) then
-        for _, e in pairs(self.elements) do
-            if e.mousereleased then
-                e:mousereleased(mx, my, key)
-            end
+    for _, e in pairs(self.elements) do
+        if e.mousereleased then
+            e:mousereleased(mx, my, key)
         end
     end
 end
