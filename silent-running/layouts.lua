@@ -1,6 +1,6 @@
-local mortar = require 'lib.mortar'
+local bricks = require 'lib.bricks'
 
-mortar.setIconFont("gfx/fontawesome-webfont.ttf")
+bricks.setIconFont("gfx/fontawesome-webfont.ttf")
 
 --[[
 <layout>
@@ -18,17 +18,126 @@ mortar.setIconFont("gfx/fontawesome-webfont.ttf")
 local layouts = {}
 layouts.title = {}
 
-layouts.title.main = mortar.layout({
-    mortar.text("title", {"0", "10", "100", "10", "top", "center"}, {
+layouts.title.main = bricks.layout({
+    bricks.text("title", {"0", "10", "100", "10", "top", "center"}, {
         text = T"Welcome to Silent Running",
     }),
-    mortar.group("options", {"0", "30", "100", "60", "top", "center"}, {
-        mortar.button({"55", "30", "30", "10"}, {
+    bricks.group("options", {"0", "30", "100", "60", "top", "center"}, {
+        bricks.button({"55", "30", "30", "10"}, {
             text = T"Start a Server",
-            onclick = function(self) startServer() end,
-            focusKey = { "S", }
+            onclick = function(self) 
+
+            end,
+            focusKey = { "s" }
         }),
-        mortar.button("connect", {"55", "50", "30", "10"}, {
+        bricks.button("connect", {"55", "50", "30", "10"}, {
+            text = T"Join a Server",
+            onclick = function(self)
+
+            end,
+        }),
+        bricks.spinner("connectionSpinner", {"90", "50", 32, 32}, {
+            visible = false,
+        })
+    }),
+})
+
+layouts.title.server = bricks.layout({
+    bricks.text("title", {"0", "10", "100", "10", "top", "center"}, {
+        text = T"Start a server.",
+    }),
+    bricks.group({
+        bricks.text_input("port", {"10", "50", "35", "10"}, {
+            placeholder = T"Port",
+            style = {
+                padding = { 8, 8, 8, 8 },
+            },
+            validation = {
+                {
+                    pattern = ".+",
+                    element = bricks.text({
+                        text = T"IP Address cannot be empty.",
+                    })
+                },
+                {
+                    pattern = "%d+",
+                    element = bricks.text({
+                        text = T"A port must be a number.",
+                    })
+                },
+            },
+        }),
+    }),
+    bricks.group("actions", {
+        bricks.button({"55", "30", "30", "10"}, {
+            text = T"Back",
+            onclick = function(self) print"back" end,
+            focusKey = { "escape" }
+        }),
+        bricks.button({"55", "50", "30", "10"}, {
+            text = T"Start Server",
+            onclick = function(self) startServer() end,
+            focusKey = { "s" }
+        }),
+    })
+})
+
+layouts.title.client = bricks.layout({
+    bricks.text("title", {"0", "10", "100", "10", "top", "center"}, {
+        text = T"Join a server.",
+    }),
+    bricks.group({
+        bricks.text_input("ipAddress", {"10", "50", "35", "10"}, {
+            placeholder = T"IP Address",
+            style = {
+                padding = { 8, 8, 8, 8 },
+            },
+            validation = {
+                {
+                    pattern = ".+",
+                    element = bricks.text({
+                        text = T"IP Address cannot be empty.",
+                    })
+                },
+                {
+                    custom = function(self, value)
+                        if value:match("localhost") == value then return true end
+                        return not value:find("[^%d%.]")
+                    end,
+                    element = bricks.text({
+                        text = T"IP Address cannot contain any characters other than numbers and full stops.",
+                    })
+                },
+            },
+        }),
+        bricks.text_input("port", {"10", "50", "35", "10"}, {
+            placeholder = T"Port",
+            style = {
+                padding = { 8, 8, 8, 8 },
+            },
+            validation = {
+                {
+                    pattern = ".+",
+                    element = bricks.text({
+                        text = T"IP Address cannot be empty.",
+                    })
+                },
+                {
+                    pattern = "%d+",
+                    element = bricks.text({
+                        text = T"A port must be a number.",
+                    })
+                },
+            },
+        }),
+    }),
+    bricks.group("actions", {
+        bricks.button({"55", "30", "30", "10"}, {
+            text = T"Back",
+            onclick = function(self) print"back" end,
+            focusKey = { "escape" }
+        }),
+        bricks.button("connect", {"55", "50", "30", "10"}, {
             text = T"Join a Server",
             onclick = function(self)
                 local input = self:layout():elementWithId("ipAddress")
@@ -40,42 +149,13 @@ layouts.title.main = mortar.layout({
                 end
             end,
         }),
-        mortar.spinner("connectionSpinner", {"90", "50", 32, 32}, {
+        bricks.spinner("connectionSpinner", {"90", "50", 32, 32}, {
             visible = false,
         })
-    }),
-})
-
-layouts.title.server = mortar.layout({
-    mortar.group({
-        mortar.text_input("ipAddress", {"10", "50", "35", "10"}, {
-            placeholder = T"IP Address",
-            style = {
-                padding = { 8, 8, 8, 8 },
-            },
-            validation = {
-                {
-                    pattern = ".+",
-                    element = mortar.text({
-                        text = T"IP Address cannot be empty.",
-                    })
-                },
-                {
-                    custom = function(self, value)
-                        return true
-                        -- if value:find("localhost:%d+") then return true end
-                        -- return not value:find("[%a-zA-Z]")
-                    end,
-                    element = mortar.text({
-                        text = T"IP Address cannot contain any characters other than numbers and full stops.",
-                    })
-                },
-            },
-        }),
     })
 })
 
-mortar.style(layouts.title.main, {
+bricks.style(layouts.title.main, {
     ["text#title"] = {
         textColor = {0, 128, 128},
     },
@@ -85,35 +165,35 @@ mortar.style(layouts.title.main, {
 })
 
 layouts.server = {}
-layouts.server.info = mortar.layout({2, 2, "40", "20"}, {
+layouts.server.info = bricks.layout({2, 2, "40", "20"}, {
     elements = {
-        mortar.text({4, 4, "100", "100"}, {
+        bricks.text({4, 4, "100", "100"}, {
             text = T"Hosting Server"
         }),
-        mortar.icon({4, "20", "100", "100"}, {
+        bricks.icon({4, "20", "100", "100"}, {
             icon = "",
             size = 20,
         }),
-        mortar.text({32, "20", "100", "100"}, {
+        bricks.text({32, "20", "100", "100"}, {
             text = T"IP Adresss"
         }),
-        mortar.text("ipAddress", {"60", "20", "100", "100"}, {
+        bricks.text("ipAddress", {"60", "20", "100", "100"}, {
             text = function() return role.server:getSocketAddress():match(".+:"):sub(1, -2) end
         }),
-        mortar.text({32, "40", "100", "100"}, {
+        bricks.text({32, "40", "100", "100"}, {
             text = T"Port"
         }),
-        mortar.text("port", {"60", "40", "100", "100"}, {
+        bricks.text("port", {"60", "40", "100", "100"}, {
             text = function() return role.server:getSocketAddress():match(":.+"):sub(2) end
         }),
-        mortar.icon({4, "60", "100", "100"}, {
+        bricks.icon({4, "60", "100", "100"}, {
             icon = "",
             size = 20
         }),
-        mortar.text({32, "60", "100", "100"}, {
+        bricks.text({32, "60", "100", "100"}, {
             text = T"Connected Players"
         }),
-        mortar.text("playerCount", {"60", "60", "100", "100"}, {
+        bricks.text("playerCount", {"60", "60", "100", "100"}, {
             text = function() return tostring(#role.server.clients) end
         }),
     },
@@ -126,28 +206,28 @@ layouts.server.info = mortar.layout({2, 2, "40", "20"}, {
 
 local iconFont = love.graphics.newFont("gfx/fontawesome-webfont.ttf", 20)
 local function drawCheckbox(self)
-    mortar.graphics.push()
-    mortar.graphics.setFont(iconFont)
+    bricks.graphics.push()
+    bricks.graphics.setFont(iconFont)
     local x, y, w, h = unpack(self:getRelativeBounds())
     x = x + self.style.margin[1]
     y = y + self.style.margin[2]
-    mortar.graphics.push()
+    bricks.graphics.push()
     if self.focus then
-        mortar.graphics.setColor(self.style.borderColorFocus)
+        bricks.graphics.setColor(self.style.borderColorFocus)
     else
-        mortar.graphics.setColor(self.style.borderColor)
+        bricks.graphics.setColor(self.style.borderColor)
     end
     love.graphics.print("", x, y)
-    mortar.graphics.pop()
-    mortar.graphics.setColor(self.style.textColor)
+    bricks.graphics.pop()
+    bricks.graphics.setColor(self.style.textColor)
     if self.selected then
         love.graphics.print("", x + 1, y - 3)
     end
-    mortar.graphics.pop()
+    bricks.graphics.pop()
     love.graphics.print(self.text(), x + 24, y)
 end
 
-layouts.server.commands = mortar.layout({2, -142, 152, 140}, {
+layouts.server.commands = bricks.layout({2, -142, 152, 140}, {
     style = { 
             padding = { 2, 2, 2, 2 },
             backgroundColor = {0, 0, 0},
@@ -155,7 +235,7 @@ layouts.server.commands = mortar.layout({2, -142, 152, 140}, {
     }
 },
 {
-    mortar.checkbox({"0", "0", "100", 16}, {
+    bricks.checkbox({"0", "0", "100", 16}, {
         width  = 16,
         height = 16,
         text = T"Show server info",
@@ -167,7 +247,7 @@ layouts.server.commands = mortar.layout({2, -142, 152, 140}, {
             customDraw = drawCheckbox
         }
     }),
-    mortar.checkbox({"0", "14", "100", 16}, {
+    bricks.checkbox({"0", "14", "100", 16}, {
         width  = 16,
         height = 16,
         text = T"Show map",
@@ -179,7 +259,7 @@ layouts.server.commands = mortar.layout({2, -142, 152, 140}, {
             customDraw = drawCheckbox
         }
     }),
-    mortar.checkbox({"0", "28", "100", 16}, {
+    bricks.checkbox({"0", "28", "100", 16}, {
         width  = 16,
         height = 16,
         text = T"Show map objects",
@@ -191,7 +271,7 @@ layouts.server.commands = mortar.layout({2, -142, 152, 140}, {
             customDraw = drawCheckbox
         }
     }),
-    mortar.checkbox({"0", "42", "100", 16}, {
+    bricks.checkbox({"0", "42", "100", 16}, {
         width  = 16,
         height = 16,
         text = T"Show game objects",
@@ -203,7 +283,7 @@ layouts.server.commands = mortar.layout({2, -142, 152, 140}, {
             customDraw = drawCheckbox
         }
     }),
-    mortar.checkbox({"0", "56", "100", 16}, {
+    bricks.checkbox({"0", "56", "100", 16}, {
         width  = 16,
         height = 16,
         text = T"Show player info",
@@ -215,7 +295,7 @@ layouts.server.commands = mortar.layout({2, -142, 152, 140}, {
             customDraw = drawCheckbox
         }
     }),
-    mortar.checkbox({"0", "70", "100", 16}, {
+    bricks.checkbox({"0", "70", "100", 16}, {
         width  = 16,
         height = 16,
         text = T"Show log",
@@ -227,7 +307,7 @@ layouts.server.commands = mortar.layout({2, -142, 152, 140}, {
             customDraw = drawCheckbox
         }
     }),
-    mortar.checkbox({"0", "84", "100", 16}, {
+    bricks.checkbox({"0", "84", "100", 16}, {
         width  = 16,
         height = 16,
         text = T"Show commands",
@@ -243,14 +323,14 @@ layouts.server.commands = mortar.layout({2, -142, 152, 140}, {
     }),
 })
 
-layouts.server.commandsHidden = mortar.layout({2, -22, 136, 20}, {
+layouts.server.commandsHidden = bricks.layout({2, -22, 136, 20}, {
     style = {
         padding = { 2, 2, 2, 2 },
         backgroundColor = {0, 0, 0},
         borderColor = {255, 255, 255},
     }
 }, {
-    mortar.checkbox({"0", 0, "100", 16}, {
+    bricks.checkbox({"0", 0, "100", 16}, {
         width  = 16,
         height = 16,
         text = T"Show commands",
