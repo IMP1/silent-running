@@ -275,7 +275,7 @@ function Element:find(selectors)
     local match = self:matches(s)
     -- print(match)
 
-    if match and final and not self.elements then
+    if match and final then
         return { self }
     end
 
@@ -332,222 +332,6 @@ function Element:matches(selector)
     end
     -- print("Matched!")
     return true
-end
-
---------------------------------------------------------------------------------
--- # Button
---------------
--- A simple text button class. It is connected to an action which will fire when
--- the button is clicked.
---------------------------------------------------------------------------------
-local Button = {}
-setmetatable(Button, Element_mt)
-Button.__index = Button
-function Button:__tostring()
-    return "<Button:" .. (self.id or "") .. ">"
-end
-
-function Button.new(id, position, options)
-    local this = Element.new("button", id, position, options, options.style)
-    setmetatable(this, Button)
-    if options.text == nil then
-        this.text = function () return "" end
-    elseif type(options.text) == "string" then
-        this.text = function() return options.text end
-    elseif type(options.text) == "function" then
-        this.text = options.text
-    else
-        error("[Mortar] Invalid text value: '" .. tostring(options.text) .. "' for Button.")
-    end
-    this.onclick = options.onclick or nil
-    this.hover   = false
-    this.focus   = false
-    this.active  = false
-    return this
-end
-
-function Button:update(dt, mx, my)
-    self.hover = self:isMouseOver(mx, my)
-end
-
-function Button:isActive()
-    return self.active and self.hover
-end
-
-function Button:keypressed(key, isRepeat)
-    if self.focus and key == "space" then
-        self.active = true
-        self:onclick()
-    end
-    if not self.focus and self.focusKeys and key == self.focusKeys.key then
-        self.focus = true
-        helper.lastFocussedElement = self
-    end
-end
-
-function Button:mousepressed(mx, my, key)
-    self.active = self:isMouseOver(mx, my)
-    self.focus  = self:isMouseOver(mx, my)
-    if self.focus then helper.lastFocussedElement = self end
-end
-
-function Button:mousereleased(mx, my, key)
-    if self:isActive() and key == 1 and self.onclick then
-        self:onclick()
-    end
-    self.active = false
-end
-
-function Button:draw()
-    if self.style.customDraw then 
-        self.style.customDraw(self)
-        return
-    end
-    if not self.visible then
-        return
-    end
-    bricks.graphics.push()
-    -- get positions
-    local x, y, w, h = unpack(self:getRelativeBounds())
-    x = x + self.style.margin[1]
-    y = y + self.style.margin[2]
-    w = w - (self.style.margin[1] + self.style.margin[3])
-    h = h - (self.style.margin[2] + self.style.margin[4])
-    local rx, ry = unpack(self.style.borderRadius)
-    local align = self.pos[6]
-    -- draw shape
-    if self:isActive() and self.style.backgroundColorActive then
-        bricks.graphics.setColor(unpack(self.style.backgroundColorActive))
-        love.graphics.rectangle("fill", x, y, w, h, rx, ry)
-    elseif self.focus and self.style.backgroundColorFocus then
-        bricks.graphics.setColor(unpack(self.style.backgroundColorFocus))
-        love.graphics.rectangle("fill", x, y, w, h, rx, ry)
-    elseif self.style.backgroundColor then
-        bricks.graphics.setColor(unpack(self.style.backgroundColor))
-        love.graphics.rectangle("fill", x, y, w, h, rx, ry)
-    end
-    -- draw border
-    if self.active and self.style.borderColorActive then
-        bricks.graphics.setColor(unpack(self.style.borderColorActive))
-        love.graphics.rectangle("line", x, y, w, h, rx, ry)
-    elseif self.focus and self.style.borderColorFocus then
-        bricks.graphics.setColor(unpack(self.style.borderColorFocus))
-        love.graphics.rectangle("line", x, y, w, h, rx, ry)
-    elseif self.style.borderColor then
-        bricks.graphics.setColor(unpack(self.style.borderColor))
-        love.graphics.rectangle("line", x, y, w, h, rx, ry)
-    end
-    -- draw content
-    x = x + self.style.padding[1]
-    y = y + self.style.padding[2]
-    w = w - (self.style.padding[1] + self.style.padding[3])
-    h = h - (self.style.padding[2] + self.style.padding[4])
-    bricks.graphics.setColor(unpack(self.style.textColor))
-    love.graphics.printf(self.text(), x, y, w, align)
-    bricks.graphics.pop()
-end
-
-
---------------------------------------------------------------------------------
--- # Checkbox
---------------
--- A class for allowing a user to toggle options on and off.
---------------------------------------------------------------------------------
-local Checkbox = {}
-setmetatable(Checkbox, Element_mt)
-Checkbox.__index = Checkbox
-function Checkbox:__tostring()
-    return "<Checkbox:" .. (self.id or "") .. ">"
-end
-
-function Checkbox.new(id, position, options)
-    local this = Element.new("checkbox", id, position, options)
-    setmetatable(this, Checkbox)
-    if options.text == nil then
-        this.text = function () return "" end
-    elseif type(options.text) == "string" then
-        this.text = function() return options.text end
-    elseif type(options.text) == "function" then
-        this.text = options.text
-    else
-        error("[Mortar] Invalid text value: '" .. tostring(options.text) .. "' for Checkbox.")
-    end
-    this.focus    = false
-    this.selected = options.selected or false
-    this.onchange = options.onchange or nil
-    this.width    = options.width    or 16
-    this.height   = options.height   or 16
-    return this
-end
-
-function Checkbox:keypressed(key, isRepeat)
-    if self.focus and key == "space" then
-        self:toggle()
-    end
-end
-
-function Checkbox:mousepressed(mx, my, key)
-    self.active = self:isMouseOver(mx, my)
-    self.focus  = self:isMouseOver(mx, my)
-end
-
-function Checkbox:mousereleased(mx, my, key)
-    if self:isMouseOver(mx, my) then
-        self:toggle()
-        self.focus = true
-        helper.lastFocussedElement = self
-    end
-end
-
-function Checkbox:toggle()
-    local stop = false
-    if self.onchange then
-        stop = self:onchange(self.selected)
-    end
-    if not stop then
-        self.selected = not self.selected
-    end
-end
-
-function Checkbox:draw()
-    if self.style.customDraw then 
-        self.style.customDraw(self)
-        return
-    end
-    if not self.visible then
-        return
-    end
-    bricks.graphics.push()
-    -- get positions
-    local x, y, w, h = unpack(self:getRelativeBounds())
-    x = x + self.style.margin[1]
-    y = y + self.style.margin[2]
-    w = self.width
-    h = self.height
-    local rx, ry = unpack(self.style.borderRadius)
-    -- draw shape
-    if self.focus and self.style.backgroundColorFocus then
-        bricks.graphics.setColor(unpack(self.style.backgroundColorFocus))
-        love.graphics.rectangle("fill", x, y, w, h, rx, ry)
-    elseif self.style.backgroundColor then
-        bricks.graphics.setColor(unpack(self.style.backgroundColor))
-        love.graphics.rectangle("fill", x, y, w, h, rx, ry)
-    end
-    -- draw border
-    if self.focus and self.style.borderColorFocus then
-        bricks.graphics.setColor(unpack(self.style.borderColorFocus))
-        love.graphics.rectangle("line", x, y, w, h, rx, ry)
-    elseif self.style.borderColor then
-        bricks.graphics.setColor(unpack(self.style.borderColor))
-        love.graphics.rectangle("line", x, y, w, h, rx, ry)
-    end
-    -- draw content
-    bricks.graphics.setColor(unpack(self.style.textColor))
-    if self.selected then
-        love.graphics.printf("X", x, y, w, "center")
-    end
-    love.graphics.print(self.text(), x + w + 4, y)
-    bricks.graphics.pop()
 end
 
 --------------------------------------------------------------------------------
@@ -732,6 +516,11 @@ function Group:draw()
     w = w - (self.style.padding[1] + self.style.padding[3])
     h = h - (self.style.padding[2] + self.style.padding[4])
 
+    self:drawChildren(x, y)
+    bricks.graphics.pop()
+end
+
+function Group:drawChildren(x, y)
     love.graphics.push()
     love.graphics.translate(x, y)
     for _, element in pairs(self.elements) do
@@ -740,6 +529,216 @@ function Group:draw()
         end
     end
     love.graphics.pop()
+end
+
+--------------------------------------------------------------------------------
+-- # Button
+--------------
+-- A simple text button class. It is connected to an action which will fire when
+-- the button is clicked.
+--------------------------------------------------------------------------------
+local Button = {}
+setmetatable(Button, Group_mt)
+Button.__index = Button
+function Button:__tostring()
+    return "<Button:" .. (self.id or "") .. ">"
+end
+
+function Button.new(id, position, options)
+    local this = Element.new("button", id, position, options)
+    setmetatable(this, Button)
+    this.elements = options.elements or {}
+    for _, e in pairs(this.elements) do
+        e.parent = this
+    end
+    this.onclick = options.onclick or nil
+    this.hover   = false
+    this.focus   = false
+    this.active  = false
+    return this
+end
+
+function Button:update(dt, mx, my)
+    self.hover = self:isMouseOver(mx, my)
+end
+
+function Button:isActive()
+    return self.active and self.hover
+end
+
+function Button:keypressed(key, isRepeat)
+    if self.focus and key == "space" then
+        self.active = true
+        self:onclick()
+    end
+    if not self.focus and self.focusKeys and key == self.focusKeys.key then
+        self.focus = true
+        helper.lastFocussedElement = self
+    end
+end
+
+function Button:mousepressed(mx, my, key)
+    self.active = self:isMouseOver(mx, my)
+    self.focus  = self:isMouseOver(mx, my)
+    if self.focus then helper.lastFocussedElement = self end
+end
+
+function Button:mousereleased(mx, my, key)
+    if self:isActive() and key == 1 and self.onclick then
+        self:onclick()
+    end
+    self.active = false
+end
+
+function Button:draw()
+    if self.style.customDraw then 
+        self.style.customDraw(self)
+        return
+    end
+    if not self.visible then
+        return
+    end
+    bricks.graphics.push()
+    -- get positions
+    local x, y, w, h = unpack(self:getRelativeBounds())
+    x = x + self.style.margin[1]
+    y = y + self.style.margin[2]
+    w = w - (self.style.margin[1] + self.style.margin[3])
+    h = h - (self.style.margin[2] + self.style.margin[4])
+    local rx, ry = unpack(self.style.borderRadius)
+    local align = self.pos[6]
+    -- draw shape
+    if self:isActive() and self.style.backgroundColorActive then
+        bricks.graphics.setColor(unpack(self.style.backgroundColorActive))
+        love.graphics.rectangle("fill", x, y, w, h, rx, ry)
+    elseif self.focus and self.style.backgroundColorFocus then
+        bricks.graphics.setColor(unpack(self.style.backgroundColorFocus))
+        love.graphics.rectangle("fill", x, y, w, h, rx, ry)
+    elseif self.style.backgroundColor then
+        bricks.graphics.setColor(unpack(self.style.backgroundColor))
+        love.graphics.rectangle("fill", x, y, w, h, rx, ry)
+    end
+    -- draw border
+    if self.active and self.style.borderColorActive then
+        bricks.graphics.setColor(unpack(self.style.borderColorActive))
+        love.graphics.rectangle("line", x, y, w, h, rx, ry)
+    elseif self.focus and self.style.borderColorFocus then
+        bricks.graphics.setColor(unpack(self.style.borderColorFocus))
+        love.graphics.rectangle("line", x, y, w, h, rx, ry)
+    elseif self.style.borderColor then
+        bricks.graphics.setColor(unpack(self.style.borderColor))
+        love.graphics.rectangle("line", x, y, w, h, rx, ry)
+    end
+    -- draw content
+
+    x = x + self.style.padding[1]
+    y = y + self.style.padding[2]
+    w = w - (self.style.padding[1] + self.style.padding[3])
+    h = h - (self.style.padding[2] + self.style.padding[4])
+    self:drawChildren(x, y)
+    bricks.graphics.pop()
+end
+
+
+--------------------------------------------------------------------------------
+-- # Checkbox
+--------------
+-- A class for allowing a user to toggle options on and off.
+--------------------------------------------------------------------------------
+local Checkbox = {}
+setmetatable(Checkbox, Element_mt)
+Checkbox.__index = Checkbox
+function Checkbox:__tostring()
+    return "<Checkbox:" .. (self.id or "") .. ">"
+end
+
+function Checkbox.new(id, position, options)
+    local this = Element.new("checkbox", id, position, options)
+    setmetatable(this, Checkbox)
+    if options.text == nil then
+        this.text = function () return "" end
+    elseif type(options.text) == "string" then
+        this.text = function() return options.text end
+    elseif type(options.text) == "function" then
+        this.text = options.text
+    else
+        error("[Mortar] Invalid text value: '" .. tostring(options.text) .. "' for Checkbox.")
+    end
+    this.focus    = false
+    this.selected = options.selected or false
+    this.onchange = options.onchange or nil
+    this.width    = options.width    or 16
+    this.height   = options.height   or 16
+    return this
+end
+
+function Checkbox:keypressed(key, isRepeat)
+    if self.focus and key == "space" then
+        self:toggle()
+    end
+end
+
+function Checkbox:mousepressed(mx, my, key)
+    self.active = self:isMouseOver(mx, my)
+    self.focus  = self:isMouseOver(mx, my)
+end
+
+function Checkbox:mousereleased(mx, my, key)
+    if self:isMouseOver(mx, my) then
+        self:toggle()
+        self.focus = true
+        helper.lastFocussedElement = self
+    end
+end
+
+function Checkbox:toggle()
+    local stop = false
+    if self.onchange then
+        stop = self:onchange(self.selected)
+    end
+    if not stop then
+        self.selected = not self.selected
+    end
+end
+
+function Checkbox:draw()
+    if self.style.customDraw then 
+        self.style.customDraw(self)
+        return
+    end
+    if not self.visible then
+        return
+    end
+    bricks.graphics.push()
+    -- get positions
+    local x, y, w, h = unpack(self:getRelativeBounds())
+    x = x + self.style.margin[1]
+    y = y + self.style.margin[2]
+    w = self.width
+    h = self.height
+    local rx, ry = unpack(self.style.borderRadius)
+    -- draw shape
+    if self.focus and self.style.backgroundColorFocus then
+        bricks.graphics.setColor(unpack(self.style.backgroundColorFocus))
+        love.graphics.rectangle("fill", x, y, w, h, rx, ry)
+    elseif self.style.backgroundColor then
+        bricks.graphics.setColor(unpack(self.style.backgroundColor))
+        love.graphics.rectangle("fill", x, y, w, h, rx, ry)
+    end
+    -- draw border
+    if self.focus and self.style.borderColorFocus then
+        bricks.graphics.setColor(unpack(self.style.borderColorFocus))
+        love.graphics.rectangle("line", x, y, w, h, rx, ry)
+    elseif self.style.borderColor then
+        bricks.graphics.setColor(unpack(self.style.borderColor))
+        love.graphics.rectangle("line", x, y, w, h, rx, ry)
+    end
+    -- draw content
+    bricks.graphics.setColor(unpack(self.style.textColor))
+    if self.selected then
+        love.graphics.printf("X", x, y, w, "center")
+    end
+    love.graphics.print(self.text(), x + w + 4, y)
     bricks.graphics.pop()
 end
 
@@ -1268,13 +1267,13 @@ local function default_group_constructor_for(ObjectClass)
 end
 
 -- Public methods for creation of elements.
-bricks.button     = default_constructor_for(Button)
 bricks.checkbox   = default_constructor_for(Checkbox)
 bricks.hidden     = default_constructor_for(Hidden)
 bricks.spinner    = default_constructor_for(Spinner)
 bricks.text       = default_constructor_for(Text)
 bricks.text_input = default_constructor_for(TextInput)
 
+bricks.button     = default_group_constructor_for(Button)
 bricks.group      = default_group_constructor_for(Group)
 bricks.layout     = default_group_constructor_for(Layout)
 

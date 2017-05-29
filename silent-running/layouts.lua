@@ -28,23 +28,31 @@ layouts.title.main = bricks.layout({
     }),
     bricks.group("options", {"0", "30", "100", "60", "top", "center"}, {
         bricks.button({"55", "30", "30", "10"}, {
-            text = T"Start a Server",
             onclick = function(self) 
 
             end,
             focusKey = { "s" }
+        }, {
+            bricks.text({text = T"Start a Server"}),
         }),
         bricks.button("connect", {"55", "50", "30", "10"}, {
-            text = T"Join a Server",
             onclick = function(self)
 
             end,
+        }, {
+            bricks.text({text = T"Join a Server"}),
         }),
-        bricks.spinner("connectionSpinner", {"90", "50", 32, 32}, {
-            visible = false,
-        })
     }),
 })
+bricks.style(layouts.title.main, {
+    ["text#title"] = {
+        textColor = {0, 128, 128},
+    },
+    ["button"] = {
+        backgroundColor = {0, 32, 32},
+    }
+})
+
 
 layouts.title.server = bricks.layout({
     bricks.text("title", {"0", "10", "100", "10", "top", "center"}, {
@@ -74,14 +82,16 @@ layouts.title.server = bricks.layout({
     }),
     bricks.group("actions", {
         bricks.button({"55", "30", "30", "10"}, {
-            text = T"Back",
             onclick = function(self) print"back" end,
             focusKey = { "escape" }
+        }, {
+            bricks.text({text = T"Back"}),
         }),
         bricks.button({"55", "50", "30", "10"}, {
-            text = T"Start Server",
             onclick = function(self) startServer() end,
             focusKey = { "s" }
+        }, {
+            bricks.text({text = T"Start Server"}),
         }),
     })
 })
@@ -136,13 +146,13 @@ layouts.title.client = bricks.layout({
         }),
     }),
     bricks.group("actions", {
-        bricks.button({"55", "30", "30", "10"}, {
-            text = T"Back",
+        bricks.button("back", {"55", "30", "30", "10"}, {
             onclick = function(self) print"back" end,
             focusKey = { "escape" }
+        }, {
+            bricks.text({text = T"Back"}),
         }),
         bricks.button("connect", {"55", "50", "30", "10"}, {
-            text = T"Join a Server",
             onclick = function(self)
                 local input = self:layout():elementWithId("ipAddress")
                 input:validate(true)
@@ -152,20 +162,13 @@ layouts.title.client = bricks.layout({
                     attemptConnection(address)
                 end
             end,
+        }, {
+            bricks.text({text = T"Join a Server"}),
         }),
         bricks.spinner("connectionSpinner", {"90", "50", 32, 32}, {
             visible = false,
         })
     })
-})
-
-bricks.style(layouts.title.main, {
-    ["text#title"] = {
-        textColor = {0, 128, 128},
-    },
-    ["button"] = {
-        backgroundColor = {0, 32, 32},
-    }
 })
 
 layouts.server = {}
