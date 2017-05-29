@@ -51,7 +51,7 @@ function love.load(args)
 end
 
 function setupLobby()
-    lobby = Layouts.title
+    lobby = Layouts.title.main
 end
 
 function startServer()
@@ -116,7 +116,7 @@ function love.update(dt)
     end
     if lobby then
         lobby:update(dt, mx, my)
-        lobby:update(dt, mx, my)
+        -- lobby:update(dt, mx, my)
     elseif role then
         role:update(dt)
     end

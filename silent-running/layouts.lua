@@ -16,63 +16,66 @@ mortar.setIconFont("gfx/fontawesome-webfont.ttf")
 ]]
 
 local layouts = {}
+layouts.title = {}
 
-layouts.title = mortar.layout({"0", "0", "100", "100"}, {
-    elements = {
-        mortar.text("title", {"0", "10", "100", "10", "top", "center"}, {
-            text = T"Welcome to Silent Running",
+layouts.title.main = mortar.layout({
+    mortar.text("title", {"0", "10", "100", "10", "top", "center"}, {
+        text = T"Welcome to Silent Running",
+    }),
+    mortar.group("options", {"0", "30", "100", "60", "top", "center"}, {
+        mortar.button({"55", "30", "30", "10"}, {
+            text = T"Start a Server",
+            onclick = function(self) startServer() end,
+            focusKey = { "S", }
         }),
-        mortar.group("options", {"0", "30", "100", "60", "top", "center"}, {
-            elements = {
-                mortar.button({"55", "30", "30", "10"}, {
-                    text = T"Start a Server",
-                    onclick = function(self) startServer() end,
-                    focusKey = { "S", }
-                }),
-                mortar.text_input("ipAddress", {"10", "50", "35", "10"}, {
-                    placeholder = T"IP Address",
-                    style = {
-                        padding = { 8, 8, 8, 8 },
-                    },
-                    validation = {
-                        {
-                            pattern = ".+",
-                            element = mortar.text({
-                                text = T"IP Address cannot be empty.",
-                            })
-                        },
-                        {
-                            custom = function(self, value)
-                                return true
-                                -- if value:find("localhost:%d+") then return true end
-                                -- return not value:find("[%a-zA-Z]")
-                            end,
-                            element = mortar.text({
-                                text = T"IP Address cannot contain any characters other than numbers and full stops.",
-                            })
-                        },
-                    },
-                }),
-                mortar.button("connect", {"55", "50", "30", "10"}, {
-                    text = T"Join a Server",
-                    onclick = function(self)
-                        local input = self:layout():elementWithId("ipAddress")
-                        input:validate(true)
-                        if input.valid then
-                            -- TODO: try to connect before going to client role
-                            local address = input:value()
-                            attemptConnection(address)
-                        end
+        mortar.button("connect", {"55", "50", "30", "10"}, {
+            text = T"Join a Server",
+            onclick = function(self)
+                local input = self:layout():elementWithId("ipAddress")
+                input:validate(true)
+                if input.valid then
+                    -- TODO: try to connect before going to client role
+                    local address = input:value()
+                    attemptConnection(address)
+                end
+            end,
+        }),
+        mortar.spinner("connectionSpinner", {"90", "50", 32, 32}, {
+            visible = false,
+        })
+    }),
+})
+
+layouts.title.server = mortar.layout({
+    mortar.group({
+        mortar.text_input("ipAddress", {"10", "50", "35", "10"}, {
+            placeholder = T"IP Address",
+            style = {
+                padding = { 8, 8, 8, 8 },
+            },
+            validation = {
+                {
+                    pattern = ".+",
+                    element = mortar.text({
+                        text = T"IP Address cannot be empty.",
+                    })
+                },
+                {
+                    custom = function(self, value)
+                        return true
+                        -- if value:find("localhost:%d+") then return true end
+                        -- return not value:find("[%a-zA-Z]")
                     end,
-                }),
-                mortar.spinner("connectionSpinner", {"90", "50", 32, 32}, {
-                    visible = false,
-                })
+                    element = mortar.text({
+                        text = T"IP Address cannot contain any characters other than numbers and full stops.",
+                    })
+                },
             },
         }),
-    },
+    })
 })
-mortar.style(layouts.title, {
+
+mortar.style(layouts.title.main, {
     ["text#title"] = {
         textColor = {0, 128, 128},
     },
@@ -145,122 +148,121 @@ local function drawCheckbox(self)
 end
 
 layouts.server.commands = mortar.layout({2, -142, 152, 140}, {
-    elements = {
-        mortar.checkbox({"0", "0", "100", 16}, {
-            width  = 16,
-            height = 16,
-            text = T"Show server info",
-            onchange = function() 
-                DEBUG.showServerInfo = not DEBUG.showServerInfo
-            end,
-            selected = DEBUG.showServerInfo,
-            style = {
-                customDraw = drawCheckbox
-            }
-        }),
-        mortar.checkbox({"0", "14", "100", 16}, {
-            width  = 16,
-            height = 16,
-            text = T"Show map",
-            onchange = function() 
-                DEBUG.showMap = not DEBUG.showMap 
-            end,
-            selected = DEBUG.showMap,
-            style = {
-                customDraw = drawCheckbox
-            }
-        }),
-        mortar.checkbox({"0", "28", "100", 16}, {
-            width  = 16,
-            height = 16,
-            text = T"Show map objects",
-            onchange = function() 
-                DEBUG.showMapObjects = not DEBUG.showMapObjects 
-            end,
-            selected = DEBUG.showMapObjects,
-            style = {
-                customDraw = drawCheckbox
-            }
-        }),
-        mortar.checkbox({"0", "42", "100", 16}, {
-            width  = 16,
-            height = 16,
-            text = T"Show game objects",
-            onchange = function() 
-                DEBUG.showGameObjects = not DEBUG.showGameObjects 
-            end,
-            selected = DEBUG.showGameObjects,
-            style = {
-                customDraw = drawCheckbox
-            }
-        }),
-        mortar.checkbox({"0", "56", "100", 16}, {
-            width  = 16,
-            height = 16,
-            text = T"Show player info",
-            onchange = function() 
-                DEBUG.showPlayerInfo = not DEBUG.showPlayerInfo 
-            end,
-            selected = DEBUG.showPlayerInfo,
-            style = {
-                customDraw = drawCheckbox
-            }
-        }),
-        mortar.checkbox({"0", "70", "100", 16}, {
-            width  = 16,
-            height = 16,
-            text = T"Show log",
-            onchange = function() 
-                DEBUG.showLog = not DEBUG.showLog 
-            end,
-            selected = DEBUG.showLog,
-            style = {
-                customDraw = drawCheckbox
-            }
-        }),
-        mortar.checkbox({"0", "84", "100", 16}, {
-            width  = 16,
-            height = 16,
-            text = T"Show commands",
-            onchange = function() 
-                DEBUG.showCommands = false
-                role:hideCommands()
-                return true -- cancel the normal checkbox behaviour.
-            end,
-            selected = true,
-            style = {
-                customDraw = drawCheckbox
-            }
-        }),
-    },
-    style = {
-        padding = { 2, 2, 2, 2 },
-        backgroundColor = {0, 0, 0},
-        borderColor = {255, 255, 255},
-    }  
+    style = { 
+            padding = { 2, 2, 2, 2 },
+            backgroundColor = {0, 0, 0},
+            borderColor = {255, 255, 255},
+    }
+},
+{
+    mortar.checkbox({"0", "0", "100", 16}, {
+        width  = 16,
+        height = 16,
+        text = T"Show server info",
+        onchange = function() 
+            DEBUG.showServerInfo = not DEBUG.showServerInfo
+        end,
+        selected = DEBUG.showServerInfo,
+        style = {
+            customDraw = drawCheckbox
+        }
+    }),
+    mortar.checkbox({"0", "14", "100", 16}, {
+        width  = 16,
+        height = 16,
+        text = T"Show map",
+        onchange = function() 
+            DEBUG.showMap = not DEBUG.showMap 
+        end,
+        selected = DEBUG.showMap,
+        style = {
+            customDraw = drawCheckbox
+        }
+    }),
+    mortar.checkbox({"0", "28", "100", 16}, {
+        width  = 16,
+        height = 16,
+        text = T"Show map objects",
+        onchange = function() 
+            DEBUG.showMapObjects = not DEBUG.showMapObjects 
+        end,
+        selected = DEBUG.showMapObjects,
+        style = {
+            customDraw = drawCheckbox
+        }
+    }),
+    mortar.checkbox({"0", "42", "100", 16}, {
+        width  = 16,
+        height = 16,
+        text = T"Show game objects",
+        onchange = function() 
+            DEBUG.showGameObjects = not DEBUG.showGameObjects 
+        end,
+        selected = DEBUG.showGameObjects,
+        style = {
+            customDraw = drawCheckbox
+        }
+    }),
+    mortar.checkbox({"0", "56", "100", 16}, {
+        width  = 16,
+        height = 16,
+        text = T"Show player info",
+        onchange = function() 
+            DEBUG.showPlayerInfo = not DEBUG.showPlayerInfo 
+        end,
+        selected = DEBUG.showPlayerInfo,
+        style = {
+            customDraw = drawCheckbox
+        }
+    }),
+    mortar.checkbox({"0", "70", "100", 16}, {
+        width  = 16,
+        height = 16,
+        text = T"Show log",
+        onchange = function() 
+            DEBUG.showLog = not DEBUG.showLog 
+        end,
+        selected = DEBUG.showLog,
+        style = {
+            customDraw = drawCheckbox
+        }
+    }),
+    mortar.checkbox({"0", "84", "100", 16}, {
+        width  = 16,
+        height = 16,
+        text = T"Show commands",
+        onchange = function() 
+            DEBUG.showCommands = false
+            role:hideCommands()
+            return true -- cancel the normal checkbox behaviour.
+        end,
+        selected = true,
+        style = {
+            customDraw = drawCheckbox
+        }
+    }),
 })
 
 layouts.server.commandsHidden = mortar.layout({2, -22, 136, 20}, {
-    elements = {
-        mortar.checkbox({"0", 0, "100", 16}, {
-            width  = 16,
-            height = 16,
-            text = T"Show commands",
-            onchange = function() 
-                role:showCommands()
-                return true -- cancel the normal checkbox behaviour.
-            end,
-            selected = false,
-            style = {
-                customDraw = drawCheckbox
-            }
-        }),
-    },
     style = {
         padding = { 2, 2, 2, 2 },
         backgroundColor = {0, 0, 0},
         borderColor = {255, 255, 255},
-    }  
+    }
+}, {
+    mortar.checkbox({"0", 0, "100", 16}, {
+        width  = 16,
+        height = 16,
+        text = T"Show commands",
+        onchange = function() 
+            role:showCommands()
+            return true -- cancel the normal checkbox behaviour.
+        end,
+        selected = false,
+        style = {
+            customDraw = drawCheckbox
+        }
+    }),
 })
 
 return layouts

@@ -154,7 +154,7 @@ function Element.new(elementName, id, pos, options)
     obj._name = elementName
 
     obj.id    = id
-    obj.pos   = pos or {0, 0, 100, 100, "top", "left"}
+    obj.pos   = pos or {"0", "0", "100", "100", "top", "left"}
     obj.tags  = options.tags or {}
     obj.style = options.style or {}
     if default_style[elementName] then
@@ -1258,7 +1258,7 @@ end
 -- Internal function as elements have common constructors.
 local function default_constructor_for(ObjectClass)
     return function(...)
-        params = {...}
+        local params = {...}
         if #params == 3 then
             return ObjectClass.new(unpack(params))
         elseif #params == 2 then
@@ -1269,31 +1269,69 @@ local function default_constructor_for(ObjectClass)
             end
         elseif #params == 1 then
             return ObjectClass.new(nil, nil, params[1])
-        end
-        print("INVALID PARAMS! " .. type(params))
-        print(tostring(ObjectClass))
-        if type(params) == "table" then
-            print("table: size = " .. tostring(#params))
-            for k, v in pairs(params) do
-                print(k, v)
-            end
         else
-            print("Params: " .. tostring(params))
+            local errorString = "[Mortar] Invalid parameters:\n"
+            errorString = errorString .. "Attempted to create a " .. tostring(ObjectClass)
+            errorString = errorString .. " with " .. tostring(#params) .. "parameters\n"
+            for k, v in pairs(params) do
+                errorString = errorString .. "\t" .. v .. ",\n"
+            end
+            error(errorString)
         end
-        return ObjectClass.new(nil, nil, {})
+    end
+end
+
+local function default_group_constructor_for(ObjectClass)
+    return function(...)
+        local params = {...}
+        if #params == 4 then
+            params[3].elements = params[4]
+            table.remove(params, 4)
+            return ObjectClass.new(unpack(params))
+        elseif #params == 3 and type(params[1]) == "string" then
+            if params[2][1] then -- location
+                return ObjectClass.new(params[1], params[2], {elements = params[3]})
+            else
+                params[2].elements = params[3]
+                return ObjectClass.new(params[1], nil, params[2])
+            end
+        elseif #params == 3 and type(params[1]) == "table" then
+            params[2].elements = params[3]
+            return ObjectClass.new(nil, params[1], params[2])
+        elseif #params == 2 and type(params[1]) == "string" then
+            return ObjectClass.new(params[1], nil, {elements = params[2]})
+        elseif #params == 2 and type(params[1]) == "table" then
+            if params[1][1] then
+                return ObjectClass.new(nil, params[1], {elements = params[2]})
+            else
+                params[1].elements = params[2]
+                return ObjectClass.new(nil, nil, params[1])
+            end
+        elseif #params == 1 then
+            return ObjectClass.new(nil, nil, {elements = params[1]})
+        else
+            local errorString = "[Mortar] Invalid parameters:\n"
+            errorString = errorString .. "Attempted to create a " .. tostring(ObjectClass)
+            errorString = errorString .. " with " .. tostring(#params) .. "parameters\n"
+            for k, v in pairs(params) do
+                errorString = errorString .. "\t" .. v .. ",\n"
+            end
+            error(errorString)
+        end
     end
 end
 
 -- Public methods for creation of elements.
 mortar.button     = default_constructor_for(Button)
 mortar.checkbox   = default_constructor_for(Checkbox)
-mortar.group      = default_constructor_for(Group)
 mortar.hidden     = default_constructor_for(Hidden)
 mortar.icon       = default_constructor_for(Icon)
-mortar.layout     = default_constructor_for(Layout)
 mortar.spinner    = default_constructor_for(Spinner)
 mortar.text       = default_constructor_for(Text)
 mortar.text_input = default_constructor_for(TextInput)
+
+mortar.group      = default_group_constructor_for(Group)
+mortar.layout     = default_group_constructor_for(Layout)
 
 --------------------------------------------------------------------------------
 -- # Mortar.Style
