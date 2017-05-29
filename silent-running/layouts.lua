@@ -1,4 +1,6 @@
 local bricks = require 'lib.bricks'
+local mortar = require 'lib.mortar'
+mortar.setup(bricks)
 
 bricks.setIconFont("gfx/fontawesome-webfont.ttf")
 
@@ -14,6 +16,8 @@ bricks.setIconFont("gfx/fontawesome-webfont.ttf")
     </group>
 </layout>
 ]]
+
+-- Font Aweome Icons: http://fontawesome.io/cheatsheet/
 
 local layouts = {}
 layouts.title = {}

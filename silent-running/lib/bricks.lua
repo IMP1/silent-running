@@ -79,7 +79,9 @@ local bricks = {
 
 ]]
 
--- Font Aweome Icons: http://fontawesome.io/cheatsheet/
+local helper = {
+    lastFocussedElement = nil
+}
 
 local default_style = {
     common    = {
@@ -106,11 +108,6 @@ local default_style = {
         backgroundColor       = {32, 32, 32},
         backgroundColorFocus  = {32, 32, 32},
     },
-    -- group     = {},
-    -- icon      = {},
-    -- layout    = {},
-    -- spinner   = {},
-    -- text      = {},
     text_input = {
         borderColor        = {192, 192, 192},
         borderColorFocus   = {128, 128, 255},
@@ -122,20 +119,6 @@ local default_style = {
 
     },
 }
-
-local settings = {
-    iconFont     = nil,
-    iconFontPath = nil
-}
-
-local helper = {
-    lastFocussedElement = nil
-}
-
-function bricks.setIconFont(iconFontPath)
-    settings.iconFontPath = iconFontPath
-    settings.iconFont = love.graphics.newFont(iconFontPath)
-end
 
 --------------------------------------------------------------------------------
 -- # Element
@@ -156,6 +139,9 @@ function Element.new(elementName, id, pos, options)
     obj.id    = id
     obj.pos   = pos or {"0", "0", "100", "100", "top", "left"}
     obj.tags  = options.tags or {}
+    obj.hover = false
+    obj.focus = false
+    obj.visible = options.visible
     obj.style = options.style or {}
     if default_style[elementName] then
         for k, v in pairs(default_style[elementName]) do
@@ -165,9 +151,6 @@ function Element.new(elementName, id, pos, options)
         end
     end
     setmetatable(obj.style, {__index = default_style.common})
-    obj.hover = false
-    obj.focus = false
-    obj.visible = options.visible
     if obj.visible == nil then obj.visible = true end
 
     return obj
@@ -463,6 +446,7 @@ function Button:draw()
     love.graphics.printf(self.text(), x, y, w, align)
     bricks.graphics.pop()
 end
+
 
 --------------------------------------------------------------------------------
 -- # Checkbox
@@ -776,44 +760,6 @@ function Hidden.new(id, position, options)
     setmetatable(this, Hidden)
     self.value = options.value or nil
     return this
-end
-
---------------------------------------------------------------------------------
--- # Icon
---------------
--- A graphical symbol.
---------------------------------------------------------------------------------
-local Icon = {}
-setmetatable(Icon, Element_mt)
-Icon.__index = Icon
-function Icon:__tostring()
-    return "<Icon" .. (self.id or "") .. ">"
-end
-
-function Icon.new(id, position, options)
-    local this = Element.new("icon", id, position, options)
-    setmetatable(this, Icon)
-    this.icon = options.icon
-    if options.size then
-        this.font = love.graphics.newFont(settings.iconFontPath, options.size)
-    end
-    return this
-end
-
-function Icon:draw()
-    if not self.visible then
-        return
-    end
-    bricks.graphics.push()
-    if self.font then
-        bricks.graphics.setFont(self.font)
-    else
-        bricks.graphics.setFont(settings.iconFont)
-    end
-    local x, y, w, h = unpack(self:getRelativeBounds())
-    local align = self.pos[6]
-    love.graphics.printf(self.icon, x, y, w, align)
-    bricks.graphics.pop()
 end
 
 --------------------------------------------------------------------------------
@@ -1325,13 +1271,30 @@ end
 bricks.button     = default_constructor_for(Button)
 bricks.checkbox   = default_constructor_for(Checkbox)
 bricks.hidden     = default_constructor_for(Hidden)
-bricks.icon       = default_constructor_for(Icon)
 bricks.spinner    = default_constructor_for(Spinner)
 bricks.text       = default_constructor_for(Text)
 bricks.text_input = default_constructor_for(TextInput)
 
 bricks.group      = default_group_constructor_for(Group)
 bricks.layout     = default_group_constructor_for(Layout)
+
+-- Private tables for customisation purposes.
+bricks._classes = {
+    Element    = Element,
+    Element_mt = Element_mt,
+    Button     = Button,
+    Checkbox   = Checkbox,
+    Group      = Group,
+    Hidden     = Hidden,
+    Layout     = Layout,
+    Spinner    = Spinner,
+    Text       = Text,
+    TextInput  = TextInput,
+}
+bricks._functions = {
+    default_constructor_for       = default_constructor_for,
+    default_group_constructor_for = default_group_constructor_for,
+}
 
 --------------------------------------------------------------------------------
 -- # Mortar.Style

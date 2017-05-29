@@ -27,3 +27,71 @@ local mortar = {
     ]]
 }
 
+
+local function addIcons(bricks)
+    local settings = {
+        iconFont     = nil,
+        iconFontPath = nil
+    }
+
+    --------------------------------------------------------------------------------
+    -- # Icon
+    --------------
+    -- A graphical symbol.
+    --------------------------------------------------------------------------------
+    local Icon = {}
+    setmetatable(Icon, bricks._classes.Element_mt)
+    Icon.__index = Icon
+    function Icon:__tostring()
+        return "<Icon" .. (self.id or "") .. ">"
+    end
+
+    function Icon.new(id, position, options)
+        local this = bricks._classes.Element.new("icon", id, position, options)
+        setmetatable(this, Icon)
+        this.icon = options.icon
+        if options.size then
+            this.font = love.graphics.newFont(settings.iconFontPath, options.size)
+        end
+        return this
+    end
+
+    function Icon:draw()
+        if not self.visible then
+            return
+        end
+        bricks.graphics.push()
+        if self.font then
+            bricks.graphics.setFont(self.font)
+        else
+            bricks.graphics.setFont(settings.iconFont)
+        end
+        local x, y, w, h = unpack(self:getRelativeBounds())
+        local align = self.pos[6]
+        love.graphics.printf(self.icon, x, y, w, align)
+        bricks.graphics.pop()
+    end
+
+    bricks.icon = bricks._functions.default_constructor_for(Icon)
+    bricks._classes.Icon = Icon
+    bricks.setIconFont = function(iconFontPath)
+        settings.iconFontPath = iconFontPath
+        settings.iconFont = love.graphics.newFont(iconFontPath)
+    end
+end
+
+local Animation = {}
+Animation.__index = Animation
+
+function Animation.new()
+    local this = {}
+    setmetatable(this, Animation)
+    return this
+end
+
+
+function mortar.setup(bricks)
+    addIcons(bricks)
+end
+
+return mortar
