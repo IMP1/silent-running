@@ -1,4 +1,4 @@
-local mortar = {
+local bricks = {
     _VERSION     = 'v0.0.1',
     _DESCRIPTION = 'A Lua UI library for LÖVE games',
     _URL         = '',
@@ -132,7 +132,7 @@ local helper = {
     lastFocussedElement = nil
 }
 
-function mortar.setIconFont(iconFontPath)
+function bricks.setIconFont(iconFontPath)
     settings.iconFontPath = iconFontPath
     settings.iconFont = love.graphics.newFont(iconFontPath)
 end
@@ -423,7 +423,7 @@ function Button:draw()
     if not self.visible then
         return
     end
-    mortar.graphics.push()
+    bricks.graphics.push()
     -- get positions
     local x, y, w, h = unpack(self:getRelativeBounds())
     x = x + self.style.margin[1]
@@ -434,24 +434,24 @@ function Button:draw()
     local align = self.pos[6]
     -- draw shape
     if self:isActive() and self.style.backgroundColorActive then
-        mortar.graphics.setColor(unpack(self.style.backgroundColorActive))
+        bricks.graphics.setColor(unpack(self.style.backgroundColorActive))
         love.graphics.rectangle("fill", x, y, w, h, rx, ry)
     elseif self.focus and self.style.backgroundColorFocus then
-        mortar.graphics.setColor(unpack(self.style.backgroundColorFocus))
+        bricks.graphics.setColor(unpack(self.style.backgroundColorFocus))
         love.graphics.rectangle("fill", x, y, w, h, rx, ry)
     elseif self.style.backgroundColor then
-        mortar.graphics.setColor(unpack(self.style.backgroundColor))
+        bricks.graphics.setColor(unpack(self.style.backgroundColor))
         love.graphics.rectangle("fill", x, y, w, h, rx, ry)
     end
     -- draw border
     if self.active and self.style.borderColorActive then
-        mortar.graphics.setColor(unpack(self.style.borderColorActive))
+        bricks.graphics.setColor(unpack(self.style.borderColorActive))
         love.graphics.rectangle("line", x, y, w, h, rx, ry)
     elseif self.focus and self.style.borderColorFocus then
-        mortar.graphics.setColor(unpack(self.style.borderColorFocus))
+        bricks.graphics.setColor(unpack(self.style.borderColorFocus))
         love.graphics.rectangle("line", x, y, w, h, rx, ry)
     elseif self.style.borderColor then
-        mortar.graphics.setColor(unpack(self.style.borderColor))
+        bricks.graphics.setColor(unpack(self.style.borderColor))
         love.graphics.rectangle("line", x, y, w, h, rx, ry)
     end
     -- draw content
@@ -459,9 +459,9 @@ function Button:draw()
     y = y + self.style.padding[2]
     w = w - (self.style.padding[1] + self.style.padding[3])
     h = h - (self.style.padding[2] + self.style.padding[4])
-    mortar.graphics.setColor(unpack(self.style.textColor))
+    bricks.graphics.setColor(unpack(self.style.textColor))
     love.graphics.printf(self.text(), x, y, w, align)
-    mortar.graphics.pop()
+    bricks.graphics.pop()
 end
 
 --------------------------------------------------------------------------------
@@ -533,7 +533,7 @@ function Checkbox:draw()
     if not self.visible then
         return
     end
-    mortar.graphics.push()
+    bricks.graphics.push()
     -- get positions
     local x, y, w, h = unpack(self:getRelativeBounds())
     x = x + self.style.margin[1]
@@ -543,27 +543,27 @@ function Checkbox:draw()
     local rx, ry = unpack(self.style.borderRadius)
     -- draw shape
     if self.focus and self.style.backgroundColorFocus then
-        mortar.graphics.setColor(unpack(self.style.backgroundColorFocus))
+        bricks.graphics.setColor(unpack(self.style.backgroundColorFocus))
         love.graphics.rectangle("fill", x, y, w, h, rx, ry)
     elseif self.style.backgroundColor then
-        mortar.graphics.setColor(unpack(self.style.backgroundColor))
+        bricks.graphics.setColor(unpack(self.style.backgroundColor))
         love.graphics.rectangle("fill", x, y, w, h, rx, ry)
     end
     -- draw border
     if self.focus and self.style.borderColorFocus then
-        mortar.graphics.setColor(unpack(self.style.borderColorFocus))
+        bricks.graphics.setColor(unpack(self.style.borderColorFocus))
         love.graphics.rectangle("line", x, y, w, h, rx, ry)
     elseif self.style.borderColor then
-        mortar.graphics.setColor(unpack(self.style.borderColor))
+        bricks.graphics.setColor(unpack(self.style.borderColor))
         love.graphics.rectangle("line", x, y, w, h, rx, ry)
     end
     -- draw content
-    mortar.graphics.setColor(unpack(self.style.textColor))
+    bricks.graphics.setColor(unpack(self.style.textColor))
     if self.selected then
         love.graphics.printf("X", x, y, w, "center")
     end
     love.graphics.print(self.text(), x + w + 4, y)
-    mortar.graphics.pop()
+    bricks.graphics.pop()
 end
 
 --------------------------------------------------------------------------------
@@ -725,7 +725,7 @@ function Group:draw()
     if not self.visible then
         return
     end
-    mortar.graphics.push()
+    bricks.graphics.push()
     local x, y, w, h = unpack(self:getRelativeBounds())
     x = x + self.style.margin[1]
     y = y + self.style.margin[2]
@@ -734,12 +734,12 @@ function Group:draw()
     local rx, ry = unpack(self.style.borderRadius)
     -- draw shape
     if self.style.backgroundColor then
-        mortar.graphics.setColor(unpack(self.style.backgroundColor))
+        bricks.graphics.setColor(unpack(self.style.backgroundColor))
         love.graphics.rectangle("fill", x, y, w, h, rx, ry)
     end
     -- draw border
     if self.style.borderColor then
-        mortar.graphics.setColor(unpack(self.style.borderColor))
+        bricks.graphics.setColor(unpack(self.style.borderColor))
         love.graphics.rectangle("line", x, y, w, h, rx, ry)
     end
 
@@ -756,7 +756,7 @@ function Group:draw()
         end
     end
     love.graphics.pop()
-    mortar.graphics.pop()
+    bricks.graphics.pop()
 end
 
 --------------------------------------------------------------------------------
@@ -804,16 +804,16 @@ function Icon:draw()
     if not self.visible then
         return
     end
-    mortar.graphics.push()
+    bricks.graphics.push()
     if self.font then
-        mortar.graphics.setFont(self.font)
+        bricks.graphics.setFont(self.font)
     else
-        mortar.graphics.setFont(settings.iconFont)
+        bricks.graphics.setFont(settings.iconFont)
     end
     local x, y, w, h = unpack(self:getRelativeBounds())
     local align = self.pos[6]
     love.graphics.printf(self.icon, x, y, w, align)
-    mortar.graphics.pop()
+    bricks.graphics.pop()
 end
 
 --------------------------------------------------------------------------------
@@ -870,10 +870,10 @@ function Layout:draw()
     if not self.visible then
         return
     end
-    mortar.graphics.push()
-    mortar.graphics.setLineStyle("rough")
+    bricks.graphics.push()
+    bricks.graphics.setLineStyle("rough")
     Group.draw(self)
-    mortar.graphics.pop()
+    bricks.graphics.pop()
 end
 
 --------------------------------------------------------------------------------
@@ -929,7 +929,7 @@ function Spinner:draw()
     if not self.visible then
         return
     end
-    mortar.graphics.push()
+    bricks.graphics.push()
     local ox, oy, w, h = unpack(self:getRelativeBounds())
     ox = ox + w / 2
     oy = oy + h / 2
@@ -937,12 +937,12 @@ function Spinner:draw()
         local r = 2 * math.pi * i / #self.spin.pips
         local x = ox + w/2 * math.cos(r)
         local y = oy + h/2 * math.sin(r)
-        mortar.graphics.setColor(255, 255, 255, 255 - opacity)
+        bricks.graphics.setColor(255, 255, 255, 255 - opacity)
         local n = 4
         local size = n - opacity / 128
         love.graphics.circle("fill", x, y, size)
     end
-    mortar.graphics.pop()
+    bricks.graphics.pop()
 end
 
 --------------------------------------------------------------------------------
@@ -981,17 +981,17 @@ function Text:draw()
     if not self.visible then
         return
     end
-    mortar.graphics.push()
+    bricks.graphics.push()
     if self.style.font then
-        mortar.graphics.setFont(self.style.font)
+        bricks.graphics.setFont(self.style.font)
     end
     if self.style.textColor then
-        mortar.graphics.setColor(unpack(self.style.textColor))
+        bricks.graphics.setColor(unpack(self.style.textColor))
     end
     local x, y, w, h = unpack(self:getRelativeBounds())
     local align = self.pos[6]
     love.graphics.printf(self.text(), x, y, w, align)
-    mortar.graphics.pop()
+    bricks.graphics.pop()
 end
 
 --------------------------------------------------------------------------------
@@ -1124,7 +1124,7 @@ function TextInput:draw()
     if not self.visible then
         return
     end
-    mortar.graphics.push()
+    bricks.graphics.push()
     -- get positions
     local x, y, w, h = unpack(self:getRelativeBounds())
     x = x + self.style.margin[1]
@@ -1135,18 +1135,18 @@ function TextInput:draw()
     local align = self.pos[6]
     -- draw shape
     if self.style.backgroundColor then
-        mortar.graphics.setColor(unpack(self.style.backgroundColor))
+        bricks.graphics.setColor(unpack(self.style.backgroundColor))
         love.graphics.rectangle("fill", x, y, w, h, rx, ry)
     end
     -- draw border
     if not self.valid and self.style.borderColorInvalid then
-        mortar.graphics.setColor(unpack(self.style.borderColorInvalid))
+        bricks.graphics.setColor(unpack(self.style.borderColorInvalid))
         love.graphics.rectangle("line", x, y, w, h, rx, ry)
     elseif self.focus and self.style.borderColorFocus then
-        mortar.graphics.setColor(unpack(self.style.borderColorFocus))
+        bricks.graphics.setColor(unpack(self.style.borderColorFocus))
         love.graphics.rectangle("line", x, y, w, h, rx, ry)
     elseif self.style.borderColor then
-        mortar.graphics.setColor(unpack(self.style.borderColor))
+        bricks.graphics.setColor(unpack(self.style.borderColor))
         love.graphics.rectangle("line", x, y, w, h, rx, ry)
     end
     -- draw content
@@ -1156,29 +1156,29 @@ function TextInput:draw()
     h = h - (self.style.padding[2] + self.style.padding[4])
     
     if self.style.font then
-        mortar.graphics.setFont(self.style.font)
+        bricks.graphics.setFont(self.style.font)
     end
     
     if not self.valid and self.style.borderColorInvalid then
-        mortar.graphics.setColor(unpack(self.style.borderColorInvalid))
+        bricks.graphics.setColor(unpack(self.style.borderColorInvalid))
     elseif self.focus and self.style.borderColorFocus then
-        mortar.graphics.setColor(unpack(self.style.borderColorFocus))
+        bricks.graphics.setColor(unpack(self.style.borderColorFocus))
     elseif self.style.borderColor then
-        mortar.graphics.setColor(unpack(self.style.borderColor))
+        bricks.graphics.setColor(unpack(self.style.borderColor))
     end
     love.graphics.line(x, y + h, x + w, y + h)
 
     local font = love.graphics.getFont()
     local text = self:value()
     if text:len() == 0 then
-        mortar.graphics.setColor(unpack(self.style.placeholderColor))
+        bricks.graphics.setColor(unpack(self.style.placeholderColor))
         love.graphics.printf(self.placeholder, x, y, w, self.pos[6])
     end
 
     if not self.valid and self.style.textColorInvalid then
-        mortar.graphics.setColor(unpack(self.style.textColorInvalid))
+        bricks.graphics.setColor(unpack(self.style.textColorInvalid))
     else
-        mortar.graphics.setColor(unpack(self.style.textColor))
+        bricks.graphics.setColor(unpack(self.style.textColor))
     end
     love.graphics.printf(text, x, y, w, self.pos[6])
 
@@ -1188,10 +1188,10 @@ function TextInput:draw()
             ox = ox + font:getWidth(self.text[i])
         end
         local ch = font:getHeight()
-        mortar.graphics.setColor(unpack(self.style.cursorColor))
+        bricks.graphics.setColor(unpack(self.style.cursorColor))
         love.graphics.line(x + ox, y, x + ox, y + ch)
     end
-    mortar.graphics.pop()
+    bricks.graphics.pop()
 end
 
 --------------------------------------------------------------------------------
@@ -1206,14 +1206,14 @@ end
 -- TODO: test this with an actual stack test.
 
 --------------------------------------------------------------------------------
-mortar.graphics = {stack={}}
-setmetatable(mortar.graphics, {
+bricks.graphics = {stack={}}
+setmetatable(bricks.graphics, {
     __index = function(table, key)
         if key:find("set") and love.graphics[key] then
 
             local getter = key:gsub("set", "get", 1)
             local currentValue = { love.graphics[getter]() }
-            local topLevel = mortar.graphics.stack[#mortar.graphics.stack]
+            local topLevel = bricks.graphics.stack[#bricks.graphics.stack]
             if not topLevel[getter] then
                 topLevel[getter] = currentValue
             end
@@ -1221,11 +1221,11 @@ setmetatable(mortar.graphics, {
 
         elseif key:find("get") and love.graphics[key] then
 
-            local i = #mortar.graphics.stack
-            local topLevel = mortar.graphics.stack[i]
+            local i = #bricks.graphics.stack
+            local topLevel = bricks.graphics.stack[i]
             while topLevel[key] == nil and i > 0 do
                 i = i - 1
-                topLevel = mortar.graphics.stack[i]
+                topLevel = bricks.graphics.stack[i]
             end
             return topLevel[key]
 
@@ -1240,15 +1240,15 @@ setmetatable(mortar.graphics, {
 })
 
 -- Pushing creates a new 'scope' on top of the stack.
-function mortar.graphics.push()
-    table.insert(mortar.graphics.stack, {})
+function bricks.graphics.push()
+    table.insert(bricks.graphics.stack, {})
 end
 
 -- Popping removed the top 'scope' from the stack, and uses its values (which
 -- are the previous values for that property) to set the love.graphics values
 -- to again.
-function mortar.graphics.pop()
-    local topLevel = table.remove(mortar.graphics.stack)
+function bricks.graphics.pop()
+    local topLevel = table.remove(bricks.graphics.stack)
     for key, value in pairs(topLevel) do
         local setter = key:gsub("get", "set", 1)
         love.graphics[setter](unpack(value))
@@ -1322,16 +1322,16 @@ local function default_group_constructor_for(ObjectClass)
 end
 
 -- Public methods for creation of elements.
-mortar.button     = default_constructor_for(Button)
-mortar.checkbox   = default_constructor_for(Checkbox)
-mortar.hidden     = default_constructor_for(Hidden)
-mortar.icon       = default_constructor_for(Icon)
-mortar.spinner    = default_constructor_for(Spinner)
-mortar.text       = default_constructor_for(Text)
-mortar.text_input = default_constructor_for(TextInput)
+bricks.button     = default_constructor_for(Button)
+bricks.checkbox   = default_constructor_for(Checkbox)
+bricks.hidden     = default_constructor_for(Hidden)
+bricks.icon       = default_constructor_for(Icon)
+bricks.spinner    = default_constructor_for(Spinner)
+bricks.text       = default_constructor_for(Text)
+bricks.text_input = default_constructor_for(TextInput)
 
-mortar.group      = default_group_constructor_for(Group)
-mortar.layout     = default_group_constructor_for(Layout)
+bricks.group      = default_group_constructor_for(Group)
+bricks.layout     = default_group_constructor_for(Layout)
 
 --------------------------------------------------------------------------------
 -- # Mortar.Style
@@ -1339,7 +1339,7 @@ mortar.layout     = default_group_constructor_for(Layout)
 -- 
 --------------------------------------------------------------------------------
 
-function mortar.style(object, styleRules)
+function bricks.style(object, styleRules)
     for selector, rules in pairs(styleRules) do
         local elements = object:find(selector)
         if elements then
@@ -1350,4 +1350,4 @@ function mortar.style(object, styleRules)
     end
 end
 
-return mortar
+return bricks
