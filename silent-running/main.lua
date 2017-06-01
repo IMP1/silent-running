@@ -116,7 +116,7 @@ function love.update(dt)
     end
     if lobby then
         lobby:update(dt, mx, my)
-        -- lobby:update(dt, mx, my)
+        mortar.update(dt)
     elseif role then
         role:update(dt)
     end
@@ -142,6 +142,7 @@ end
 function drawLobby()
     love.graphics.setColor(255, 255, 255)
     lobby:draw()
+    mortar.draw()
 end
 
 function drawDebug()
