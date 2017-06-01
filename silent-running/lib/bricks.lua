@@ -84,7 +84,7 @@ local helper = {
 }
 
 local default_style = {
-    common    = {
+    common = {
         backgroundColor = nil,
         borderColor     = nil,
         textColor       = {224, 224, 224},
@@ -92,7 +92,15 @@ local default_style = {
         margin          = {0, 0, 0, 0},
         padding         = {4, 4, 4, 4},
     },
-    button    = {
+    group = {
+        margin          = {0, 0, 0, 0},
+        padding         = {0, 0, 0, 0},
+    },
+    layout = {
+        margin          = {0, 0, 0, 0},
+        padding         = {0, 0, 0, 0},
+    },
+    button = {
         backgroundColorFocus  = {32, 32, 32},
         backgroundColorActive = {64, 64, 64},
         backgroundColor       = {32, 32, 32},
@@ -102,7 +110,7 @@ local default_style = {
         borderColorActive     = {192, 192, 192},
         padding               = {8, 8, 4, 4}
     },
-    checkbox  = {
+    checkbox = {
         borderColor           = {192, 192, 192},
         borderColorFocus      = {128, 128, 255},
         backgroundColor       = {32, 32, 32},
@@ -136,13 +144,14 @@ function Element.new(elementName, id, pos, options)
     local obj = {}
     obj._name = elementName
 
-    obj.id    = id
-    obj.pos   = pos or {"0", "0", "100", "100", "top", "left"}
-    obj.tags  = options.tags or {}
-    obj.hover = false
-    obj.focus = false
+    obj.id      = id
+    obj.pos     = pos or {"0", "0", "100", "100", "top", "left"}
+    obj.offset  = {0, 0}
+    obj.tags    = options.tags or {}
+    obj.hover   = false
+    obj.focus   = false
     obj.visible = options.visible
-    obj.style = options.style or {}
+    obj.style   = options.style or {}
     if default_style[elementName] then
         for k, v in pairs(default_style[elementName]) do
             if obj.style[k] == nil then
@@ -481,6 +490,16 @@ function Group:addElement(element)
     table.insert(self.elements, element)
 end
 
+function Group:removeElement(element)
+    for i = #self.elements, 1, -1 do
+        if self.elements[i] == element then
+            print("removing " .. tostring(self.elements[i]) .. " from " .. tostring(self))
+            table.remove(self.elements, i)
+            return
+        end
+    end
+end
+
 function Group:removeElements(selector)
     local elements = self:find(selector)
     self.elements = array.filter(self.elements, 
@@ -495,6 +514,9 @@ function Group:draw()
     end
     bricks.graphics.push()
     local x, y, w, h = unpack(self:getRelativeBounds())
+
+    x = x + self.offset[1]
+    y = y + self.offset[2]
     x = x + self.style.margin[1]
     y = y + self.style.margin[2]
     w = w - self.style.margin[1] - self.style.margin[3]

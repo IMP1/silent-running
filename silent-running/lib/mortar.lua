@@ -27,6 +27,80 @@ local mortar = {
     ]]
 }
 
+-- Transitions
+
+local Swipe = {}
+Swipe.__index = Swipe
+function Swipe:__tostring()
+    return "<Swipe:" .. (self.id or "") .. ">"
+end
+
+function Swipe.new(currentElement, nextElement, options)
+    local this = {}
+    setmetatable(this, Swipe)
+    this.x = 0
+    this.y = 0
+    this.currentElement = currentElement
+    this.nextElement = nextElement
+    this.currentElement.visible = false
+    this.nextElement.visible = false
+
+    this.targetX               = options.ox or 0
+    this.targetY               = options.oy or 0
+    local duration             = options.duration or 0.1
+
+    this.nextElement.offset[1] = -this.targetX
+    this.nextElement.offset[2] = -this.targetY
+
+    -- TODO: add easing function as an option
+
+    this.vx = this.targetX / duration
+    this.vy = this.targetY / duration
+
+    this.fadeOutSpeed          = options.fadeOutSpeed or 0
+    this.fadeInSpeed           = options.fadeInSpeed or 0
+    this.currentElementOpacity = options.currentElementOpacity or 255
+    this.nextElementOpacity    = options.nextElementOpacity or 255
+    this.onfinish              = options.onfinish or nil
+
+    this.finished = false
+    return this
+end
+
+function Swipe:update(dt)
+    if self.finished then return end
+    local dx = self.vx * dt
+    local dy = self.vy * dt
+    self.x = self.x + dx
+    self.y = self.y + dy
+    self.currentElement.offset[1] = self.currentElement.offset[1] + dx
+    self.currentElement.offset[2] = self.currentElement.offset[2] + dy
+    self.nextElement.offset[1] = self.nextElement.offset[1] + dx
+    self.nextElement.offset[2] = self.nextElement.offset[2] + dy
+    -- TODO: work out how opacity will be applied.
+    self.currentElementOpacity = self.currentElementOpacity - self.fadeOutSpeed * dt
+    self.nextElementOpacity    = self.nextElementOpacity    + self.fadeInSpeed  * dt
+
+    if math.abs(self.x) >= math.abs(self.targetX) and math.abs(self.y) >= math.abs(self.targetY) then
+        self.finished = true
+        self.nextElement.offset[1] = 0
+        self.currentElement.offset[1] = 0
+        self.nextElement.visible = true
+        self.currentElement.visible = true
+        if self.onfinish then
+            self.onfinish(self)
+        end
+    end
+end
+
+function Swipe:draw()
+    self.currentElement.visible = true
+    self.currentElement:draw()
+    self.currentElement.visible = false
+    self.nextElement.visible = true
+    self.nextElement:draw()
+    self.nextElement.visible = false
+end
 
 local function addIcons(bricks)
     local settings = {
@@ -80,18 +154,33 @@ local function addIcons(bricks)
     end
 end
 
-local Animation = {}
-Animation.__index = Animation
-
-function Animation.new()
-    local this = {}
-    setmetatable(this, Animation)
-    return this
-end
-
-
 function mortar.setup(bricks)
     addIcons(bricks)
+end
+
+local animations = {}
+
+function mortar.swipe(currentElement, nextElement, options)
+    return Swipe.new(currentElement, nextElement, options)
+end
+
+function mortar.animate(animation)
+    table.insert(animations, animation)
+end
+
+function mortar.update(dt)
+    for i = #animations, 1, -1 do
+        animations[i]:update(dt)
+        if animations[i].finished then
+            table.remove(animations, i)
+        end
+    end
+end
+
+function mortar.draw( ... )
+    for _, a in pairs(animations) do
+        a:draw()
+    end
 end
 
 return mortar
