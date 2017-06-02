@@ -188,8 +188,17 @@ function Server:update(dt)
     end
 
     local dx, dy = 0, 0
+    if love.keyboard.isDown("up") then
+        dy = dy - 128 * dt
+    end
     if love.keyboard.isDown("left") then
         dx = dx - 128 * dt
+    end
+    if love.keyboard.isDown("down") then
+        dy = dy + 128 * dt
+    end
+    if love.keyboard.isDown("right") then
+        dx = dx + 128 * dt
     end
     self.camera:move(dx, dy)
 end
