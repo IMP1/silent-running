@@ -255,6 +255,65 @@ function Element:layout()
     return top
 end
 
+function Element:findFirst(selectors)
+    if selectors == nil or selectors == "" then
+        return nil
+    end
+
+    local directDescendant = false
+    local i = selectors:find("%s") or #selectors + 1
+    local j = selectors:find("%S", i) or #selectors + 1
+    local s = selectors:sub(1, i - 1)
+    local nextSelectors = selectors:sub(j)
+    local final = #nextSelectors == 0
+
+    if s == ">" and final then
+        return nil
+    elseif s == ">" then
+        directDescendant = true
+        selectors = nextSelectors
+        i = selectors:find("%s") or #selectors + 1
+        j = selectors:find("%S", i) or #selectors + 1
+        s = selectors:sub(1, i - 1)
+        nextSelectors = selectors:sub(j)
+        final = #nextSelectors == 0
+    end
+    -- print("----")
+    -- print(self, "'" .. selectors .. "'")
+
+    local match = self:matches(s)
+    -- print(match)
+
+    if match and final then
+        return self
+    end
+
+    if not match and self.elements and not directDescendant then
+        -- print("checking children...")
+        for _, child in pairs(self.elements) do
+            local result = child:findFirst(selectors)
+            if result then
+                return result
+            end
+        end
+        return nil
+    end
+
+    if match and self.elements and not final then
+        -- print("continuing on...")
+        local matches = {}
+        for _, child in pairs(self.elements) do
+            local result = child:findFirst(nextSelectors)
+            if result then
+                return result
+            end
+        end
+        return matches
+    end
+
+    return nil
+end
+
 function Element:find(selectors)
     if selectors == nil or selectors == "" then
         return {}
