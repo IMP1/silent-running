@@ -27,44 +27,18 @@ layouts.title.main = bricks.layout({
         text = T"Welcome to Silent Running",
     }),
     bricks.group("options", {"0", "30", "100", "60", "top", "center"}, {
-        bricks.button({"35", "30", "30", 32}, {
-            onclick = function(self)
-                mortar.animate(mortar.swipe(layouts.title.main, layouts.title.server, {
-                    ox = -800,
-                    oy = 0,
-                    duration = 0.2,
-                    onfinish = function()
-                        lobby = layouts.title.server
-                    end
-                }))
-            end,
-            focusKey = { "s" }
-        }, {
+        bricks.button("server", {"35", "30", "30", 32}, {
             bricks.text({text = T"Start a Server"}),
         }),
         bricks.button("connect", {"35", "50", "30", 32}, {
-            onclick = function(self)
-                mortar.animate(mortar.swipe(layouts.title.main, layouts.title.client, {
-                    ox = -800,
-                    oy = 0,
-                    duration = 0.2,
-                    onfinish = function()
-                        lobby = layouts.title.client
-                    end
-                }))
-            end,
-        }, {
             bricks.text({text = T"Join a Server"}),
         }),
         bricks.button("settings", {"35", "70", "30", 32}, {
-            onclick = function(self)
-
-            end,
-        }, {
             bricks.text({text = T"Settings"}),
         }),
     }),
 })
+
 bricks.style(layouts.title.main, {
     ["text#title"] = {
         textColor = {0, 128, 128},
@@ -74,13 +48,34 @@ bricks.style(layouts.title.main, {
     }
 })
 
+layouts.title.main:findFirst("button#server").onclick = function(self)
+    mortar.animate(mortar.swipe(layouts.title.main, layouts.title.server, {
+        ox = -800,
+        oy = 0,
+        duration = 0.2,
+        onfinish = function()
+            lobby = layouts.title.server
+        end
+    }))
+end
+
+layouts.title.main:findFirst("button#connect").onclick = function(self)
+    mortar.animate(mortar.swipe(layouts.title.main, layouts.title.client, {
+        ox = -800,
+        oy = 0,
+        duration = 0.2,
+        onfinish = function()
+            lobby = layouts.title.client
+        end
+    }))
+end
 
 layouts.title.server = bricks.layout({
     bricks.text("title", {"0", "10", "100", "10", "top", "center"}, {
         text = T"Start a server.",
     }),
     bricks.group({
-        bricks.text_input("port", {"10", "50", "35", "10"}, {
+        bricks.text_input("port", {"30", "50", "40", 32}, {
             placeholder = T"Port",
             style = {
                 padding = { 8, 8, 8, 8 },
@@ -102,7 +97,7 @@ layouts.title.server = bricks.layout({
         }),
     }),
     bricks.group("actions", {
-        bricks.button({"55", "30", "30", "10"}, {
+        bricks.button("back", {"15", "70", "30", 32}, {
             onclick = function(self) 
                 mortar.animate(mortar.swipe(layouts.title.server, layouts.title.main, {
                     ox = 800,
@@ -117,7 +112,7 @@ layouts.title.server = bricks.layout({
         }, {
             bricks.text({text = T"Back"}),
         }),
-        bricks.button({"55", "50", "30", "10"}, {
+        bricks.button({"55", "70", "30", 32}, {
             onclick = function(self) startServer() end,
             focusKey = { "s" }
         }, {
@@ -131,7 +126,7 @@ layouts.title.client = bricks.layout({
         text = T"Join a server.",
     }),
     bricks.group({
-        bricks.text_input("ipAddress", {"10", "50", "35", "10"}, {
+        bricks.text_input("ipAddress", {"30", "40", "40", 32}, {
             placeholder = T"IP Address",
             style = {
                 padding = { 8, 8, 8, 8 },
@@ -154,7 +149,7 @@ layouts.title.client = bricks.layout({
                 },
             },
         }),
-        bricks.text_input("port", {"10", "50", "35", "10"}, {
+        bricks.text_input("port", {"30", "50", "40", 32}, {
             placeholder = T"Port",
             style = {
                 padding = { 8, 8, 8, 8 },
@@ -176,7 +171,7 @@ layouts.title.client = bricks.layout({
         }),
     }),
     bricks.group("actions", {
-        bricks.button("back", {"55", "30", "30", "10"}, {
+        bricks.button("back", {"15", "70", "30", 32}, {
             onclick = function(self) 
                 mortar.animate(mortar.swipe(layouts.title.client, layouts.title.main, {
                     ox = 800,
@@ -191,7 +186,7 @@ layouts.title.client = bricks.layout({
         }, {
             bricks.text({text = T"Back"}),
         }),
-        bricks.button("connect", {"55", "50", "30", "10"}, {
+        bricks.button("connect", {"55", "70", "30", 32}, {
             onclick = function(self)
                 local input = self:layout():elementWithId("ipAddress")
                 input:validate(true)
@@ -204,7 +199,7 @@ layouts.title.client = bricks.layout({
         }, {
             bricks.text({text = T"Join a Server"}),
         }),
-        bricks.spinner("connectionSpinner", {"90", "50", 32, 32}, {
+        bricks.spinner("connectionSpinner", {"50", "80", 32, 32}, {
             visible = false,
         })
     })
