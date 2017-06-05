@@ -28,12 +28,18 @@ layouts.title.main = bricks.layout({
     }),
     bricks.group("options", {"0", "30", "100", "60", "top", "center"}, {
         bricks.button("server", {"35", "30", "30", 32}, {
+            focusKeys = { "s" }
+        }, {
             bricks.text({text = T"Start a Server"}),
         }),
         bricks.button("connect", {"35", "50", "30", 32}, {
+            focusKeys = { "j" }
+        }, {
             bricks.text({text = T"Join a Server"}),
         }),
         bricks.button("settings", {"35", "70", "30", 32}, {
+            focusKeys = { "o" }
+        }, {
             bricks.text({text = T"Settings"}),
         }),
     }),
@@ -108,13 +114,13 @@ layouts.title.server = bricks.layout({
                     end
                 })
             end,
-            focusKey = { "escape" }
+            focusKeys = { "escape" }
         }, {
             bricks.text({text = T"Back"}),
         }),
         bricks.button({"55", "70", "30", 32}, {
             onclick = function(self) startServer() end,
-            focusKey = { "s" }
+            focusKeys = { "s" }
         }, {
             bricks.text({text = T"Start Server"}),
         }),
@@ -182,7 +188,7 @@ layouts.title.client = bricks.layout({
                     end
                 })
             end,
-            focusKey = { "escape" }
+            focusKeys = { "escape" }
         }, {
             bricks.text({text = T"Back"}),
         }),

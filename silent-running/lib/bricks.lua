@@ -401,6 +401,18 @@ function Element:matches(selector)
     return true
 end
 
+function Element:select()
+    local elementsToUnfocus = self:layout():elementsWith(function(e) 
+        return e.focus 
+    end)
+
+    for _, e in pairs(elementsToUnfocus) do
+        e.focus = false
+    end
+
+    self.focus = true
+end
+
 --------------------------------------------------------------------------------
 -- # Group
 --------------
@@ -471,7 +483,7 @@ function Group:selectNextElement(current, takeNext)
     for _, e in pairs(self.elements) do
         if takeNext and not e.cannotTarget then 
             helper.lastFocussedElement = e
-            e.focus = true
+            e:select()
             return e
         end
         if e.selectNextElement then
@@ -495,7 +507,7 @@ function Group:selectPreviousElement(current, previous)
         if e == current then
             e.focus = false
             if previous then 
-                previous.focus = true 
+                previous:select()
                 helper.lastFocussedElement = previous
             end
             return previous
@@ -506,7 +518,7 @@ function Group:selectPreviousElement(current, previous)
     if current == nil then
         if previous and not previous.cannotTarget then 
             helper.lastFocussedElement = previous
-            previous.focus = true 
+            previous:select()
         end
     end
     return previous
@@ -635,10 +647,11 @@ function Button.new(id, position, options)
     for _, e in pairs(this.elements) do
         e.parent = this
     end
-    this.onclick = options.onclick or nil
-    this.hover   = false
-    this.focus   = false
-    this.active  = false
+    this.onclick   = options.onclick or nil
+    this.hover     = false
+    this.focusKeys = options.focusKeys or {}
+    this.focus     = false
+    this.active    = false
     this.cannotTarget = false
     return this
 end
@@ -653,23 +666,35 @@ end
 
 function Button:keypressed(key, isRepeat)
     if self.focus and key == "space" then
-        self.active = true
-        self:onclick()
+        self:fire()
     end
-    if not self.focus and self.focusKeys and key == self.focusKeys.key then
-        self.focus = true
+    if not self.focus and self.focusKeys and key == self.focusKeys[1] then
+        self.select()
         helper.lastFocussedElement = self
     end
 end
 
 function Button:mousepressed(mx, my, key)
     self.active = self:isMouseOver(mx, my)
-    self.focus  = self:isMouseOver(mx, my)
+    if self:isMouseOver(mx, my) then
+        self:select()
+    else
+        self.focus = false
+    end
     if self.focus then helper.lastFocussedElement = self end
 end
 
 function Button:mousereleased(mx, my, key)
-    if self:isActive() and key == 1 and self.onclick then
+    print(self:isActive())
+    if self:isActive() and key == 1 then
+        self:fire()
+    end
+    self.active = false
+end
+
+function Button:fire()
+    self.active = true
+    if self.onclick then
         self:onclick()
     end
     self.active = false
@@ -771,7 +796,7 @@ end
 function Checkbox:mousereleased(mx, my, key)
     if self:isMouseOver(mx, my) then
         self:toggle()
-        self.focus = true
+        self:select()
         helper.lastFocussedElement = self
     end
 end
@@ -871,16 +896,6 @@ end
 
 function Layout:mousereleased(mx, my, key)
     Group.mousereleased(self, mx, my, key)
-    if helper.lastFocussedElement then
-        local elementsToUnfocus = self:elementsWith(function(e, focussedElement) 
-            return e.focus and e ~= focussedElement 
-        end, helper.lastFocussedElement)
-        for _, e in pairs(elementsToUnfocus) do
-            e.focus = false
-        end
-        helper.lastFocussedElement.focus = true
-        helper.lastFocussedElement = nil
-    end
 end
 
 
