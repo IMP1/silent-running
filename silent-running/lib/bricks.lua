@@ -79,10 +79,6 @@ local bricks = {
 
 ]]
 
-local helper = {
-    lastFocussedElement = nil
-}
-
 local default_style = {
     common = {
         backgroundColor = nil,
@@ -407,10 +403,14 @@ function Element:select()
     end)
 
     for _, e in pairs(elementsToUnfocus) do
-        e.focus = false
+        e:deselect()
     end
 
     self.focus = true
+end
+
+function Element:deselect()
+    self.focus = false
 end
 
 --------------------------------------------------------------------------------
@@ -482,7 +482,6 @@ function Group:selectNextElement(current, takeNext)
     if current == nil then takeNext = true end
     for _, e in pairs(self.elements) do
         if takeNext and not e.cannotTarget then 
-            helper.lastFocussedElement = e
             e:select()
             return e
         end
@@ -492,7 +491,7 @@ function Group:selectNextElement(current, takeNext)
             if finished then return finished end
         end
         if not takeNext and e == current then
-            e.focus = false
+            e:deselect()
             takeNext = true
         end
     end
@@ -503,23 +502,22 @@ function Group:selectPreviousElement(current, previous)
     for _, e in pairs(self.elements) do
         if e.selectPreviousElement then
             previous = e:selectPreviousElement(current, previous)
+            if previous then
+                previous:deselect()
+            end
         end
         if e == current then
-            e.focus = false
+            e:deselect()
             if previous then 
                 previous:select()
-                helper.lastFocussedElement = previous
             end
             return previous
         elseif not e.cannotTarget then
             previous = e
         end
     end
-    if current == nil then
-        if previous and not previous.cannotTarget then 
-            helper.lastFocussedElement = previous
-            previous:select()
-        end
+    if previous and not previous.cannotTarget then 
+        previous:select()
     end
     return previous
 end
@@ -670,7 +668,6 @@ function Button:keypressed(key, isRepeat)
     end
     if not self.focus and self.focusKeys and key == self.focusKeys[1] then
         self.select()
-        helper.lastFocussedElement = self
     end
 end
 
@@ -679,13 +676,11 @@ function Button:mousepressed(mx, my, key)
     if self:isMouseOver(mx, my) then
         self:select()
     else
-        self.focus = false
+        self:deselect()
     end
-    if self.focus then helper.lastFocussedElement = self end
 end
 
 function Button:mousereleased(mx, my, key)
-    print(self:isActive())
     if self:isActive() and key == 1 then
         self:fire()
     end
@@ -698,6 +693,7 @@ function Button:fire()
         self:onclick()
     end
     self.active = false
+    self:deselect()
 end
 
 function Button:draw()
@@ -797,7 +793,6 @@ function Checkbox:mousereleased(mx, my, key)
     if self:isMouseOver(mx, my) then
         self:toggle()
         self:select()
-        helper.lastFocussedElement = self
     end
 end
 
@@ -1111,8 +1106,11 @@ function TextInput:update(dt, mx, my)
 end
 
 function TextInput:mousereleased(mx, my, key)
-    self.focus = self:isMouseOver(mx, my)
-    if self.focus then helper.lastFocussedElement = self end
+    if self:isMouseOver(mx, my) then
+        self:select()
+    else
+        self:deselect()
+    end
 end
 
 function TextInput:keypressed(key, isRepeat)

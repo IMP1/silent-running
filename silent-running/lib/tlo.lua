@@ -95,7 +95,6 @@ end
 function tlo.setLanguage(languageCode)
     local path = languageFilesPath .. "/" .. languageCode
     local exists = love.filesystem.exists(path)
-    print(love.filesystem.getSaveDirectory())
     if exists then
         lookupTable = love.filesystem.load(path)()
     else
