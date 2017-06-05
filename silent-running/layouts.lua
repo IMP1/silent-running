@@ -49,25 +49,25 @@ bricks.style(layouts.title.main, {
 })
 
 layouts.title.main:findFirst("button#server").onclick = function(self)
-    mortar.animate(mortar.swipe(layouts.title.main, layouts.title.server, {
+    mortar.swipe(layouts.title.main, layouts.title.server, {
         ox = -800,
         oy = 0,
         duration = 0.2,
         onfinish = function()
             lobby = layouts.title.server
         end
-    }))
+    })
 end
 
 layouts.title.main:findFirst("button#connect").onclick = function(self)
-    mortar.animate(mortar.swipe(layouts.title.main, layouts.title.client, {
+    mortar.swipe(layouts.title.main, layouts.title.client, {
         ox = -800,
         oy = 0,
         duration = 0.2,
         onfinish = function()
             lobby = layouts.title.client
         end
-    }))
+    })
 end
 
 layouts.title.server = bricks.layout({
@@ -99,14 +99,14 @@ layouts.title.server = bricks.layout({
     bricks.group("actions", {
         bricks.button("back", {"15", "70", "30", 32}, {
             onclick = function(self) 
-                mortar.animate(mortar.swipe(layouts.title.server, layouts.title.main, {
+                mortar.swipe(layouts.title.server, layouts.title.main, {
                     ox = 800,
                     oy = 0,
                     duration = 0.2,
                     onfinish = function()
                         lobby = layouts.title.main
                     end
-                }))
+                })
             end,
             focusKey = { "escape" }
         }, {
@@ -173,14 +173,14 @@ layouts.title.client = bricks.layout({
     bricks.group("actions", {
         bricks.button("back", {"15", "70", "30", 32}, {
             onclick = function(self) 
-                mortar.animate(mortar.swipe(layouts.title.client, layouts.title.main, {
+                mortar.swipe(layouts.title.client, layouts.title.main, {
                     ox = 800,
                     oy = 0,
                     duration = 0.2,
                     onfinish = function()
                         lobby = layouts.title.main
                     end
-                }))
+                })
             end,
             focusKey = { "escape" }
         }, {
