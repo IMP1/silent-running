@@ -146,7 +146,6 @@ function Element.new(elementName, id, pos, options)
 
     obj.id      = id
     obj.pos     = pos or {"0", "0", "100", "100", "top", "left"}
-    obj.offset  = {0, 0}
     obj.tags    = options.tags or {}
     obj.hover   = false
     obj.focus   = false
@@ -470,20 +469,22 @@ end
 function Group:selectNextElement(current, takeNext)
     if current == nil then takeNext = true end
     for _, e in pairs(self.elements) do
-        if e.selectNextElement then
-            local finished = e:selectNextElement(current, takeNext)
-            if finished then return finished end
-        end
         if takeNext and not e.cannotTarget then 
+            helper.lastFocussedElement = e
             e.focus = true
             return e
         end
-        if e == current then
+        if e.selectNextElement then
+            local finished
+            finished, takeNext = e:selectNextElement(current, takeNext)
+            if finished then return finished end
+        end
+        if not takeNext and e == current then
             e.focus = false
             takeNext = true
         end
     end
-    return nil
+    return nil, takeNext
 end
 
 function Group:selectPreviousElement(current, previous)
@@ -493,7 +494,10 @@ function Group:selectPreviousElement(current, previous)
         end
         if e == current then
             e.focus = false
-            if previous then previous.focus = true end
+            if previous then 
+                previous.focus = true 
+                helper.lastFocussedElement = previous
+            end
             return previous
         elseif not e.cannotTarget then
             previous = e
@@ -501,6 +505,7 @@ function Group:selectPreviousElement(current, previous)
     end
     if current == nil then
         if previous and not previous.cannotTarget then 
+            helper.lastFocussedElement = previous
             previous.focus = true 
         end
     end
@@ -574,8 +579,6 @@ function Group:draw()
     bricks.graphics.push()
     local x, y, w, h = unpack(self:getRelativeBounds())
 
-    x = x + self.offset[1]
-    y = y + self.offset[2]
     x = x + self.style.margin[1]
     y = y + self.style.margin[2]
     w = w - self.style.margin[1] - self.style.margin[3]
@@ -636,6 +639,7 @@ function Button.new(id, position, options)
     this.hover   = false
     this.focus   = false
     this.active  = false
+    this.cannotTarget = false
     return this
 end
 
