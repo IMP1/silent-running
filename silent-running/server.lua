@@ -13,7 +13,6 @@ local Ping           = require 'ping'
 local Noise          = require 'noise'
 local Torpedo        = require 'torpedo'
 local Camera         = require 'camera'
-local Layouts        = require 'layouts'
 
 --------------------------------------------------------------------------------
 -- # Server

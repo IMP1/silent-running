@@ -20,8 +20,6 @@ require 'helpers.coroutine'
 local bitser = require 'lib.bitser'
 local sock   = require 'lib.sock'
 local tlo    = require 'lib.tlo'
-tlo.setLanguagesFolder("lang")
-tlo.setLanguage("en-UK")
 
 ---------------
 -- Constants --
@@ -34,10 +32,11 @@ T = tlo.localise
 -------------
 Server         = require 'server'
 Client         = require 'client'
-local Layouts  = require 'layouts'
-local Log      = require 'log'
+-- local Layouts  = require 'layouts'
+Log      = require 'log'
 
 function love.load(args)
+    applySettings()
     log = Log.new()
     if args[2] == "server" then
         role = Server.new()
@@ -50,8 +49,29 @@ function love.load(args)
     end
 end
 
+function applySettings()
+    tlo.setLanguagesFolder("lang")
+
+    local settings = love.filesystem.load(".settings")()
+    if settings.graphics then
+        local width  = settings.graphics.resolution[1] or 800
+        local height = settings.graphics.resolution[2] or 600
+        local flags = {}
+        flags.vsync = settings.graphics.vsync == 1
+        local fullscreen = settings.graphics.fullscreen or 0
+        flags.fullscreen = fullscreen > 0
+        flags.fullscreentype = ({"desktop", "exclusive"})[fullscreen]
+        love.window.setMode(width, height, flags)
+    end
+    
+    if settings.language then
+        tlo.setLanguage("en-UK")
+    end
+end
+
 function setupLobby()
-    lobby = Layouts.title.main
+    local layouts  = love.filesystem.load('layouts.lua')()
+    lobby = layouts.title.main
 end
 
 function startServer()
