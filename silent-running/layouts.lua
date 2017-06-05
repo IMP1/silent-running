@@ -45,15 +45,6 @@ layouts.title.main = bricks.layout({
     }),
 })
 
-bricks.style(layouts.title.main, {
-    ["text#title"] = {
-        textColor = {0, 128, 128},
-    },
-    ["button"] = {
-        backgroundColor = {0, 32, 32},
-    }
-})
-
 layouts.title.main:findFirst("button#server").onclick = function(self)
     mortar.swipe(layouts.title.main, layouts.title.server, {
         ox = -800,
@@ -210,6 +201,17 @@ layouts.title.client = bricks.layout({
         })
     })
 })
+
+for _, l in pairs(layouts.title) do
+    bricks.style(l, {
+        ["text#title"] = {
+            textColor = {0, 128, 128},
+        },
+        ["button"] = {
+            backgroundColor = {0, 32, 32},
+        }
+    })
+end
 
 layouts.server = {}
 layouts.server.info = bricks.layout({2, 2, "40", "20"}, {
