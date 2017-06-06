@@ -275,14 +275,14 @@ local function drawCheckbox(self)
     love.graphics.print(self.text(), x + 24, y)
 end
 
-layouts.server.commands = bricks.layout({2, -142, 152, 140}, {
+layouts.server.commands = bricks.layout({2, -170, 152, 168}, {
     style = { 
             padding = { 2, 2, 2, 2 },
             backgroundColor = {0, 0, 0},
             borderColor = {255, 255, 255},
     }
 }, {
-    bricks.checkbox({"0", "0", "100", 16}, {
+    bricks.checkbox({"0", 0, "100", 16}, {
         width  = 16,
         height = 16,
         text = T"Show server info",
@@ -294,7 +294,7 @@ layouts.server.commands = bricks.layout({2, -142, 152, 140}, {
             customDraw = drawCheckbox
         }
     }),
-    bricks.checkbox({"0", "14", "100", 16}, {
+    bricks.checkbox({"0", 24, "100", 16}, {
         width  = 16,
         height = 16,
         text = T"Show map",
@@ -306,7 +306,7 @@ layouts.server.commands = bricks.layout({2, -142, 152, 140}, {
             customDraw = drawCheckbox
         }
     }),
-    bricks.checkbox({"0", "28", "100", 16}, {
+    bricks.checkbox({"0", 48, "100", 16}, {
         width  = 16,
         height = 16,
         text = T"Show map objects",
@@ -318,7 +318,7 @@ layouts.server.commands = bricks.layout({2, -142, 152, 140}, {
             customDraw = drawCheckbox
         }
     }),
-    bricks.checkbox({"0", "42", "100", 16}, {
+    bricks.checkbox({"0", 72, "100", 16}, {
         width  = 16,
         height = 16,
         text = T"Show game objects",
@@ -330,7 +330,7 @@ layouts.server.commands = bricks.layout({2, -142, 152, 140}, {
             customDraw = drawCheckbox
         }
     }),
-    bricks.checkbox({"0", "56", "100", 16}, {
+    bricks.checkbox({"0", 96, "100", 16}, {
         width  = 16,
         height = 16,
         text = T"Show player info",
@@ -342,7 +342,7 @@ layouts.server.commands = bricks.layout({2, -142, 152, 140}, {
             customDraw = drawCheckbox
         }
     }),
-    bricks.checkbox({"0", "70", "100", 16}, {
+    bricks.checkbox({"0", 120, "100", 16}, {
         width  = 16,
         height = 16,
         text = T"Show log",
@@ -354,12 +354,11 @@ layouts.server.commands = bricks.layout({2, -142, 152, 140}, {
             customDraw = drawCheckbox
         }
     }),
-    bricks.checkbox({"0", "84", "100", 16}, {
+    bricks.checkbox({"0", 144, "100", 16}, {
         width  = 16,
         height = 16,
         text = T"Show commands",
         onchange = function() 
-            DEBUG.showCommands = false
             role:hideCommands()
             return true -- cancel the normal checkbox behaviour.
         end,
@@ -370,7 +369,7 @@ layouts.server.commands = bricks.layout({2, -142, 152, 140}, {
     }),
 })
 
-layouts.server.commandsHidden = bricks.layout({2, -22, 136, 20}, {
+layouts.server.commandsHidden = bricks.layout({2, -26, 136, 24}, {
     style = {
         padding = { 2, 2, 2, 2 },
         backgroundColor = {0, 0, 0},
