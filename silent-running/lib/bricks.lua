@@ -124,6 +124,8 @@ local default_style = {
     },
 }
 
+local selectedElement = nil
+
 --------------------------------------------------------------------------------
 -- # Element
 --------------
@@ -398,15 +400,12 @@ function Element:matches(selector)
 end
 
 function Element:select()
-    local elementsToUnfocus = self:layout():elementsWith(function(e) 
-        return e.focus 
-    end)
-
-    for _, e in pairs(elementsToUnfocus) do
-        e:deselect()
+    if selectedElement then
+        selectedElement:deselect()
     end
 
     self.focus = true
+    selectedElement = self
 end
 
 function Element:deselect()
@@ -502,9 +501,6 @@ function Group:selectPreviousElement(current, previous)
     for _, e in pairs(self.elements) do
         if e.selectPreviousElement then
             previous = e:selectPreviousElement(current, previous)
-            if previous then
-                previous:deselect()
-            end
         end
         if e == current then
             e:deselect()
@@ -667,7 +663,7 @@ function Button:keypressed(key, isRepeat)
         self:fire()
     end
     if not self.focus and self.focusKeys and key == self.focusKeys[1] then
-        self.select()
+        self:select()
     end
 end
 
