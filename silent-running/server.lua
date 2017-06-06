@@ -32,6 +32,7 @@ function Server.new()
 end
 
 function Server:start()
+    self.layouts = love.filesystem.load("layouts.lua")().server
     self.server = sock.newServer("*", PORT)
     self.server:setSerialization(bitser.dumps, bitser.loads)
     self.playerCount = 0
@@ -40,7 +41,7 @@ function Server:start()
     self.activePings = {}
     self.level = LevelGenerator.generate(640, 640, 1649)
     self.camera = Camera.new()
-    self.info = Layouts.server.info
+    self.info = self.layouts.info
     self:showCommands()
     
     self.server:on("connect", function(data, client)
@@ -139,12 +140,12 @@ end
 
 function Server:hideCommands()
     DEBUG.showCommands = false
-    self.commands = Layouts.server.commandsHidden
+    self.commands = self.layouts.commandsHidden
 end
 
 function Server:showCommands()
     DEBUG.showCommands = true
-    self.commands = Layouts.server.commands
+    self.commands = self.layouts.commands
 end
 
 function Server:keypressed(key, isRepeat)

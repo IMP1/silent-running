@@ -70,8 +70,8 @@ function applySettings()
 end
 
 function setupLobby()
-    local layouts  = love.filesystem.load('layouts.lua')()
-    lobby = layouts.title.main
+    local layouts  = love.filesystem.load('layouts.lua')().title
+    lobby = layouts.main
 end
 
 function startServer()
