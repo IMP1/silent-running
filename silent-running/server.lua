@@ -149,7 +149,6 @@ function Server:showCommands()
 end
 
 function Server:keypressed(key, isRepeat)
-    self.info:keypressed(key, isRepeat)
     self.commands:keypressed(key, isRepeat)
     if DEBUG and key == "`" then
         DEBUG.showCommands = not DEBUG.showCommands
@@ -157,12 +156,10 @@ function Server:keypressed(key, isRepeat)
 end
 
 function Server:mousepressed(mx, my, key)
-    self.info:mousepressed(mx, my, key)
     self.commands:mousepressed(mx, my, key)
 end
 
 function Server:mousereleased(mx, my, key)
-    self.info:mousereleased(mx, my, key)
     self.commands:mousereleased(mx, my, key)
 end
 
@@ -171,7 +168,6 @@ function Server:update(dt)
 
     self.server:update()
 
-    self.info:update(dt, mx, my)
     self.commands:update(dt, mx, my)
 
     for i = #self.activePings, 1, -1 do
@@ -209,7 +205,6 @@ function Server:draw()
     if self.camera then
         self.camera:set()
     end
-    -- TODO: test camera
 
     if self.level and DEBUG.showMap then
         love.graphics.setColor(128, 255, 255, 128)
