@@ -49,7 +49,30 @@ function love.load(args)
     end
 end
 
+function createDefaultSettings()
+    file = love.filesystem.newFile(".settings")
+    file:open('w')
+    file:write("return {")
+    file:write("    graphics = {")
+    file:write("        resolution = { 960, 640 },")
+    file:write("        vsync = true,")
+    file:write("        fullscreen = 0,")
+    file:write("    },")
+    file:write("    language = \"en-UK\",")
+    file:write("}")
+    file:close()
+    
+    love.filesystem.createDirectory("lang")
+    defaultLanguageFile = love.filesystem.newFile("lang/en-UK")
+    defaultLanguageFile:open("w")
+    defaultLanguageFile:write("return {}")
+    defaultLanguageFile:close()
+end
+
 function applySettings()
+    if not love.filesystem.exists(".settings") then
+        createDefaultSettings()
+    end
     tlo.setLanguagesFolder("lang")
 
     local settings = love.filesystem.load(".settings")()
