@@ -165,11 +165,98 @@ local function addIcons(bricks)
     end
 end
 
-function mortar.setup(bricks)
-    addIcons(bricks)
+local function addFlashes(bricks, animations)
+
+    --------------------------------------------------------------------------------
+    -- # Flash
+    --------------
+    -- A textual element that fades out after a certain time.
+    --------------------------------------------------------------------------------
+    local Flash = {}
+    setmetatable(Flash, bricks._classes.Element_mt)
+    Flash.__index = Flash
+    function Flash:__tostring()
+        return "<Flash" .. (self.id or "") .. ">"
+    end
+
+    function Flash.new(id, position, options)
+        local this = bricks._classes.Element.new("flash", id, position, options)
+        setmetatable(this, Flash)
+        if options.text == nil then
+            this.text = function () return "" end
+        elseif type(options.text) == "string" then
+            this.text = function() return options.text end
+        elseif type(options.text) == "function" then
+            this.text = options.text
+        else
+            error("[Mortar] Invalid text value: '" .. tostring(options.text) .. "' for Text.")
+        end
+        this.cannotTarget    = true
+        this.fadeInDuration  = options.fadeIn   or 0
+        this.duration        = options.duration or 1
+        this.fadeOutDuration = options.fadeOut  or 0.2
+        this.timer           = 0
+        this.opacity         = 0
+        this.finished        = false
+        return this
+    end
+
+    function Flash:update(dt, mx, my)
+        if self.finished then return end
+        self.timer = self.timer + dt
+        if self.timer < self.fadeInDuration then
+            local fadeIn = self.timer / self.fadeInDuration
+            self.opacity = 255 * fadeIn
+        elseif self.timer < self.fadeInDuration + self.duration then
+            self.opacity = 255
+        elseif self.timer < self.fadeInDuration + self.duration + self.fadeOutDuration then
+            local fadeOut = (self.timer - self.fadeInDuration - self.duration) / self.fadeOutDuration
+            self.opacity = 255 * (1 - fadeOut)
+        else
+            self.finished = true
+        end
+    end
+
+    function Flash:draw()
+        if self.finished then return end
+        if self.style.customDraw then 
+            self.style.customDraw(self)
+            return
+        end
+        if not self.visible then
+            return
+        end
+        bricks.graphics.push()
+        if self.style.font then
+            bricks.graphics.setFont(self.style.font)
+        end
+        if self.style.textColor then
+            local r, g, b, a = unpack(self.style.textColor)
+            a = (a or 255) * self.opacity / 255
+            bricks.graphics.setColor(r, g, b, a)
+        end
+        local x, y, w, h = unpack(self:getRelativeBounds())
+        local align = self.pos[6]
+        love.graphics.printf(self.text(), x, y, w, align)
+        bricks.graphics.pop()
+    end
+
+    bricks.flash = bricks._functions.default_constructor_for(Flash)
+    bricks._classes.Flash = Flash
+
+    mortar.flash = function(text, options)
+        options = options or {}
+        options.text = text
+        table.insert(animations, Flash.new(options.id, nil, options))
+    end
 end
 
 local animations = {}
+
+function mortar.setup(bricks)
+    addIcons(bricks)
+    addFlashes(bricks, animations)
+end
 
 function mortar.swipe(currentElement, nextElement, options)
     table.insert(animations, Swipe.new(currentElement, nextElement, options))

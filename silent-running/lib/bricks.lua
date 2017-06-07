@@ -1047,12 +1047,16 @@ function TextInput.new(id, position, options)
     setmetatable(this, TextInput)
     this.placeholder    = options.placeholder or ""
     this.pattern        = options.pattern or nil
-    this.text           = options.text or {}
+    local initialText   = {}
+    if options.text then
+        options.text:gsub(".",function(c) 
+            table.insert(initialText,c) 
+        end)
+    end
+    this.text           = initialText
     this.index          = #this.text
     this.validation     = options.validation or {}
-    if array.any(this.validation, function(v) return v.element end) then
-        this.elements = array.filtermap(this.validation, function(v) return v.element end)
-    end
+    this.oninvalid      = options.oninvalid or nil
     this.focus          = false
     this.flashSpeed     = 0.5
     this.flashTimer     = 0
@@ -1076,12 +1080,18 @@ function TextInput:validate(force)
         if check.custom then
             if not check.custom(self, text) then
                 self.valid = false
+                if check.oninvalid then
+                    check.oninvalid(self)
+                end
                 -- TODO: show validation message element
                 return
             end
         elseif check.pattern then
             if text:match(check.pattern) ~= text then
                 self.valid = false
+                if check.oninvalid then
+                    check.oninvalid(self)
+                end
                 -- TODO: show validation message element
                 return
             end
@@ -1311,9 +1321,9 @@ local function default_constructor_for(ObjectClass)
         else
             local errorString = "[Mortar] Invalid parameters:\n"
             errorString = errorString .. "Attempted to create a " .. tostring(ObjectClass)
-            errorString = errorString .. " with " .. tostring(#params) .. "parameters\n"
+            errorString = errorString .. " with " .. tostring(#params) .. " parameters\n"
             for k, v in pairs(params) do
-                errorString = errorString .. "\t" .. v .. ",\n"
+                errorString = errorString .. "\t" .. tostring(v) .. ",\n"
             end
             error(errorString)
         end
