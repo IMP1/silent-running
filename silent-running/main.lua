@@ -24,7 +24,7 @@ local tlo    = require 'lib.tlo'
 ---------------
 -- Constants --
 ---------------
-PORT = 22122
+DEFAULT_PORT = 22122
 T = tlo.localise
 
 -------------
@@ -75,15 +75,28 @@ function setupLobby()
 end
 
 function startServer()
-    local server = Server.new()
-    role = server
-    lobby = nil
+    local input = lobby:elementWithId("port")
+    input:validate(true)
+    if input.valid then
+        local port = tonumber(input:value())
+        local server = Server.new(port)
+        role = server
+        lobby = nil
+    end
 end
 
 function attemptConnection(address)
-    lobby:elementWithId("connectionSpinner").visible = true
-    client = Client.new("localhost")
-    connecting = true
+    local input1 = lobby:elementWithId("ipAddress")
+    local input2 = lobby:elementWithId("port")
+    input1:validate(true)
+    input2:validate(true)
+    if input1.valid and input2.valid then
+        local address = input1:value()
+        local port = tonumber(input2:value())
+        lobby:elementWithId("connectionSpinner").visible = true
+        client = Client.new(address, port)
+        connecting = true
+    end
 end
 
 function connectionAchieved()

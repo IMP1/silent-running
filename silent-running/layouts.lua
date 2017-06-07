@@ -77,6 +77,7 @@ layouts.title.server = bricks.layout({
             style = {
                 padding = { 8, 8, 8, 8 },
             },
+            text = tostring(DEFAULT_PORT),
             validation = {
                 {
                     pattern = ".+",
@@ -128,29 +129,39 @@ layouts.title.client = bricks.layout({
             style = {
                 padding = { 8, 8, 8, 8 },
             },
+            text = "localhost",
             validation = {
                 {
                     pattern = ".+",
-                    element = bricks.text({
-                        text = T"IP Address cannot be empty.",
-                    })
+                    oninvalid = function(self)
+                        -- self:layout():elementWithId("errorMessageIpAddressEmpty").visible = true
+                        mortar.flash(T"An IP Address cannot be empty.")
+                    end,
                 },
                 {
                     custom = function(self, value)
                         if value:match("localhost") == value then return true end
                         return not value:find("[^%d%.]")
                     end,
-                    element = bricks.text({
-                        text = T"IP Address cannot contain any characters other than numbers and full stops.",
-                    })
                 },
             },
+        }),
+        bricks.text("errorMessageIpAddressEmpty", {"32", "46", "40", 16}, {
+            text = T"An IP Address cannot be empty.",
+            visible = false,
+            tags = {"error"},
+        }),
+        bricks.text("errorMessageIpAddressBad", {"32", "46", "40", 16}, {
+            text = T"The format of the IP Address was incorrect.",
+            visible = false,
+            tags = {"error"},
         }),
         bricks.text_input("port", {"30", "50", "40", 32}, {
             placeholder = T"Port",
             style = {
                 padding = { 8, 8, 8, 8 },
             },
+            text = tostring(DEFAULT_PORT),
             validation = {
                 {
                     pattern = ".+",
@@ -209,7 +220,10 @@ for _, l in pairs(layouts.title) do
         },
         ["button"] = {
             backgroundColor = {0, 32, 32},
-        }
+        },
+        [".error"] = {
+            textColor = {192, 64, 64},
+        },
     })
 end
 

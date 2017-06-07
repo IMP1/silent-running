@@ -24,16 +24,17 @@ local Camera         = require 'camera'
 local Server = {}
 Server.__index = Server
 
-function Server.new()
+function Server.new(port)
     local this = {}
     setmetatable(this, Server)
+    this.port = port or DEFAULT_PORT
     this:start()
     return this
 end
 
 function Server:start()
     self.layouts = love.filesystem.load("layouts.lua")().server
-    self.server = sock.newServer("*", PORT)
+    self.server = sock.newServer("*", self.port)
     self.server:setSerialization(bitser.dumps, bitser.loads)
     self.playerCount = 0
     self.players = {}

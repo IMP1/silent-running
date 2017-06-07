@@ -23,10 +23,10 @@ local Screen         = require 'screen'
 local Client = {}
 Client.__index = Client
 
-function Client.new(address)
+function Client.new(address, port)
     local this = {}
     setmetatable(this, Client)
-    this.client = sock.newClient(address, PORT)
+    this.client = sock.newClient(address, port or DEFAULT_PORT)
     this:start()
     return this
 end
@@ -241,7 +241,7 @@ function Client:draw()
         love.graphics.print("`  : toggle commands",    0, love.graphics.getHeight() - 24 * 7)
     end
 
-    love.graphics.print(self.client:getState(), 0, 0)
+    -- love.graphics.print(self.client:getState(), 0, 0)
 end
 
 return Client
