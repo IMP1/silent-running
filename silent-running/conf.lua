@@ -1,8 +1,9 @@
 function love.conf(game)
     game.identity = "silent-running"
+    game.version  = "0.10.2"
  
     game.window.title = "Silent Running [Alpha v0.1.0]"
-    game.window.icon = nil                 -- Filepath to an image to use as the window's icon (string)
+    game.window.icon  = nil                 -- Filepath to an image to use as the window's icon (string)
 
     game.modules.math    = false
     game.modules.physics = false
