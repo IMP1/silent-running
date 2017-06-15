@@ -51,7 +51,7 @@ layouts.title.main:findFirst("button#server").onclick = function(self)
         oy = 0,
         duration = 0.2,
         onfinish = function()
-            lobby = layouts.title.server
+            role.layout = layouts.title.server
         end
     })
 end
@@ -62,7 +62,7 @@ layouts.title.main:findFirst("button#connect").onclick = function(self)
         oy = 0,
         duration = 0.2,
         onfinish = function()
-            lobby = layouts.title.client
+            role.layout = layouts.title.client
         end
     })
 end
@@ -96,13 +96,13 @@ layouts.title.server = bricks.layout({
     }),
     bricks.group("actions", {
         bricks.button("back", {"15", "70", "30", 32}, {
-            onclick = function(self) 
+            onclick = function(self)
                 mortar.swipe(layouts.title.server, layouts.title.main, {
                     ox = 800,
                     oy = 0,
                     duration = 0.2,
                     onfinish = function()
-                        lobby = layouts.title.main
+                        role.layout = layouts.title.main
                     end
                 })
             end,
@@ -111,7 +111,7 @@ layouts.title.server = bricks.layout({
             bricks.text({text = T"Back"}),
         }),
         bricks.button({"55", "70", "30", 32}, {
-            onclick = function(self) startServer() end,
+            onclick = function(self) role:startServer() end,
             focusKeys = { "s" }
         }, {
             bricks.text({text = T"Start Server"}),
@@ -186,7 +186,7 @@ layouts.title.client = bricks.layout({
                     oy = 0,
                     duration = 0.2,
                     onfinish = function()
-                        lobby = layouts.title.main
+                        role.layout = layouts.title.main
                     end
                 })
             end,
@@ -201,7 +201,7 @@ layouts.title.client = bricks.layout({
                 if input.valid then
                     -- TODO: try to connect before going to client role
                     local address = input:value()
-                    attemptConnection(address)
+                    role:attemptConnection(address)
                 end
             end,
         }, {
