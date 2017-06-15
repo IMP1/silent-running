@@ -20,13 +20,13 @@ function Torpedo:update(dt)
     local newX = self.pos.x + self.vel.x * dt
     local newY = self.pos.y + self.vel.y * dt
 
-    if role.level:isPassable(newX, newY, self) then    
+    if scene.level:isPassable(newX, newY, self) then    
         self:move(self.vel.x * dt, self.vel.y * dt)
     else
         -- TODO: check for player or something damagable and do damage
-        role.server:sendToAll("damage", {self.pos.x, self.pos.y, 40, self.vel.x / 4, self.vel.y / 4})
+        scene.server:sendToAll("damage", {self.pos.x, self.pos.y, 40, self.vel.x / 4, self.vel.y / 4})
         -- TODO: only send to relevant player?
-        role:sendSound(self.pos.x, self.pos.y, Noise.torpedo)
+        scene:sendSound(self.pos.x, self.pos.y, Noise.torpedo)
         self.finished = true
     end
 end

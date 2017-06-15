@@ -34,7 +34,7 @@ function Player:update(dt)
 
     if not self.isSilentRunning and self.cooldowns.passivePing == 0 then
         self.cooldowns.passivePing = Player.COOLDOWNS.passivePing
-        role.client:send("passive-ping", {self.pos.x, self.pos.y})
+        scene.client:send("passive-ping", {self.pos.x, self.pos.y})
     end
 
     local dx, dy = 0, 0
@@ -98,9 +98,9 @@ function Player:fireWeapon(dx, dy)
 
     if self.currentWeapon == "torpedo" then
         if dx > 0 then
-            role.client:send("torpedo", {self.pos.x + 32, self.pos.y + 40,  1})
+            scene.client:send("torpedo", {self.pos.x + 32, self.pos.y + 40,  1})
         elseif dx < 0 then
-            role.client:send("torpedo", {self.pos.x + 32, self.pos.y + 40, -1})
+            scene.client:send("torpedo", {self.pos.x + 32, self.pos.y + 40, -1})
         end
     end
 end
@@ -114,8 +114,8 @@ function Player:crash(x, y)
     self.vel.x = -self.vel.x * 0.2
     self.vel.y = -self.vel.y * 0.2
     self:damage(damage)
-    role.client:send("noise", {self.pos.x, self.pos.y, loudness})
-    role.screen:shake(0.5, 8, 0.3) -- TODO: test this and tweak until it feels right
+    scene.client:send("noise", {self.pos.x, self.pos.y, loudness})
+    scene.screen:shake(0.5, 8, 0.3) -- TODO: test this and tweak until it feels right
 end
 
 function Player:damage(damage, impactX, impactY)
@@ -128,8 +128,8 @@ function Player:damage(damage, impactX, impactY)
 end
 
 function Player:die()
-    role.client:send("death", {self.pos.x, self.pos.y})
-    role.player = nil
+    scene.client:send("death", {self.pos.x, self.pos.y})
+    scene.player = nil
 end
 
 function Player:draw(ox, oy)

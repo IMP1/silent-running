@@ -17,8 +17,6 @@ DEBUG = {
 require 'helpers.functional'
 require 'helpers.coroutine'
 
--- local bitser = require 'lib.bitser'
--- local sock   = require 'lib.sock'
 local tlo    = require 'lib.tlo'
 
 ---------------
@@ -30,21 +28,15 @@ T = tlo.localise
 -------------
 -- Classes --
 -------------
-Server = require 'server'
-Client = require 'client'
+Server = require 'scn_server'
+Client = require 'scn_client'
 Title  = require 'scn_title'
 Log    = require 'log'
 
 function love.load(args)
     applySettings()
     log = Log.new()
-    if args[2] == "server" then
-        role = Server.new()
-    elseif args[2] == "client" then
-        role = Client.new(args[3])
-    else
-        role = Title.new()
-    end
+    scene = Title.new()
 end
 
 function createDefaultSettings()
@@ -91,39 +83,39 @@ function applySettings()
 end
 
 function love.textinput(text)
-    if role and role.textinput then
-        role:textinput(text)
+    if scene and scene.textinput then
+        scene:textinput(text)
     end
 end
 
 function love.keypressed(key, isRepeat)
-    if role and role.keypressed then
-        role:keypressed(key, isRepeat)
+    if scene and scene.keypressed then
+        scene:keypressed(key, isRepeat)
     end
 end
 
 function love.mousepressed(mx, my, key)
-    if role and role.mousepressed then
-        role:mousepressed(mx, my, key)
+    if scene and scene.mousepressed then
+        scene:mousepressed(mx, my, key)
     end
 end
 
 function love.mousereleased(mx, my, key)
-    if role and role.mousereleased then
-        role:mousereleased(mx, my, key)
+    if scene and scene.mousereleased then
+        scene:mousereleased(mx, my, key)
     end
 end
 
 function love.update(dt)
     local mx, my = love.mouse.getPosition()
-    if role then
-        role:update(dt)
+    if scene then
+        scene:update(dt)
     end
     log:update()
 end
 
 function love.draw()
-    if role then
-        role:draw()
+    if scene then
+        scene:draw()
     end
 end

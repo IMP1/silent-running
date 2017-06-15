@@ -1,4 +1,5 @@
 local SceneBase = require 'scn_base'
+local mortar = require 'lib.mortar'
 
 local Title = {}
 setmetatable(Title, SceneBase)
@@ -12,6 +13,9 @@ function Title.new()
     return this
 end
 
+function Title:textinput(...)
+    self.layout:keytyped(...)
+end
 
 function Title:keypressed(...)
     self.layout:keypressed(...)
@@ -47,7 +51,7 @@ function Title:startServer()
         local port = tonumber(input:value())
         self:fadeOut(0.5, function()
             local server = Server.new(port)
-            role = server
+            scene = server
         end)
     end
 end
@@ -70,7 +74,7 @@ function Title:connectionAchieved()
     self.connecting = nil
     self.layout:elementWithId("connectionSpinner").visible = false
     self:fadeOut(0.5, function()
-        role = self.client
+        scene = self.client
         self.client = nil
     end)
 end
@@ -79,6 +83,15 @@ function Title:cancelConnection()
     self.layout:elementWithId("connectionSpinner").visible = false
     self.connecting = false
     self.client     = nil
+end
+
+function Title:connectionFailed()
+    self:cancelConnection()
+    local message = "Could not connect to the given address.\n" .. 
+                    "Make sure there is a server running and its port is public."
+    mortar.flash(T(message), {0, -224, "100", 64, "top", "center"}, {
+        duration = 2.5,
+    })
 end
 
 return Title

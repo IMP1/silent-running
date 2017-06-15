@@ -48,6 +48,7 @@ function addString(newString)
         local path = languageFilesPath .. "/" .. file
         local fileString = love.filesystem.read(path)
         local index = fileString:find("}[^}]*$")
+        local newString = newString:gsub("\n", "\\n")
         local newContent = fileString:sub(1, index - 1) ..
                            "    [\"" .. newString .. "\"] = \"" .. newString .. "\", -- AUTOMATICALLY ADDED.\n" ..
                            fileString:sub(index)

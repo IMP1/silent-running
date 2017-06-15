@@ -19,7 +19,7 @@ function Ping:update(dt)
     local newX = self.pos.x + self.vel.x * dt
     local newY = self.pos.y + self.vel.y * dt
 
-    if role.level:isPassable(newX, newY) then    
+    if scene.level:isPassable(newX, newY) then    
         self:move(self.vel.x * dt, self.vel.y * dt)
     else
         self:pong(true)
@@ -29,7 +29,7 @@ function Ping:update(dt)
 end
 
 function Ping:pong(isActive)
-    role:sendSound(self.pos.x, self.pos.y, Noise.pong)
+    scene:sendSound(self.pos.x, self.pos.y, Noise.pong)
 end
 
 function Ping:move(dx, dy)

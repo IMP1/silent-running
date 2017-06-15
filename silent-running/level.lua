@@ -30,7 +30,7 @@ function Level:isPassable(x, y, objectToIgnore, leeway)
         return false
     end
     -- TODO: check for other players
-    for _, p in pairs(role.players) do
+    for _, p in pairs(scene.players) do
         local dr = 24 + (leeway or 0) -- TODO: change 24 to whatever is appropriate for players
         if objectToIgnore == nil or p ~= objectToIgnore then
             local dx = p.pos.x - x
@@ -84,18 +84,18 @@ function Level:drawMapObjects()
 end
 
 function Level:drawGameObjects()
-    if role.players then
-        for _, p in pairs(role.players) do
+    if scene.players then
+        for _, p in pairs(scene.players) do
             p:draw()
         end
     end
-    if role.activePings then
-        for _, p in pairs(role.activePings) do
+    if scene.activePings then
+        for _, p in pairs(scene.activePings) do
             p:draw()
         end
     end
-    if role.missiles then
-        for _, m in pairs(role.missiles) do
+    if scene.missiles then
+        for _, m in pairs(scene.missiles) do
             m:draw()
         end
     end

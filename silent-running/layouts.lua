@@ -1,5 +1,5 @@
 local bricks = require 'lib.bricks'
-mortar = require 'lib.mortar'
+local mortar = require 'lib.mortar'
 mortar.setup(bricks)
 
 bricks.setIconFont("gfx/fontawesome-webfont.ttf")
@@ -51,7 +51,7 @@ layouts.title.main:findFirst("button#server").onclick = function(self)
         oy = 0,
         duration = 0.2,
         onfinish = function()
-            role.layout = layouts.title.server
+            scene.layout = layouts.title.server
         end
     })
 end
@@ -62,7 +62,7 @@ layouts.title.main:findFirst("button#connect").onclick = function(self)
         oy = 0,
         duration = 0.2,
         onfinish = function()
-            role.layout = layouts.title.client
+            scene.layout = layouts.title.client
         end
     })
 end
@@ -102,7 +102,7 @@ layouts.title.server = bricks.layout({
                     oy = 0,
                     duration = 0.2,
                     onfinish = function()
-                        role.layout = layouts.title.main
+                        scene.layout = layouts.title.main
                     end
                 })
             end,
@@ -111,7 +111,7 @@ layouts.title.server = bricks.layout({
             bricks.text({text = T"Back"}),
         }),
         bricks.button({"55", "70", "30", 32}, {
-            onclick = function(self) role:startServer() end,
+            onclick = function(self) scene:startServer() end,
             focusKeys = { "s" }
         }, {
             bricks.text({text = T"Start Server"}),
@@ -186,7 +186,7 @@ layouts.title.client = bricks.layout({
                     oy = 0,
                     duration = 0.2,
                     onfinish = function()
-                        role.layout = layouts.title.main
+                        scene.layout = layouts.title.main
                     end
                 })
             end,
@@ -199,9 +199,9 @@ layouts.title.client = bricks.layout({
                 local input = self:layout():elementWithId("ipAddress")
                 input:validate(true)
                 if input.valid then
-                    -- TODO: try to connect before going to client role
+                    -- TODO: try to connect before going to client scene
                     local address = input:value()
-                    role:attemptConnection(address)
+                    scene:attemptConnection(address)
                 end
             end,
         }, {
@@ -246,13 +246,13 @@ layouts.server.info = bricks.layout({2, 2, "40", "20"}, {
         text = T"IP Adresss"
     }),
     bricks.text("ipAddress", {"60", "20", "100", "100"}, {
-        text = function() return role.server:getSocketAddress():match(".+:"):sub(1, -2) end
+        text = function() return scene.publicIp end
     }),
     bricks.text({32, "40", "100", "100"}, {
         text = T"Port"
     }),
     bricks.text("port", {"60", "40", "100", "100"}, {
-        text = function() return role.server:getSocketAddress():match(":.+"):sub(2) end
+        text = function() return scene.server:getSocketAddress():match(":.+"):sub(2) end
     }),
     bricks.icon({4, "60", "100", "100"}, {
         icon = "",
@@ -262,7 +262,7 @@ layouts.server.info = bricks.layout({2, 2, "40", "20"}, {
         text = T"Connected Players"
     }),
     bricks.text("playerCount", {"60", "60", "100", "100"}, {
-        text = function() return tostring(#role.server.clients) end
+        text = function() return tostring(#scene.server.clients) end
     }),
 })
 
@@ -373,7 +373,7 @@ layouts.server.commands = bricks.layout({2, -170, 152, 168}, {
         height = 16,
         text = T"Show commands",
         onchange = function() 
-            role:hideCommands()
+            scene:hideCommands()
             return true -- cancel the normal checkbox behaviour.
         end,
         selected = true,
@@ -395,7 +395,7 @@ layouts.server.commandsHidden = bricks.layout({2, -26, 136, 24}, {
         height = 16,
         text = T"Show commands",
         onchange = function() 
-            role:showCommands()
+            scene:showCommands()
             return true -- cancel the normal checkbox behaviour.
         end,
         selected = false,

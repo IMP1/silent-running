@@ -193,8 +193,8 @@ local function addFlashes(bricks, animations)
         end
         this.cannotTarget    = true
         this.fadeInDuration  = options.fadeIn   or 0
-        this.duration        = options.duration or 1
-        this.fadeOutDuration = options.fadeOut  or 0.2
+        this.duration        = options.duration or 1.5
+        this.fadeOutDuration = options.fadeOut  or 0.5
         this.timer           = 0
         this.opacity         = 0
         this.finished        = false
@@ -244,10 +244,10 @@ local function addFlashes(bricks, animations)
     bricks.flash = bricks._functions.default_constructor_for(Flash)
     bricks._classes.Flash = Flash
 
-    mortar.flash = function(text, options)
+    mortar.flash = function(text, position, options)
         options = options or {}
         options.text = text
-        table.insert(animations, Flash.new(options.id, nil, options))
+        table.insert(animations, Flash.new(options.id, position, options))
     end
 end
 
