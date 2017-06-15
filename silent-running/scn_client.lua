@@ -50,12 +50,12 @@ function Client:start()
     ----------------------
     self.client:on("connect", function(data)
         log:add("Connected to server.")
-        role:connectionAchieved()
+        scene:connectionAchieved()
     end)
 
     self.client:on("disconnect", function(data)
         log:add("Disconnected from server.")
-        role:cancelConnection()
+        scene:connectionFailed()
     end)
 
     self.client:on("init", function(playerPosition)

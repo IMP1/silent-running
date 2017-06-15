@@ -26,6 +26,28 @@ local Server = {}
 setmetatable(Server, SceneBase)
 Server.__index = Server
 
+ 
+function findClientIPAddress()
+    local http = require("socket.http")
+
+    local getipScriptURL = "http://myip.dnsomatic.com/"  --php script on my server
+    local DeviceIP
+    
+    function ipListener(event)
+        if not event.isError and event.response ~= "" then
+            DeviceIP = event.response 
+            print("DeviceIP:"..DeviceIP)
+        end
+    end
+    
+    body, status, content = http.request(getipScriptURL)
+    if status >= 200 and status < 300 then
+        return body
+    else
+        return nil
+    end
+end
+
 function Server.new(port)
     local this = {}
     setmetatable(this, Server)
@@ -35,16 +57,17 @@ function Server.new(port)
 end
 
 function Server:start()
-    self.layouts = love.filesystem.load("layouts.lua")().server
-    self.server = sock.newServer("*", self.port)
+    self.publicIp    = findClientIPAddress()
+    self.layouts     = love.filesystem.load("layouts.lua")().server
+    self.server      = sock.newServer("*", self.port)
     self.server:setSerialization(bitser.dumps, bitser.loads)
     self.playerCount = 0
-    self.players = {}
-    self.missiles = {}
+    self.players     = {}
+    self.missiles    = {}
     self.activePings = {}
-    self.level = LevelGenerator.generate(640, 640, 1649)
-    self.camera = Camera.new()
-    self.info = self.layouts.info
+    self.level       = LevelGenerator.generate(640, 640, 1649)
+    self.camera      = Camera.new()
+    self.info        = self.layouts.info
     self:showCommands()
     
     self.server:on("connect", function(data, client)
@@ -107,7 +130,7 @@ end
 
 function Server:sendSound(x, y, soundType, sizeScale)
     local size         = soundType.RADIUS * (sizeScale or 1)
-    local imageData    = role.level:getImageData(x, y, size)
+    local imageData    = scene.level:getImageData(x, y, size)
     local startSize    = soundType.START_RADIUS
     local growSpeed    = soundType.GROW_SPEED
     local fadeSpeed    = soundType.FADE_SPEED
