@@ -7,6 +7,7 @@ local sock   = require "lib.sock"
 -------------
 -- Classes --
 -------------
+local SceneBase      = require 'scn_base'
 local LevelGenerator = require 'level_generator'
 local Player         = require 'player'
 local Noise          = require 'noise'
@@ -21,6 +22,7 @@ local Screen         = require 'screen'
 -- ping responses and crashes to the user.
 --------------------------------------------------------------------------------
 local Client = {}
+setmetatable(Client, SceneBase)
 Client.__index = Client
 
 function Client.new(address, port)
@@ -48,12 +50,12 @@ function Client:start()
     ----------------------
     self.client:on("connect", function(data)
         log:add("Connected to server.")
-        connectionAchieved()
+        role:connectionAchieved()
     end)
 
     self.client:on("disconnect", function(data)
         log:add("Disconnected from server.")
-        cancelConnection()
+        role:cancelConnection()
     end)
 
     self.client:on("init", function(playerPosition)

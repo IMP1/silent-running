@@ -7,6 +7,7 @@ local sock   = require "lib.sock"
 -------------
 -- Classes --
 -------------
+local SceneBase      = require 'scn_base'
 local LevelGenerator = require 'level_generator'
 local Player         = require 'player'
 local Ping           = require 'ping'
@@ -22,6 +23,7 @@ local Camera         = require 'camera'
 -- of ping responses and weapon damage.
 --------------------------------------------------------------------------------
 local Server = {}
+setmetatable(Server, SceneBase)
 Server.__index = Server
 
 function Server.new(port)
@@ -86,6 +88,7 @@ function Server:start()
     end)
 
     log:add("Started server.")
+    self:fadeIn()
 end
 
 function Server:addPlayer(client)
