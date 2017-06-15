@@ -28,12 +28,12 @@ local tlo = {
 }
 
 tlo.settings = {
-    -- "add", "blank", "error", "ignore", "nil"
-    onMissingLocalisation = "add",
+    -- "blank", "error", "ignore", "nil"
+    onMissingLocalisation = "ignore",
     addMissingLocalisations = true,
     -- "blank", "error", "ignore", "nil"
     onUnsetLanguage       = "error",
-    -- "add", "error", "ignore"
+    -- "error", "ignore"
     onMissingLanguageFile = "error",
     addMissingLanguageFiles = true,
 }
