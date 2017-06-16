@@ -23,7 +23,7 @@ function Player.new(x, y)
         this.cooldowns[k] = v
     end
     this.isSilentRunning = true
-    this.currentWeapon = nil
+    this:changeWeapon("torpedo")
     return this
 end
 
