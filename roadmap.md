@@ -33,7 +33,7 @@ This is the core game. The basic mechanics are implemented.
   - [ ] loss condition on submarine being destroyed
 
 ### core/lobby
-  - [ ] option to start game or join game
+  - [X] option to start game or join game
 
 ## 0.3.0
 <sup>all the above core/* branches done</sup>
