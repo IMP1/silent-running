@@ -1,12 +1,4 @@
 DEBUG = {
-    -- server
-    showMap         = false,
-    showMapObjects  = false,
-    showGameObjects = false,
-    showServerInfo  = true,
-    showPlayerInfo  = false,
-    showLog         = false,
-    showCommands    = true,
     -- client
     keepPongs       = false,
 }
