@@ -55,7 +55,6 @@ function Level:isSolid(x, y)
 end
 
 function Level:getBounceDirection(x, y, vx, vy)
-    print("bouncing off something...")
     -- check for other players
     for _, p in pairs(scene.players) do
         local dr = 24 + (leeway or 0) -- TODO: change 24 to whatever is appropriate for players
@@ -63,7 +62,6 @@ function Level:getBounceDirection(x, y, vx, vy)
             local dx = p.pos.x - x
             local dy = p.pos.y - y
             if dx*dx + dy*dy < dr*dr then
-                print("bouncing off player!")
                 return -vx, -vy
             end
         end
@@ -71,7 +69,6 @@ function Level:getBounceDirection(x, y, vx, vy)
     -- check for rocks
     for _, r in pairs(self.rocks) do
         if r:containsPoint(x, y) then
-            print("bouncing off rock...")
             return r:getBounceDirection(x, y, vx, vy)
         end
     end

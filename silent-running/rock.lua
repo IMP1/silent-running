@@ -86,14 +86,11 @@ function Rock:getBounceDirection(x2, y2, vx, vy)
     local x1, y1 = x2 - vx, y2 - vy
     for _, line in pairs(self.lines) do
         if segmentIntersects(x1, y1, x2, y2, unpack(line.points)) then
-            print("bouncing off line!")
             local currentAngle = math.atan2(vy, vx)
             local currentSpeed = (vx*vx + vy*vy) ^ 0.5
             local newAngle = 2 * line.angle - currentAngle
             local newSpeed = currentSpeed * 0.9
             return newSpeed * math.cos(newAngle), newSpeed * math.sin(newAngle)
-            -- TODO: find angle of reflection
-            -- return -vx, -vy
         end
     end
     return vx, vy
