@@ -54,6 +54,30 @@ function Level:isSolid(x, y)
     return false
 end
 
+function Level:getBounceDirection(x, y, vx, vy)
+    print("bouncing off something...")
+    -- check for other players
+    for _, p in pairs(scene.players) do
+        local dr = 24 + (leeway or 0) -- TODO: change 24 to whatever is appropriate for players
+        if objectToIgnore == nil or p ~= objectToIgnore then
+            local dx = p.pos.x - x
+            local dy = p.pos.y - y
+            if dx*dx + dy*dy < dr*dr then
+                print("bouncing off player!")
+                return -vx, -vy
+            end
+        end
+    end
+    -- check for rocks
+    for _, r in pairs(self.rocks) do
+        if r:containsPoint(x, y) then
+            print("bouncing off rock...")
+            return r:getBounceDirection(x, y, vx, vy)
+        end
+    end
+    return vx, vy
+end
+
 function Level:getImageData(x, y, size)
     local canvas = love.graphics.newCanvas(size * 2, size * 2)
     love.graphics.push()
@@ -75,7 +99,7 @@ end
 
 function Level:drawMap()
     for _, rock in pairs(self.rocks) do
-        love.graphics.polygon('fill', unpack(rock.polygon))
+        rock:draw()
     end
 end
 

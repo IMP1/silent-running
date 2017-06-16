@@ -8,9 +8,10 @@ function Ping.new(x, y, vx, vy)
     local this = {}
     setmetatable(this, Ping)
     this.finished = false
-    this.pos = { x = x, y = y }
-    this.vel = { x = vx, y = vy }
+    this.pos      = { x = x, y = y }
+    this.vel      = { x = vx, y = vy }
     this.lastMove = { x = 0, y = 0 }
+    this.bounces  = 2
     return this
 end
 
@@ -21,14 +22,20 @@ function Ping:update(dt)
 
     if scene.level:isPassable(newX, newY) then    
         self:move(self.vel.x * dt, self.vel.y * dt)
-    else
-        self:pong(true)
+    elseif self.bounces > 0 then
+        local vx, vy = scene.level:getBounceDirection(newX, newY, self.vel.x, self.vel.y)
+        self.vel.x = vx
+        self.vel.y = vy
+        self:pong()
+        self.bounces = self.bounces - 1
         -- TODO: maybe bounce instead and have a distance limit? or a bounce limit?
+    else
+        self:pong()
         self.finished = true
     end
 end
 
-function Ping:pong(isActive)
+function Ping:pong()
     scene:sendSound(self.pos.x, self.pos.y, Noise.pong)
 end
 
