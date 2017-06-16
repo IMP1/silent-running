@@ -29,11 +29,11 @@ function Client.new(address, port)
     local this = {}
     setmetatable(this, Client)
     this.client = sock.newClient(address, port or DEFAULT_PORT)
-    this:start()
+    this:setup()
     return this
 end
 
-function Client:start()
+function Client:setup()
     ----------------------
     -- Client Variables --
     ----------------------
@@ -49,6 +49,13 @@ function Client:start()
     -- Client Callbacks --
     ----------------------
     self.client:on("connect", function(data)
+    end)
+
+    self.client:on("underway", function(data)
+        scene:gameUnderway()
+    end)
+
+    self.client:on("joined", function(data)
         log:add("Connected to server.")
         scene:connectionAchieved()
     end)
@@ -70,6 +77,16 @@ function Client:start()
         self.map = LevelGenerator.generate(unpack(levelParameters))
     end)
 
+    self.client:on("begin", function()
+        log:add("Recieved begin command from server.")
+        scene:start()
+    end)
+
+    self.client:connect()
+    self.client:setTimeout(nil, nil, 6000)
+end
+
+function Client:start()
     self.client:on("pong", function(noiseData)
         log:add("Recieved pong ghost (" .. noiseData[1] .. ", " .. noiseData[2] .. ") from server.")
         local pong = Noise.new(unpack(noiseData))
@@ -98,36 +115,25 @@ function Client:start()
         end
     end)
 
-    self.client:connect()
-    self.client:setTimeout(nil, nil, 6000)
+    self.started = true
+end
+
+function Client:connectionFailed()
+    print("uh oh")
 end
 
 function Client:keypressed(key, isRepeat)
-    if not self.player then return end
+    if not self.started then return end
     if key == "space" then
         self.player.isSilentRunning = not self.player.isSilentRunning
     end
     if key == "t" then
         self.player:changeWeapon("torpedo")
     end
-    if DEBUG then
-        if key == "v" then
-            DEBUG.showPlayerInfo = not DEBUG.showPlayerInfo
-        end
-        if key == "g" then
-            DEBUG.keepPongs = not DEBUG.keepPongs
-        end
-        if key == "tab" then
-            DEBUG.showLog = not DEBUG.showLog
-        end
-        if key == "`" then
-            DEBUG.showCommands = not DEBUG.showCommands
-        end
-    end
 end
 
 function Client:mousepressed(mx, my, key)
-    if not self.player then return end
+    if not self.started then return end
     local wx, wy = self.camera:toWorldPosition(mx, my)
     if key == 2 then
         local x = self.player.pos.x
@@ -156,11 +162,10 @@ end
 
 function Client:update(dt)
     self.client:update()
-    if self.player then
-        self.player:update(dt)
-        self.client:send("move", {self.player.lastMove.x, self.player.lastMove.y})
-        self.camera:move(self.player.lastMove.x, self.player.lastMove.y)
-    end
+    if not self.started then return end
+    self.player:update(dt)
+    self.client:send("move", {self.player.lastMove.x, self.player.lastMove.y})
+    self.camera:move(self.player.lastMove.x, self.player.lastMove.y)
     if self.screen then
         self.screen:update(dt)
     end
@@ -227,20 +232,20 @@ function Client:draw()
             love.graphics.rectangle("fill", 360, 24, w, 8)
             
         end
-        if DEBUG.showPlayerInfo then
-            love.graphics.print(tostring(self.player.health), 0, 0)
-            love.graphics.print(tostring(self.player.pos.x) .. "," .. tostring(self.player.pos.y), 0, 16)
-            love.graphics.print(tostring(self.player.vel.x) .. "," .. tostring(self.player.vel.y), 0, 32)
-            local state = "passive"
-            if self.player.isSilentRunning then state = "silent running" end
-            love.graphics.print(state, 0, 48)
-        end
+        -- TODO: draw better HUD
+        love.graphics.print(tostring(self.player.health), 0, 0)
+        love.graphics.print(tostring(self.player.pos.x) .. "," .. tostring(self.player.pos.y), 0, 16)
+        love.graphics.print(tostring(self.player.vel.x) .. "," .. tostring(self.player.vel.y), 0, 32)
+        local state = "passive"
+        if self.player.isSilentRunning then state = "silent running" end
+        love.graphics.print(state, 0, 48)
     end
-    if DEBUG.showCommands then
-        love.graphics.print("V  : toggle velocity",    0, love.graphics.getHeight() - 24 * 3)
-        love.graphics.print("TAB: toggle log",         0, love.graphics.getHeight() - 24 * 5)
-        love.graphics.print("G  : toggle keep pongs",  0, love.graphics.getHeight() - 24 * 6)
-        love.graphics.print("`  : toggle commands",    0, love.graphics.getHeight() - 24 * 7)
+
+    if not self.started then
+        love.graphics.setColor(0, 0, 0, 128)
+        love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
+        love.graphics.setColor(255, 255, 255)
+        love.graphics.printf(T"Waiting for game to begin", 0, 128, love.graphics.getWidth(), "center")
     end
 
     -- love.graphics.print(self.client:getState(), 0, 0)

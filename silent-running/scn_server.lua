@@ -25,7 +25,6 @@ local Camera         = require 'camera'
 local Server = {}
 setmetatable(Server, SceneBase)
 Server.__index = Server
-
  
 function findClientIPAddress()
     local http = require("socket.http")
@@ -52,11 +51,11 @@ function Server.new(port)
     local this = {}
     setmetatable(this, Server)
     this.port = port or DEFAULT_PORT
-    this:start()
+    this:setup()
     return this
 end
 
-function Server:start()
+function Server:setup()
     self.publicIp    = findClientIPAddress()
     self.layouts     = love.filesystem.load("layouts.lua")().server
     self.server      = sock.newServer("*", self.port)
@@ -68,8 +67,20 @@ function Server:start()
     self.level       = LevelGenerator.generate(640, 640, 1649)
     self.camera      = Camera.new()
     self.info        = self.layouts.info
+    self.beginButton = self.layouts.begin
+    self.started     = false
+    self.timer       = 0
+    self.show        = {
+        map         = false,
+        mapObjects  = false,
+        gameObjects = false,
+        serverInfo  = true,
+        playerInfo  = false,
+        log         = false,
+        commands    = true,
+    }
     self:showCommands()
-    
+
     self.server:on("connect", function(data, client)
         log:add("New connection.")
         self:addPlayer(client)
@@ -80,6 +91,13 @@ function Server:start()
         print(data)
         print(client)
     end)
+
+    log:add("Started server.")
+    self:fadeIn()
+end
+
+function Server:start()
+    self.started = true
 
     self.server:on("active-ping", function(kinematicState, client)
         local newPing = Ping.new(unpack(kinematicState))
@@ -102,6 +120,7 @@ function Server:start()
     end)
 
     self.server:on("death", function(playerData, client)
+        -- TODO: do something better
         self.players[client] = nil
     end)
 
@@ -110,11 +129,19 @@ function Server:start()
         table.insert(self.missiles, torpedo)
     end)
 
-    log:add("Started server.")
-    self:fadeIn()
+    self.server:sendToAll("begin")
+
+    log:add("Started game.")
 end
 
 function Server:addPlayer(client)
+    if self.started then
+        client:send("underway")
+        client:disconnectLater()
+        -- reply saying game underway :(
+        return
+    end
+    client:send("joined", {x, y})
     local x = -1
     local y = -1
     while not self.level:isValidStartingPosition(x, y) do
@@ -166,28 +193,28 @@ function Server:movePlayer(client, dx, dy)
 end
 
 function Server:hideCommands()
-    DEBUG.showCommands = false
+    self.show.commands = false
     self.commands = self.layouts.commandsHidden
 end
 
 function Server:showCommands()
-    DEBUG.showCommands = true
+    self.show.commands = true
     self.commands = self.layouts.commands
 end
 
 function Server:keypressed(key, isRepeat)
     self.commands:keypressed(key, isRepeat)
-    if DEBUG and key == "`" then
-        DEBUG.showCommands = not DEBUG.showCommands
-    end
+    self.info:keypressed(key, isRepeat)
 end
 
 function Server:mousepressed(mx, my, key)
     self.commands:mousepressed(mx, my, key)
+    self.info:mousepressed(mx, my, key)
 end
 
 function Server:mousereleased(mx, my, key)
     self.commands:mousereleased(mx, my, key)
+    self.info:mousereleased(mx, my, key)
 end
 
 function Server:update(dt)
@@ -196,17 +223,22 @@ function Server:update(dt)
     self.server:update()
 
     self.commands:update(dt, mx, my)
+    self.info:update(dt, mx, my)
 
-    for i = #self.activePings, 1, -1 do
-        self.activePings[i]:update(dt)
-        if self.activePings[i].finished then
-            table.remove(self.activePings, i)
+    if self.started then
+        self.timer = self.timer + dt
+
+        for i = #self.activePings, 1, -1 do
+            self.activePings[i]:update(dt)
+            if self.activePings[i].finished then
+                table.remove(self.activePings, i)
+            end
         end
-    end
-    for i = #self.missiles, 1, -1 do
-        self.missiles[i]:update(dt)
-        if self.missiles[i].finished then
-            table.remove(self.missiles, i)
+        for i = #self.missiles, 1, -1 do
+            self.missiles[i]:update(dt)
+            if self.missiles[i].finished then
+                table.remove(self.missiles, i)
+            end
         end
     end
 
@@ -233,17 +265,17 @@ function Server:draw()
         self.camera:set()
     end
 
-    if self.level and DEBUG.showMap then
+    if self.level and self.show.map then
         love.graphics.setColor(128, 255, 255, 128)
         self.level:drawMap()
     end
 
-    if self.level and DEBUG.showMapObjects then
+    if self.level and self.show.mapObjects then
         love.graphics.setColor(128, 255, 255, 128)
         self.level:drawMapObjects()
     end
 
-    if self.level and DEBUG.showGameObjects then
+    if self.level and self.show.gameObjects then
         love.graphics.setColor(255, 255, 255)
         self.level:drawGameObjects()
     end
@@ -254,7 +286,7 @@ function Server:draw()
 
     love.graphics.setColor(255, 255, 255)
 
-    if DEBUG.showServerInfo then
+    if self.show.serverInfo then
         self.info:draw()
     end
 

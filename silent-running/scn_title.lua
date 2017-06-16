@@ -71,11 +71,11 @@ function Title:attemptConnection()
 end
 
 function Title:connectionAchieved()
-    self.connecting = nil
-    self.layout:elementWithId("connectionSpinner").visible = false
+    if not self.connecting then return end
+    local client = self.client
+    self:cancelConnection()
     self:fadeOut(0.5, function()
-        scene = self.client
-        self.client = nil
+        scene = client
     end)
 end
 
@@ -86,9 +86,20 @@ function Title:cancelConnection()
 end
 
 function Title:connectionFailed()
+    if not self.connecting then return end
     self:cancelConnection()
     local message = "Could not connect to the given address.\n" .. 
                     "Make sure there is a server running and its port is public."
+    mortar.flash(T(message), {0, -224, "100", 64, "top", "center"}, {
+        duration = 2.5,
+    })
+end
+
+function Title:gameUnderway()
+    if not self.connecting then return end
+    self:cancelConnection()
+    local message = "The game has already begun.\n" .. 
+                    "You cannot join a game that is underway."
     mortar.flash(T(message), {0, -224, "100", 64, "top", "center"}, {
         duration = 2.5,
     })
