@@ -228,7 +228,7 @@ for _, l in pairs(layouts.title) do
 end
 
 layouts.server = {}
-layouts.server.info = bricks.layout({2, 2, "40", "20"}, {
+layouts.server.info = bricks.layout({2, 2, "40", "30"}, {
     style = {
         padding = { 2, 2, 2, 2 },
         backgroundColor = {0, 0, 0},
@@ -238,32 +238,55 @@ layouts.server.info = bricks.layout({2, 2, "40", "20"}, {
     bricks.text({4, 4, "100", "100"}, {
         text = T"Hosting Server"
     }),
-    bricks.icon({4, "20", "100", "100"}, {
+    bricks.icon({4, 32, "100", "100"}, {
         icon = "",
         size = 20,
     }),
-    bricks.text({32, "20", "100", "100"}, {
+    bricks.text({32, 32, "100", "100"}, {
         text = T"IP Adresss"
     }),
-    bricks.text("ipAddress", {"60", "20", "100", "100"}, {
+    bricks.text("ipAddress", {"60", 32, "100", "100"}, {
         text = function() return scene.publicIp end
     }),
-    bricks.text({32, "40", "100", "100"}, {
+    bricks.text({32, 56, "100", "100"}, {
         text = T"Port"
     }),
-    bricks.text("port", {"60", "40", "100", "100"}, {
+    bricks.text("port", {"60", 56, "100", "100"}, {
         text = function() return scene.server:getSocketAddress():match(":.+"):sub(2) end
     }),
-    bricks.icon({4, "60", "100", "100"}, {
+    bricks.icon({4, 80, "100", "100"}, {
         icon = "",
         size = 20
     }),
-    bricks.text({32, "60", "100", "100"}, {
+    bricks.text({32, 80, "100", "100"}, {
         text = T"Connected Players"
     }),
-    bricks.text("playerCount", {"60", "60", "100", "100"}, {
+    bricks.text("playerCount", {"60", 80, "100", "100"}, {
         text = function() return tostring(#scene.server.clients) end
     }),
+    bricks.button({"20", "70", "60", 32}, {
+        onclick = function(self)
+            scene:start()
+            self.onclick = nil
+            self:layout():elementWithId("gameClock").visible = true
+            self:layout():removeElement(self)
+            self:layout().pos[4] = "25"
+        end
+    }, {
+        bricks.text({
+            text = T"Start Game"
+        })
+    }),
+    bricks.text("gameClock", {"20", 120, "60", 32, "top", "center"}, {
+        visible = false,
+        text = function()
+            local centis  = math.floor((scene.timer % 1) * 100)
+            local seconds = math.floor(scene.timer)
+            local minutes = math.floor(seconds / 60)
+            local hours   = math.floor(minutes / 60)
+            return string.format("%03d:%02d:%02d.%02d", hours, minutes, seconds, centis)
+        end,
+    })
 })
 
 local iconFont = love.graphics.newFont("gfx/fontawesome-webfont.ttf", 20)
@@ -301,9 +324,9 @@ layouts.server.commands = bricks.layout({2, -170, 152, 168}, {
         height = 16,
         text = T"Show server info",
         onchange = function() 
-            DEBUG.showServerInfo = not DEBUG.showServerInfo
+            scene.show.serverInfo = not scene.show.serverInfo
         end,
-        selected = DEBUG.showServerInfo,
+        selected = true,
         style = {
             customDraw = drawCheckbox
         }
@@ -313,9 +336,9 @@ layouts.server.commands = bricks.layout({2, -170, 152, 168}, {
         height = 16,
         text = T"Show map",
         onchange = function() 
-            DEBUG.showMap = not DEBUG.showMap 
+            scene.show.map = not scene.show.map 
         end,
-        selected = DEBUG.showMap,
+        selected = false,
         style = {
             customDraw = drawCheckbox
         }
@@ -325,9 +348,9 @@ layouts.server.commands = bricks.layout({2, -170, 152, 168}, {
         height = 16,
         text = T"Show map objects",
         onchange = function() 
-            DEBUG.showMapObjects = not DEBUG.showMapObjects 
+            scene.show.mapObjects = not scene.show.mapObjects 
         end,
-        selected = DEBUG.showMapObjects,
+        selected = false,
         style = {
             customDraw = drawCheckbox
         }
@@ -337,9 +360,9 @@ layouts.server.commands = bricks.layout({2, -170, 152, 168}, {
         height = 16,
         text = T"Show game objects",
         onchange = function() 
-            DEBUG.showGameObjects = not DEBUG.showGameObjects 
+            scene.show.gameObjects = not scene.show.gameObjects 
         end,
-        selected = DEBUG.showGameObjects,
+        selected = false,
         style = {
             customDraw = drawCheckbox
         }
@@ -349,9 +372,9 @@ layouts.server.commands = bricks.layout({2, -170, 152, 168}, {
         height = 16,
         text = T"Show player info",
         onchange = function() 
-            DEBUG.showPlayerInfo = not DEBUG.showPlayerInfo 
+            scene.show.playerInfo = not scene.show.playerInfo 
         end,
-        selected = DEBUG.showPlayerInfo,
+        selected = false,
         style = {
             customDraw = drawCheckbox
         }
@@ -361,9 +384,9 @@ layouts.server.commands = bricks.layout({2, -170, 152, 168}, {
         height = 16,
         text = T"Show log",
         onchange = function() 
-            DEBUG.showLog = not DEBUG.showLog 
+            scene.show.log = not scene.show.log 
         end,
-        selected = DEBUG.showLog,
+        selected = false,
         style = {
             customDraw = drawCheckbox
         }
