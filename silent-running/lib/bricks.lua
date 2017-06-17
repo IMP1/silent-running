@@ -97,14 +97,16 @@ local default_style = {
         padding         = {0, 0, 0, 0},
     },
     button = {
-        backgroundColorFocus  = {32, 32, 32},
-        backgroundColorActive = {64, 64, 64},
-        backgroundColor       = {32, 32, 32},
-        borderRadius          = {8, 8},
-        borderColor           = {192, 192, 192},
-        borderColorFocus      = {128, 128, 255},
-        borderColorActive     = {192, 192, 192},
-        padding               = {8, 8, 4, 4}
+        backgroundColorDisabled = {16, 16, 16},
+        backgroundColorActive   = {64, 64, 64},
+        backgroundColorFocus    = {32, 32, 32},
+        backgroundColor         = {32, 32, 32},
+        borderRadius            = {8, 8},
+        borderColorDisabled     = {64, 64, 64},
+        borderColorActive       = {192, 192, 192},
+        borderColorFocus        = {128, 128, 255},
+        borderColor             = {192, 192, 192},
+        padding                 = {8, 8, 4, 4}
     },
     checkbox = {
         borderColor           = {192, 192, 192},
@@ -123,8 +125,6 @@ local default_style = {
 
     },
 }
-
-local selectedElement = nil
 
 --------------------------------------------------------------------------------
 -- # Element
@@ -245,11 +245,14 @@ function Element:isMouseOver(mx, my)
 end
 
 function Element:layout()
-    local top = self
-    while top.parent do
-        top = top.parent
+    if not self._layoutElement then
+        local top = self
+        while top.parent do
+            top = top.parent
+        end
+        self._layoutElement = top
     end
-    return top
+    return self._layoutElement
 end
 
 function Element:findFirst(selectors)
@@ -400,12 +403,12 @@ function Element:matches(selector)
 end
 
 function Element:select()
-    if selectedElement then
-        selectedElement:deselect()
+    if self:layout().selectedElement then
+        self:layout().selectedElement:deselect()
     end
 
     self.focus = true
-    selectedElement = self
+    self:layout().selectedElement = self
 end
 
 function Element:deselect()
@@ -881,7 +884,8 @@ function Layout.new(id, position, options)
     for _, e in pairs(this.elements) do
         e.parent = this
     end
-    this.cannotTarget = true
+    this.cannotTarget    = true
+    this.selectedElement = nil
     return this
 end
 
