@@ -1,6 +1,6 @@
 local Noise = {}
 Noise.pong = {
-    RADIUS        = 64,
+    RADIUS        = 32,
     START_RADIUS  = 16,
     FADE_SPEED    = 128,
     GROW_SPEED    = 256,
