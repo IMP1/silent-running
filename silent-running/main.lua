@@ -32,23 +32,33 @@ function love.load(args)
 end
 
 function createDefaultSettings()
-    file = love.filesystem.newFile(".settings")
-    file:open('w')
-    file:write("return {")
-    file:write("    graphics = {")
-    file:write("        resolution = { 960, 640 },")
-    file:write("        vsync = true,")
-    file:write("        fullscreen = 0,")
-    file:write("    },")
-    file:write("    language = \"en-UK\",")
-    file:write("}")
-    file:close()
+    settingsFile = love.filesystem.newFile(".settings")
+    settingsFile:open('w')
+    settingsFile:write("return {")
+    settingsFile:write("    graphics = {")
+    settingsFile:write("        resolution = { 960, 640 },")
+    settingsFile:write("        vsync = true,")
+    settingsFile:write("        fullscreen = 0,")
+    settingsFile:write("    },")
+    settingsFile:write("    language = \"en-UK\",")
+    settingsFile:write("}")
+    settingsFile:close()
     
     love.filesystem.createDirectory("lang")
     defaultLanguageFile = love.filesystem.newFile("lang/en-UK")
     defaultLanguageFile:open("w")
     defaultLanguageFile:write("return {}")
     defaultLanguageFile:close()
+
+    progressFile = love.filesystem.newFile("progress")
+    progressFile:open('w')
+    progressFile:write("return {")
+    progressFile:write("    stats = {")
+    progressFile:write("        tutorial = {")
+    progressFile:write("        },")
+    progressFile:write("    },")
+    progressFile:write("}")
+    progressFile:close()
 end
 
 function applySettings()
@@ -70,7 +80,7 @@ function applySettings()
     end
     
     if settings.language then
-        tlo.setLanguage("en-UK")
+        tlo.setLanguage(settings.language)
     end
 end
 
