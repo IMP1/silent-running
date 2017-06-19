@@ -122,7 +122,7 @@ function Player:damage(damage, impactX, impactY)
     self.vel.x = self.vel.x + (impactX or 0)
     self.vel.y = self.vel.y + (impactY or 0)
     self.health = self.health - damage
-    if self.health < 0 then
+    if self.health <= 0 then
         self:die()
     end
 end
