@@ -39,6 +39,7 @@ function createDefaultSettings()
     settingsFile:write("        resolution = { 960, 640 },")
     settingsFile:write("        vsync = true,")
     settingsFile:write("        fullscreen = 0,")
+    -- TODO: add colour blind settings
     settingsFile:write("    },")
     settingsFile:write("    language = \"en-UK\",")
     settingsFile:write("}")

@@ -28,7 +28,6 @@ function Ping:update(dt)
         self.vel.y = vy
         self:pong()
         self.bounces = self.bounces - 1
-        -- TODO: maybe bounce instead and have a distance limit? or a bounce limit?
     else
         self:pong()
         self.finished = true

@@ -199,7 +199,6 @@ layouts.title.client = bricks.layout({
                 local input = self:layout():elementWithId("ipAddress")
                 input:validate(true)
                 if input.valid then
-                    -- TODO: try to connect before going to client scene
                     local address = input:value()
                     scene:attemptConnection(address)
                 end

@@ -90,6 +90,7 @@ function Server:setup()
         log:add("Disconection")
         print(data)
         print(client)
+        -- TODO: handle player disconnections
     end)
 
     log:add("Started server.")
@@ -108,6 +109,8 @@ function Server:start()
         log:add("Passive ping (" .. position[1] .. ", " .. position[2] ..").")
         -- TODO: check that this is near enough to the players location
         --       or maybe just use the player's location?
+        -- NOTE: this will hopefully get fixed when the server takes on the responsibilty
+        --       of the player's updates
         self:sendSound(position[1], position[2], Noise.scan)
     end)
 
@@ -120,7 +123,8 @@ function Server:start()
     end)
 
     self.server:on("death", function(playerData, client)
-        -- TODO: do something better
+        -- TODO: Handle player death. Loss state for player. 
+        --       Possibly a win state if only one player left
         self.players[client] = nil
     end)
 
@@ -182,6 +186,7 @@ function Server:movePlayer(client, dx, dy)
         local oldY = player.pos.y - player.lastMove.y
         if not self.level:isPassable(oldX, oldY) then
             -- something has gone wrong. cheating?
+            client:send("crash", { oldX - dx, oldY - dy })
         else
             -- TODO: work out crash message 
             --     new position of player (where it was before move), 
