@@ -125,7 +125,7 @@ function Server:start()
     end)
 
     self.server:on("torpedo", function(torpedoData, client)
-        local torpedo = Torpedo.new(unpack(torpedoData))
+        local torpedo = Torpedo.new(client, unpack(torpedoData))
         table.insert(self.missiles, torpedo)
     end)
 
@@ -138,7 +138,6 @@ function Server:addPlayer(client)
     if self.started then
         client:send("underway")
         client:disconnectLater()
-        -- reply saying game underway :(
         return
     end
     client:send("joined", {x, y})

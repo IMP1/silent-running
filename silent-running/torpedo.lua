@@ -5,13 +5,14 @@ local Torpedo = {
 }
 Torpedo.__index = Torpedo
 
-function Torpedo.new(x, y, direction)
+function Torpedo.new(owner, x, y, direction)
     local this = {}
     setmetatable(this, Torpedo)
     this.finished = false
-    this.pos = { x = x, y = y }
-    this.vel = { x = Torpedo.SPEED * direction, y = 0 }
+    this.pos      = { x = x, y = y }
+    this.vel      = { x = Torpedo.SPEED * direction, y = 0 }
     this.lastMove = { x = 0, y = 0 }
+    this.owner    = owner
     return this
 end
 
