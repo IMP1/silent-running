@@ -11,7 +11,7 @@ function Ping.new(x, y, vx, vy)
     this.pos      = { x = x, y = y }
     this.vel      = { x = vx, y = vy }
     this.lastMove = { x = 0, y = 0 }
-    this.bounces  = 2
+    this.bounces  = 5
     return this
 end
 
