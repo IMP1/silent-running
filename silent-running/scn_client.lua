@@ -26,7 +26,7 @@ setmetatable(Client, SceneBase)
 Client.__index = Client
 
 function Client.new(address, port)
-    local this = {}
+    local this = SceneBase.new("server")
     setmetatable(this, Client)
     this.client = sock.newClient(address, port or DEFAULT_PORT)
     this:setup()
@@ -93,6 +93,15 @@ function Client:start()
         table.insert(self.sounds, pong)
     end)
 
+    self.client:on("player-update", function(playerData)
+        self.player.pos.x = playerData[1]
+        self.player.pos.y = playerData[2]
+        self.player.vel.x = playerData[3]
+        self.player.vel.y = playerData[4]
+        self.player.cooldowns.passivePing = playerData[5]
+        self.player.cooldowns.torpedo     = playerData[6]
+    end)
+
     self.client:on("crash", function(crashData)
         log:add("Recieved crash (" .. crashData[1] .. ", " .. crashData[2] .. ") from server.")
         self.player:crash(unpack(crashData))
@@ -126,9 +135,12 @@ function Client:keypressed(key, isRepeat)
     if not self.started then return end
     if key == "space" then
         self.player.isSilentRunning = not self.player.isSilentRunning
+        self.client:send("silent-running", {self.player.isSilentRunning})
     end
     if key == "t" then
+        self.client:send("change-weapon", {"torpedo"})
         self.player:changeWeapon("torpedo")
+        self:resetCooldown(player.currentWeapon)
     end
 end
 
@@ -140,10 +152,10 @@ function Client:mousepressed(mx, my, key)
         local y = self.player.pos.y
         local dx = wx - x
         local dy = wy - y
-        self.player:fireWeapon(dx, dy)
-        print("pew pew")
+        self.client:send("fire-weapon", {dx, dy})
+        self:resetCooldown(player.currentWeapon)
     end
-    if self.player.isSilentRunning and key == 1 then
+    if key == 1 then
         local x = self.player.pos.x
         local y = self.player.pos.y
         local dx = wx - x
@@ -163,18 +175,38 @@ end
 function Client:update(dt)
     self.client:update()
     if not self.started then return end
-    self.player:update(dt)
-    self.client:send("move", {self.player.lastMove.x, self.player.lastMove.y})
-    self.camera:move(self.player.lastMove.x, self.player.lastMove.y)
+
+    local dx, dy = 0, 0
+    if love.keyboard.isDown(settings.controls.moveUp) then
+        dy = dy - Player.ACCELLERATION ^ dt
+    end
+    if love.keyboard.isDown(settings.controls.moveLeft) then
+        dx = dx - Player.ACCELLERATION ^ dt
+    end
+    if love.keyboard.isDown(settings.controls.moveDown) then
+        dy = dy + Player.ACCELLERATION ^ dt
+    end
+    if love.keyboard.isDown(settings.controls.moveRight) then
+        dx = dx + Player.ACCELLERATION ^ dt
+    end
+    local brake = love.keyboard.isDown(settings.controls.brake)
+    self.client:send("move", {dx, dy, brake})
+
+    self.player:input(dx, dy)
+    self.player:simulate(dt)
+    self.camera:centreOn(self.player.pos.x, self.player.pos.y)
+
     if self.screen then
         self.screen:update(dt)
     end
+
     if self.sounds then
         for i = #self.sounds, 1, -1 do
             self.sounds[i]:update(dt)
-            if self.sounds[i].opacity == 0 then
-                -- TODO: make sure this is happening (have count of pong ghosts on debugging text)
+            if self.sounds[i].opacity <= 0 then
                 table.remove(self.sounds, i)
+                -- TODO: make sure this is happening (have count of pong ghosts on debugging text)
+                print("removing pong ghost")
             end
         end
     end

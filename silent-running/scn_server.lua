@@ -39,16 +39,17 @@ function findClientIPAddress()
         end
     end
     
-    body, status, content = http.request(getipScriptURL)
-    if status >= 200 and status < 300 then
-        return body
-    else
-        return nil
-    end
+    return "0.0.0.0"
+    -- local body, status, content = http.request(getipScriptURL)
+    -- if status >= 200 and status < 300 then
+    --     return body
+    -- else
+    --     return nil
+    -- end
 end
 
 function Server.new(port)
-    local this = {}
+    local this = SceneBase.new("server")
     setmetatable(this, Server)
     this.port = port or DEFAULT_PORT
     this:setup()
@@ -101,36 +102,31 @@ function Server:start()
     self.started = true
 
     self.server:on("active-ping", function(kinematicState, client)
-        local newPing = Ping.new(unpack(kinematicState))
-        table.insert(self.activePings, newPing)
+        local player = self.players[client]
+        if player.isSilentRunning then
+            local newPing = Ping.new(unpack(kinematicState))
+            table.insert(self.activePings, newPing)
+        end
     end)
 
-    self.server:on("passive-ping", function(position, client)
-        log:add("Passive ping (" .. position[1] .. ", " .. position[2] ..").")
-        -- TODO: check that this is near enough to the players location
-        --       or maybe just use the player's location?
-        -- NOTE: this will hopefully get fixed when the server takes on the responsibilty
-        --       of the player's updates
-        self:sendSound(position[1], position[2], Noise.scan)
+    self.server:on("change-weapon", function(weaponData, client) 
+        local player = self.players[client]
+        player:changeWeapon(unpack(weaponData))
+    end)
+
+    self.server:on("fire-weapon", function(directionData, client)
+        local player = self.players[client]
+        player:fireWeapon(unpack(directionData))
+    end)
+
+    self.server:on("silent-running", function(data, client) 
+        local player = self.players[client]
+        player.isSilentRunning = data[1]
     end)
 
     self.server:on("move", function(offset, client)
-        self:movePlayer(client, unpack(offset))
-    end)
-
-    self.server:on("noise", function(noiseData, client)
-        self:sendSound(noiseData[1], noiseData[2], Noise.general, noiseData[3])
-    end)
-
-    self.server:on("death", function(playerData, client)
-        -- TODO: Handle player death. Loss state for player. 
-        --       Possibly a win state if only one player left
-        self.players[client] = nil
-    end)
-
-    self.server:on("torpedo", function(torpedoData, client)
-        local torpedo = Torpedo.new(client, unpack(torpedoData))
-        table.insert(self.missiles, torpedo)
+        local player = self.players[client]
+        self:updatePlayer(player, unpack(offset))
     end)
 
     self.server:sendToAll("begin")
@@ -158,6 +154,10 @@ function Server:addPlayer(client)
     log:add("Added new player.")
 end
 
+function Server:sendPing(x, y)
+    self:sendSound(x, y, Noise.scan)
+end
+
 function Server:sendSound(x, y, soundType, sizeScale)
     local size         = soundType.RADIUS * (sizeScale or 1)
     local imageData    = scene.level:getImageData(x, y, size)
@@ -178,22 +178,20 @@ function Server:sendSound(x, y, soundType, sizeScale)
     self.server:sendToAll("sound", noiseData)
 end
 
-function Server:movePlayer(client, dx, dy)
-    local player = self.players[client]
-    player:move(dx, dy)
-    if not self.level:isPassable(player.pos.x, player.pos.y, player) then
-        local oldX = player.pos.x - player.lastMove.x
-        local oldY = player.pos.y - player.lastMove.y
-        if not self.level:isPassable(oldX, oldY) then
-            -- something has gone wrong. cheating?
-            client:send("crash", { oldX - dx, oldY - dy })
-        else
-            -- TODO: work out crash message 
-            --     new position of player (where it was before move), 
-            --     damage (function of velocity)
-            client:send("crash", { oldX, oldY })
+function Server:updatePlayer(player, dx, dy, braking)
+    player:input(dx, dy, braking)
+end
+
+function Server:removePlayer(player)
+    local client
+    for c, p in pairs(self.players) do
+        if p == player then
+            client = c
         end
     end
+    client:send("death", {self.pos.x, self.pos.y})
+    self.players[client] = nil
+    -- TODO: test this out and posisbly handle this better.
 end
 
 function Server:hideCommands()
@@ -230,20 +228,7 @@ function Server:update(dt)
     self.info:update(dt, mx, my)
 
     if self.started then
-        self.timer = self.timer + dt
-
-        for i = #self.activePings, 1, -1 do
-            self.activePings[i]:update(dt)
-            if self.activePings[i].finished then
-                table.remove(self.activePings, i)
-            end
-        end
-        for i = #self.missiles, 1, -1 do
-            self.missiles[i]:update(dt)
-            if self.missiles[i].finished then
-                table.remove(self.missiles, i)
-            end
-        end
+        self:updateGame(dt, mx, my)
     end
 
     local dx, dy = 0, 0
@@ -260,6 +245,46 @@ function Server:update(dt)
         dx = dx + 128 * dt
     end
     self.camera:move(dx, dy)
+end
+
+function Server:updateGame(dt, mx, my)
+    self.timer = self.timer + dt
+
+    for i = #self.activePings, 1, -1 do
+        self.activePings[i]:update(dt)
+        if self.activePings[i].finished then
+            table.remove(self.activePings, i)
+        end
+    end
+    for i = #self.missiles, 1, -1 do
+        self.missiles[i]:update(dt)
+        if self.missiles[i].finished then
+            table.remove(self.missiles, i)
+        end
+    end
+    for client, player in pairs(self.players) do
+        player:update(dt)
+        if not self.level:isPassable(player.pos.x, player.pos.y, player) then
+            local oldX = player.pos.x - player.lastMove.x
+            local oldY = player.pos.y - player.lastMove.y
+            if not self.level:isPassable(oldX, oldY) then
+                -- something has gone wrong. cheating?
+                client:send("crash", { oldX - dx, oldY - dy })
+            else
+                -- TODO: work out crash message 
+                --     new position of player (where it was before move), 
+                --     damage (function of velocity)
+                client:send("crash", { oldX, oldY })
+            end
+        end
+        local state = {
+            player.pos.x, player.pos.y, 
+            player.vel.x, player.vel.y,
+            player.cooldowns.passivePing,
+            player.cooldowns.torpedo,
+        }
+        client:send("player-update", state)
+    end
 end
 
 function Server:draw()
