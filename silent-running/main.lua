@@ -7,9 +7,8 @@ DEBUG = {
 -- Libraries --
 ---------------
 require 'helpers.functional'
-require 'helpers.coroutine'
 
-local tlo    = require 'lib.tlo'
+local tlo = require 'lib.tlo'
 
 ---------------
 -- Constants --
