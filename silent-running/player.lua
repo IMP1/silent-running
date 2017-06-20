@@ -1,6 +1,7 @@
 local ROOT_2 = math.sqrt(2)
 
-local Noise = require 'noise'
+local Noise   = require 'noise'
+local Torpedo = require 'torpedo'
 
 local Player = {}
 Player.__index = Player
