@@ -104,7 +104,14 @@ function Client:start()
 
     self.client:on("crash", function(crashData)
         log:add("Recieved crash (" .. crashData[1] .. ", " .. crashData[2] .. ") from server.")
-        self.player:crash(unpack(crashData))
+
+        self.player.pos.x = crashData[1]
+        self.player.pos.y = crashData[2]
+        self.player.vel.x = crashData[4]
+        self.player.vel.y = crashData[5]
+
+        self.player:damage(crashData[3])
+        self.screen:shake(0.5, 8, 0.3) -- TODO: test this and tweak until it feels right - also use damage value?
     end)
 
     self.client:on("sound", function(soundData)

@@ -264,12 +264,12 @@ function Server:updateGame(dt, mx, my)
             local oldY = player.pos.y - player.lastMove.y
             if not self.level:isPassable(oldX, oldY) then
                 -- something has gone wrong. cheating?
-                client:send("crash", { oldX - dx, oldY - dy })
+                player:crash(oldX, oldY, client)
             else
                 -- TODO: work out crash message 
                 --     new position of player (where it was before move), 
                 --     damage (function of velocity)
-                client:send("crash", { oldX, oldY })
+                player:crash(oldX, oldY, client)
             end
         end
         local state = {

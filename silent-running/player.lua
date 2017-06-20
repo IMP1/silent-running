@@ -39,11 +39,6 @@ function Player:input(dx, dy, braking)
     self.vel.x = self.vel.x + dx -- * Player.ACCELLERATION
     self.vel.y = self.vel.y + dy -- * Player.ACCELLERATION
 
-    -- self.pos.x = self.pos.x + dx
-    -- self.pos.y = self.pos.y + dy
-
-    self.lastMove.x = dx
-    self.lastMove.y = dy
     self.isBraking  = braking
 end
 
@@ -69,6 +64,9 @@ function Player:simulate(dt)
 
     self.pos.x = self.pos.x + self.vel.x * dt
     self.pos.y = self.pos.y + self.vel.y * dt
+
+    self.lastMove.x = self.vel.x * dt
+    self.lastMove.y = self.vel.y * dt
 
     self.vel.x = self.vel.x * friction ^ dt
     if math.abs(self.vel.x) < epsilon then
@@ -110,17 +108,17 @@ function Player:fireWeapon(dx, dy)
     end
 end
 
-function Player:crash(x, y)
+function Player:crash(oldX, oldY, client)
     local speed = math.sqrt(self.vel.x * self.vel.x + self.vel.y * self.vel.y)
     local damage = speed
     local loudness = damage * 2
-    self.pos.x = x
-    self.pos.y = y
+    self.pos.x = oldX
+    self.pos.y = oldY
     self.vel.x = -self.vel.x * 0.2
     self.vel.y = -self.vel.y * 0.2
     self:damage(damage)
     scene:sendSound(self.pos.x, self.pos.y, Noise.general, loudness)
-    scene.screen:shake(0.5, 8, 0.3) -- TODO: test this and tweak until it feels right
+    client:send("crash", {oldX, oldY, damage, self.vel.x, self.vel.y})
 end
 
 function Player:damage(damage, impactX, impactY)
