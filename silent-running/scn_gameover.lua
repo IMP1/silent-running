@@ -42,9 +42,10 @@ function GameOver:mousereleased(...)
 end
 
 function GameOver:update(dt)
-
+    local mx, my = love.mouse.getPosition()
+    self.layout:update(dt, mx, my)
 end
 
 function GameOver:draw()
-
+    self.layout:draw()
 end
