@@ -23,11 +23,13 @@ function Scene:fadeOut(duration, onfinish, fadeMusic, colour)
     self.fade.colour    = colour   or {0, 0, 0}
     self.fade.duration  = duration or 0.5
     self.fade.onfinish  = onfinish or nil
-    if fadeMusic then
+    if fadeMusic and self.music then
         self.fade.music = {
-            -- TODO: fade music
-            -- volume = bgm:getVolume(),
+            volumes = {}
         }
+        for _, track in pairs(self.music.tracks) do
+            self.fade.music.volumes[track] = track:getVolume()
+        end
     end
     self.fade.timer     = duration
     self.fade.oldUpdate = self.update
@@ -43,17 +45,19 @@ function Scene:fadeOut(duration, onfinish, fadeMusic, colour)
             end
         end
         if self.fade.music then
-            -- TODO: fade music
-            --bgm:setVolume( self.fade.music.volume * self.fade.timer / self.fade.duration )
+            for track, volume in pairs(self.fade.music.volumes) do
+                track:setVolume(volume * self.fade.timer / self.fade.duration)
+            end
         end
     end
     self.draw = function(self, ...)
         self.fade.oldDraw(self)
         local r, g, b = unpack(self.fade.colour)
         local a = 255 - math.floor(255 * self.fade.timer / self.fade.duration)
+        local oldColour = { love.graphics.getColor() }
         love.graphics.setColor(r, g, b, a)
         love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
-        -- TODO: go back to old colour
+        love.graphics.setColor(unpack(oldColour))
     end
 end
 
@@ -65,9 +69,11 @@ function Scene:fadeIn(duraction, onfinish, fadeMusic, colour)
     self.fade.onfinish  = onfinish
     if fadeMusic then
         self.fade.music = {
-            -- TODO: fade music
-            -- volume = bgm:getVolume(),
+            volumes = {}
         }
+        for _, track in pairs(self.music.tracks) do
+            self.fade.music.volumes[track] = track:getVolume()
+        end
     end
     self.fade.timer     = 0
     self.fade.oldUpdate = self.update
@@ -82,17 +88,19 @@ function Scene:fadeIn(duraction, onfinish, fadeMusic, colour)
             self.draw   = self.oldDraw
         end
         if self.fade.music then
-            -- TODO: fade music
-            --bgm:setVolume( self.fade.music.volume * self.fade.timer / self.fade.duration )
+            for track, volume in pairs(self.fade.music.volumes) do
+                track:setVolume(volume * self.fade.timer / self.fade.duration)
+            end
         end
     end
     self.draw = function(self)
         self.fade.oldDraw(self)
         local r, g, b = unpack(self.fade.colour)
         local a = 255 - math.floor(255 * self.fade.timer / self.fade.duration)
+        local oldColour = { love.graphics.getColor() }
         love.graphics.setColor( r, g, b, a )
         love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
-        -- TODO: go back to old colour
+        love.graphics.setColor(unpack(oldColour))
     end
 end
 
