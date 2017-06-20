@@ -13,10 +13,6 @@ function Scene.new(name)
     return this
 end
 
-function Scene:update(dt, mx, my)
-
-end
-
 function Scene:fadeOut(duration, onfinish, fadeMusic, colour)
     if fadeMusic == nil then fadeMusic = true end
     self.fade = {}
@@ -102,10 +98,6 @@ function Scene:fadeIn(duraction, onfinish, fadeMusic, colour)
         love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
         love.graphics.setColor(unpack(oldColour))
     end
-end
-
-function Scene:draw()
-
 end
 
 return Scene
