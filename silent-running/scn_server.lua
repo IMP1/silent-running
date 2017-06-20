@@ -26,26 +26,19 @@ local Server = {}
 setmetatable(Server, SceneBase)
 Server.__index = Server
  
-function findClientIPAddress()
+function findExternalIPAddress()
     local http = require("socket.http")
 
-    local getipScriptURL = "http://myip.dnsomatic.com/"  --php script on my server
-    local DeviceIP
-    
-    function ipListener(event)
-        if not event.isError and event.response ~= "" then
-            DeviceIP = event.response 
-            print("DeviceIP:"..DeviceIP)
-        end
-    end
-    
-    return "0.0.0.0"
-    -- local body, status, content = http.request(getipScriptURL)
+    -- local body, status, content = http.request("http://myip.dnsomatic.com/")
+    -- print(body, status, content)
+
     -- if status >= 200 and status < 300 then
     --     return body
     -- else
     --     return nil
     -- end
+
+    return "0.0.0.0"
 end
 
 function Server.new(port)
@@ -89,9 +82,7 @@ function Server:setup()
 
     self.server:on("disconnect", function(data, client)
         log:add("Disconection")
-        print(data)
-        print(client)
-        -- TODO: handle player disconnections
+        self:removePlayer(client)
     end)
 
     log:add("Started server.")
@@ -189,8 +180,10 @@ function Server:removePlayer(player)
             client = c
         end
     end
-    client:send("death", {self.pos.x, self.pos.y})
-    self.players[client] = nil
+    if client and self.players[client] then
+        client:send("death")
+        self.players[client] = nil
+    end
     -- TODO: test this out and posisbly handle this better.
 end
 

@@ -124,6 +124,10 @@ function Client:start()
         end
     end)
 
+    self.client:on("death", function()
+        -- TODO: create game over gamestate
+    end)
+
     self.started = true
 end
 
