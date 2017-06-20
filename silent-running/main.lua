@@ -48,12 +48,15 @@ function createDefaultSettings()
     settingsFile:write("        moveRight = \"d\",\n")
     settingsFile:write("        brake     = \"lshift\",\n")
 
-    settingsFile:write("        ping = 2,\n")
-    settingsFile:write("        fireWeapon = 1,\n")
+    settingsFile:write("        ping = 1,\n")
+    settingsFile:write("        fireWeapon = 2,\n")
+
     settingsFile:write("        activateSilentRunning   = \"space\",\n")
     settingsFile:write("        deactivateSilentRunning = \"space\",\n")
 
-    settingsFile:write("        selectTorpedo = \"t\",\n")
+    settingsFile:write("        weapons = {\n")
+    settingsFile:write("            torpedo = \"t\",\n")
+    settingsFile:write("        },\n")
     settingsFile:write("    },\n")
 
     settingsFile:write("    audio = {\n")
@@ -75,12 +78,12 @@ function createDefaultSettings()
 
     progressFile = love.filesystem.newFile("progress")
     progressFile:open('w')
-    progressFile:write("return {")
-    progressFile:write("    stats = {")
-    progressFile:write("        tutorial = {")
-    progressFile:write("        },")
-    progressFile:write("    },")
-    progressFile:write("}")
+    progressFile:write("return {\n")
+    progressFile:write("    stats = {\n")
+    progressFile:write("        tutorial = {\n")
+    progressFile:write("        },\n")
+    progressFile:write("    },\n")
+    progressFile:write("}\n")
     progressFile:close()
 end
 
