@@ -50,7 +50,7 @@ function Server.new(port)
 end
 
 function Server:setup()
-    self.publicIp    = findClientIPAddress()
+    self.publicIp    = findExternalIPAddress()
     self.layouts     = love.filesystem.load("layouts.lua")().server
     self.server      = sock.newServer("*", self.port)
     self.server:setSerialization(bitser.dumps, bitser.loads)
@@ -181,7 +181,9 @@ function Server:removePlayer(player)
         end
     end
     if client and self.players[client] then
+        print("sending death to client")
         client:send("death")
+        print("removing player from list")
         self.players[client] = nil
     end
     -- TODO: test this out and posisbly handle this better.

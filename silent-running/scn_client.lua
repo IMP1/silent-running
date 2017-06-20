@@ -137,29 +137,35 @@ end
 
 function Client:keypressed(key, isRepeat)
     if not self.started then return end
-    if key == "space" then
+
+    local activateSilentRunning = (key == settings.controls.activateSilentRunning and not self.player.isSilentRunning)
+    local deactivateSilentRunning = (key == settings.controls.deactivateSilentRunning and self.player.isSilentRunning)
+    if activateSilentRunning or deactivateSilentRunning then
         self.player.isSilentRunning = not self.player.isSilentRunning
         self.client:send("silent-running", {self.player.isSilentRunning})
     end
-    if key == "t" then
-        self.client:send("change-weapon", {"torpedo"})
-        self.player:changeWeapon("torpedo")
-        self:resetCooldown(player.currentWeapon)
+
+    for weaponName, weaponControl in pairs(settings.controls.weapons) do
+        if key == weaponControl then
+            self.client:send("change-weapon", weaponName)
+            self.player:changeWeapon(weaponName)
+        end
     end
 end
 
 function Client:mousepressed(mx, my, key)
     if not self.started then return end
+
     local wx, wy = self.camera:toWorldPosition(mx, my)
-    if key == 2 then
+    if key == settings.controls.fireWeapon then
         local x = self.player.pos.x
         local y = self.player.pos.y
         local dx = wx - x
         local dy = wy - y
         self.client:send("fire-weapon", {dx, dy})
-        self:resetCooldown(player.currentWeapon)
+        self.player:resetCooldown(self.player.currentWeapon)
     end
-    if key == 1 then
+    if key == settings.controls.ping then
         local x = self.player.pos.x
         local y = self.player.pos.y
         local dx = wx - x
