@@ -31,17 +31,40 @@ function love.load(args)
 end
 
 function createDefaultSettings()
-    settingsFile = love.filesystem.newFile(".settings")
+    settingsFile = love.filesystem.newFile("settings")
     settingsFile:open('w')
-    settingsFile:write("return {")
-    settingsFile:write("    graphics = {")
-    settingsFile:write("        resolution = { 960, 640 },")
-    settingsFile:write("        vsync = true,")
-    settingsFile:write("        fullscreen = 0,")
+    settingsFile:write("return {\n")
+    settingsFile:write("    graphics = {\n")
+    settingsFile:write("        resolution = { 960, 640 },\n")
+    settingsFile:write("        vsync = true,\n")
+    settingsFile:write("        fullscreen = 0,\n")
     -- TODO: add colour blind settings
-    settingsFile:write("    },")
-    settingsFile:write("    language = \"en-UK\",")
-    settingsFile:write("}")
+
+    settingsFile:write("    },\n")
+    settingsFile:write("    controls = {\n")
+    settingsFile:write("        moveUp    = \"w\",\n")
+    settingsFile:write("        moveLeft  = \"a\",\n")
+    settingsFile:write("        moveDown  = \"s\",\n")
+    settingsFile:write("        moveRight = \"d\",\n")
+    settingsFile:write("        brake     = \"lshift\",\n")
+
+    settingsFile:write("        ping = 2,\n")
+    settingsFile:write("        fireWeapon = 1,\n")
+    settingsFile:write("        activateSilentRunning   = \"space\",\n")
+    settingsFile:write("        deactivateSilentRunning = \"space\",\n")
+
+    settingsFile:write("        selectTorpedo = \"t\",\n")
+    settingsFile:write("    },\n")
+
+    settingsFile:write("    audio = {\n")
+    settingsFile:write("        musicVolume     = 1,\n")
+    settingsFile:write("        effectsVolume   = 1,\n")
+    settingsFile:write("        ambientVolume   = 1,\n")
+    settingsFile:write("        interfaceVolume = 1,\n")
+    settingsFile:write("    },\n")
+
+    settingsFile:write("    language = \"en-UK\",\n")
+    settingsFile:write("}\n")
     settingsFile:close()
     
     love.filesystem.createDirectory("lang")
@@ -62,12 +85,12 @@ function createDefaultSettings()
 end
 
 function applySettings()
-    if not love.filesystem.exists(".settings") then
+    if not love.filesystem.exists("settings") then
         createDefaultSettings()
     end
     tlo.setLanguagesFolder("lang")
 
-    local settings = love.filesystem.load(".settings")()
+    settings = love.filesystem.load("settings")()
     if settings.graphics then
         local width  = settings.graphics.resolution[1] or 800
         local height = settings.graphics.resolution[2] or 600
