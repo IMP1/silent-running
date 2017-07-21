@@ -27,18 +27,26 @@ setmetatable(Server, SceneBase)
 Server.__index = Server
  
 function findExternalIPAddress()
-    local http = require("socket.http")
+    local socket = require 'socket'
+    local http   = require 'socket.http'
+    local ltn12  = require 'ltn12'
 
-    -- local body, status, content = http.request("http://myip.dnsomatic.com/")
-    -- print(body, status, content)
+    local t = {}
+    response = http.request({
+        url = "http://myip.dnsomatic.com/", 
+        create = function()
+            local req_sock = socket.tcp()
+            req_sock:settimeout(5)
+            return req_sock
+        end,
+        sink = ltn12.sink.table(t)
+    })
 
-    -- if status >= 200 and status < 300 then
-    --     return body
-    -- else
-    --     return nil
-    -- end
-
-    return "0.0.0.0"
+    if response == 1 then
+        return table.concat(t)
+    else
+        return "0.0.0.0"
+    end
 end
 
 function Server.new(port)
